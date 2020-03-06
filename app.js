@@ -8,7 +8,7 @@ const app = express();
 const userRouter = require('./routes/userRoutes');
 
 //utils
-const appError = require('./utils/appError');
+const AppError = require('./utils/appError');
 
 // 1) MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
@@ -27,7 +27,7 @@ app.use('/api/v1/users', userRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {
-  const error = new appError("This route can't be found", 404);
+  const error = new AppError("This route can't be found", 404);
   next(error);
 });
 
