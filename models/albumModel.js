@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-//external ids, external urls,images,type
+const imageObject = require('./objects/imageObject');
+//external ids, external urls,type
 const albumSchema = new mongoose.Schema({
   album_type: {
     type: String,
@@ -18,6 +19,12 @@ const albumSchema = new mongoose.Schema({
   genres: [
     {
       type: String
+    }
+  ],
+  images: [
+    {
+      type: new mongoose.Schema(imageObject),
+      required: true
     }
   ],
   href: String,
