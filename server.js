@@ -14,7 +14,7 @@ const DB = process.env.DATABASE.replace(
 );
 
 mongoose
-  .connect(DB, {
+  .connect(process.env.DATABASE_LOCAL, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false
@@ -31,10 +31,10 @@ process.on('unhandledRejection', err => {
   console.log(err);
   server.close(() => {
     process.exit(1);
-  })
+  });
 });
 
-process.on("uncaughtException", err => {
+process.on('uncaughtException', err => {
   console.log(err);
   server.close(() => {
     process.exit(1);

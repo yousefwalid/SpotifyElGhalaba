@@ -20,7 +20,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // 404, route not found
 app.use('*', (req, res, next) => {
   const error = new appError("This route can't be found", 404);
