@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const imageObject = require('./objects/imageObject');
 const followersObject = require('./objects/followersObject');
-
+const currentlyPlayingObject = require("./objects/currentlyPlayingObject");
+const deviceObject = require('./objects/deviceObject');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -55,7 +56,10 @@ const userSchema = new mongoose.Schema({
   image: imageObject,
   passwordChangedAt: Date,
   passwordResetToken: String,
-  passwordResetExpiresAt: Date
+  passwordResetExpiresAt: Date,
+  //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
+  currentlyPlaying: currentlyPlayingObject,
+  devices: [deviceObject]
 });
 
 const User = mongoose.model('User', userSchema);
