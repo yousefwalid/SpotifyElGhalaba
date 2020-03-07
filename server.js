@@ -8,6 +8,7 @@ dotenv.config({
 const app = require('./app');
 
 // remote database credentials
+
 // const DB = process.env.DATABASE.replace(
 //   '<PASSWORD>',
 //   process.env.DATABASE_PASSWORD
@@ -19,7 +20,8 @@ mongoose
     useCreateIndex: true,
     useFindAndModify: false
   })
-  .then(() => console.log('DB connection successful!')).catch(err => console.log(err));
+  .then(() => console.log('DB connection successful!'))
+  .catch(err => console.log(err));
 
 const port = process.env.PORT || 3000;
 

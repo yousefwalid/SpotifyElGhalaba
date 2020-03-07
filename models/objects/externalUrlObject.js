@@ -1,3 +1,3 @@
-const ExternalUrlObject = Object;
+const ExternalUrlObject = {};
 
 module.exports = ExternalUrlObject;

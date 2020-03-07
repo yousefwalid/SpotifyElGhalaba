@@ -24,7 +24,7 @@ const albumSchema = new mongoose.Schema({
   ],
   images: [
     {
-      type: new mongoose.Schema(imageObject),
+      type: imageObject,
       required: true
     }
   ],

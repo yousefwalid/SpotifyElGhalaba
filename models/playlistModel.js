@@ -15,7 +15,7 @@ const playlistSchema = new mongoose.Schema({
   },
   images: {
     // Array of images of the playlist
-    type: Array[ImageObject],
+    type: [ImageObject],
     validate: {
       // A playlist can have up to 4 images
       // They must be of different albums and are sorted from greater to smaller
