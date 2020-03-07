@@ -1,52 +1,52 @@
-const mongoose = require("mongoose");
-// const ExternalIdSchema = require("./externalUrlObject");
-// const ExternalUrlSchema = require("./externalIdObject");
+const mongoose = require('mongoose');
+// const ExternalIdObject = require("./objects/externalIdObject");
+const ExternalUrlObject = require('./objects/externalUrlObject');
 
 const trackSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "A track must have a name."]
+      required: [true, 'A track must have a name.']
     },
-    // album: {
-    //   type: mongoose.Schema.ObjectId,
-    //   ref: "Album",
-    //   required: [true, "A track must have an album reference."]
-    // },
-    // artists: {
-    //   type: [
-    //     {
-    //       type: mongoose.Schema.ObjectId,
-    //       ref: "Artist"
-    //     }
-    //   ],
-    //   required: [true, "A track must have at least one artist reference"]
-    // },
+    album: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Album',
+      required: [true, 'A track must have an album reference.']
+    },
+    artists: {
+      type: [
+        {
+          type: mongoose.Schema.ObjectId,
+          ref: 'Artist'
+        }
+      ],
+      required: [true, 'A track must have at least one artist reference']
+    },
     disc_number: {
       type: Number,
       default: 1,
-      min: [1, "disc_number min value is 1"]
+      min: [1, 'disc_number min value is 1']
     },
     duration_ms: {
       type: Number,
-      min: [0, "duration min value is 1ms"]
+      min: [0, 'duration min value is 1ms']
     },
     explicit: {
       type: Boolean
     },
     //   external_ids: {
-    //     type: [ExternalIdSchema]
+    //     type: [ExternalIdObject]
     //   },
-    //   external_urls: {
-    //     type: [ExternalUrlSchema]
-    //   },
+    external_urls: {
+      type: [ExternalUrlObject]
+    },
     href: {
       type: String
     },
     is_playable: {
       type: Boolean
     },
-    //TODO: I have no idea what are these properties
+    //TODO: I have no idea what these properties are
     // linked_from: {
     //   type: mongoose.Schema.ObjectId,
     //   ref: "TrackLink"
@@ -63,7 +63,7 @@ const trackSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      default: "track"
+      default: 'track'
     }
   },
 
@@ -73,11 +73,11 @@ const trackSchema = new mongoose.Schema(
   }
 );
 
-const URI = trackSchema.virtual("uri");
+const URI = trackSchema.virtual('uri');
 URI.get(function() {
   return `spotify:track:${this._id}`;
 });
 
-const Track = mongoose.model("Track", trackSchema);
+const Track = mongoose.model('Track', trackSchema);
 
 module.exports = Track;

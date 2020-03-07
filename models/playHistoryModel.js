@@ -1,18 +1,18 @@
-const mongoose = require("mongoose");
-const contextSchema = require("./contextObject");
+const mongoose = require('mongoose');
+const ContextObject = require('./objects/contextObject');
 
 const playHistorySchema = new mongoose.Schema(
   {
     track: {
       type: mongoose.Schema.ObjectId,
-      ref: "Track",
-      required: [true, "A playHistory must have a Track reference."]
+      ref: 'Track',
+      required: [true, 'A playHistory must have a Track reference.']
     },
     played_at: {
       type: Date,
-      required: [true, "A play history must have a played_at timestamp"]
+      required: [true, 'A play history must have a played_at timestamp']
     },
-    context: contextSchema
+    context: ContextObject
   },
 
   {
@@ -21,20 +21,6 @@ const playHistorySchema = new mongoose.Schema(
   }
 );
 
-const PlayHistory = mongoose.model("PlayHistory", playHistorySchema);
+const PlayHistory = mongoose.model('PlayHistory', playHistorySchema);
 
 module.exports = PlayHistory;
-
-// //e.g: How to embed docs
-// const track = await Track.findOne({ name: "track1" });
-
-//   context = {
-//     type: "track",
-//     href: "localhost:8000/api/v1/tracks/:track_id"
-//   };
-
-//   await PlayHistory.create({
-//     track,
-//     played_at: Date.now(),
-//     context
-//   });
