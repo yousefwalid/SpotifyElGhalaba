@@ -1,8 +1,8 @@
-// pconst crypto = require("crypto");
 const mongoose = require('mongoose');
 const validator = require('validator');
-const ImageObject = require('./objects/imageObject');
-// const bcrypt = require('bcryptjs');
+const imageObject = require('./objects/imageObject');
+const followersObject = require('./objects/followersObject');
+
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
     enum: ['free', 'premium'],
     default: 'free'
   },
+  followers: followersObject,
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -45,16 +46,13 @@ const userSchema = new mongoose.Schema({
     select: false,
     validate: {
       // this only works on SAVE and CREATE not UPDATE
-      validator: function(el) {
+      validator: function (el) {
         return el === this.password;
       },
       message: 'Passwords are not the same'
     }
   },
-  image: {
-    type: ImageObject,
-    required: true
-  },
+  image: imageObject,
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpiresAt: Date
