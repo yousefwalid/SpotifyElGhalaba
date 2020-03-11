@@ -1,10 +1,19 @@
-const followersObject = {
+const mongoose = require('mongoose');
+
+const FollowersObject = new mongoose.Schema(
+  {
     href: {
-        type: String
+      type: String
     },
     total: {
-        type: Number
+      type: Number
     }
-};
+  },
+  {
+    _id: false,
+    id: false,
+    __v: false
+  }
+);
 
-module.exports = followersObject;
+module.exports = FollowersObject;

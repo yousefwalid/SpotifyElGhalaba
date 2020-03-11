@@ -45,12 +45,13 @@ const artistSchema = new mongoose.Schema(
 
 artistSchema.plugin(idValidator, { message: 'Bad ID value for {PATH}' });
 artistSchema.pre();
-artistSchema.virtual('popularity').get(function() {
-  // To be implemented
-  // value of the popularity of the artist
-  // calculated from the popularity of the artist's tracks
-  // takes values from 0 to 100
-});
+
+// artistSchema.virtual('popularity').get(function() {
+// To be implemented
+// value of the popularity of the artist
+// calculated from the popularity of the artist's tracks
+// takes values from 0 to 100
+// });
 
 //Can be retrieved from the userInfo ==> populate
 // artistSchema.virtual('type').get(function() {

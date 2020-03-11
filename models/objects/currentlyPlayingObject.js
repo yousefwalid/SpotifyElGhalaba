@@ -1,13 +1,20 @@
-const mongoose = require("mongoose");
-const deviceObject = require("./deviceObject");
+const mongoose = require('mongoose');
+const DeviceObject = require('./deviceObject');
 
-const currentlyPlayingObject = {
+const CurrentlyPlayingObject = new mongoose.Schema(
+  {
     track: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Track'
+      type: mongoose.Schema.ObjectId,
+      ref: 'Track'
     },
     time: Number, //number of seconds from the begining of the song
-    device: deviceObject
-};
+    device: DeviceObject
+  },
+  {
+    _id: false,
+    id: false,
+    __v: false
+  }
+);
 
-module.exports = currentlyPlayingObject;
+module.exports = CurrentlyPlayingObject;

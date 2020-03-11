@@ -79,6 +79,17 @@ const createAndSendToken = (user, statusCode, res) => {
   });
 };
 
+/*
+ 
+  ######  ######## ##    ## ########     ##     ##  ######  ######## ########  
+ ##    ## ##       ###   ## ##     ##    ##     ## ##    ## ##       ##     ## 
+ ##       ##       ####  ## ##     ##    ##     ## ##       ##       ##     ## 
+  ######  ######   ## ## ## ##     ##    ##     ##  ######  ######   ########  
+       ## ##       ##  #### ##     ##    ##     ##       ## ##       ##   ##   
+ ##    ## ##       ##   ### ##     ##    ##     ## ##    ## ##       ##    ##  
+  ######  ######## ##    ## ########      #######   ######  ######## ##     ## 
+ 
+*/
 const sendUser = async (user, res) => {
   if (user.type === 'artist') {
     const artist = await Artist.findOne({
@@ -87,17 +98,12 @@ const sendUser = async (user, res) => {
 
     const filteredArtist = filterDoc(
       artist,
-      '_id',
-      'external_urls',
-      'followers',
-      'genres',
-      'images',
-      'userInfo'
+      ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
+      ['uri']
     );
     createAndSendToken(filteredArtist, 200, res);
   } else {
-    const filteredUser = filterDoc(
-      user,
+    const filteredUser = filterDoc(user, [
       '_id',
       'name',
       'email',
@@ -110,7 +116,7 @@ const sendUser = async (user, res) => {
       'country',
       'image',
       'followers'
-    );
+    ]);
     createAndSendToken(filteredUser, 200, res);
   }
 };
