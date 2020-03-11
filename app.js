@@ -1,4 +1,4 @@
-//fundamental libs
+// Fundamental libs
 const express = require('express');
 const morgan = require('morgan');
 const geoip = require('geoip-lite');
@@ -6,10 +6,11 @@ const errorController = require('./controllers/errorController');
 
 const app = express();
 
-//routers
+// Routers
 const userRouter = require('./routes/userRoutes');
+const playlistRouter = require('./routes/playlistRoutes');
 
-//utils
+// Utils
 const AppError = require('./utils/appError');
 
 // 1) MIDDLEWARES
@@ -32,8 +33,10 @@ app.use((req, res, next) => {
   req.geoip = geoip.lookup(req.ip);
   next();
 });
+// 2) ROUTES
 
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/playlists', playlistRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {

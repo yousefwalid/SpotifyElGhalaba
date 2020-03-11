@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const ImageObject = require('./objects/imageObject');
-//external ids, external urls,type
+const imageObject = require('./objects/imageObject');
+const ExternalUrlObject = require('./objects/externalUrlObject');
+
 const albumSchema = new mongoose.Schema({
   album_type: {
     type: String,
@@ -23,11 +24,15 @@ const albumSchema = new mongoose.Schema({
   ],
   images: [
     {
-      type: ImageObject,
+      type: imageObject,
       required: true
     }
   ],
   href: String,
+  external_urls: {
+    // Contains the external URLs for the playlist
+    type: ExternalUrlObject
+  },
   label: String,
   name: {
     type: String,
@@ -50,9 +55,15 @@ const albumSchema = new mongoose.Schema({
       type: mongoose.Schema.ObjectId,
       ref: 'Track'
     }
-  ],
-  uri: String
+  ]
 });
-
+const URI = albumSchema.virtual('uri');
+URI.get(function() {
+  return `spotify:track:${this._id}`;
+});
+const type = albumSchema.virtual('type');
+type.get(function() {
+  return 'album';
+});
 const Album = mongoose.model('Album', albumSchema);
 module.exports = Album;

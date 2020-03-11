@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const FollowersObject = require('./objects/followersObject');
+const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
+const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
 
 const userSchema = new mongoose.Schema(
@@ -116,6 +119,19 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
       select: false
+    },
+    //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
+    currentlyPlaying: {
+      type: CurrentlyPlayingObject,
+      default: null
+    },
+    devices: {
+      type: [DeviceObject],
+      default: null
+    },
+    followers: {
+      type: FollowersObject,
+      default: null
     }
   },
   {

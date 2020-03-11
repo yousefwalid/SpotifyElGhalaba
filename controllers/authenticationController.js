@@ -79,6 +79,42 @@ const createAndSendToken = (user, statusCode, res) => {
   });
 };
 
+const sendUser = async (user, res) => {
+  if (user.type === 'artist') {
+    const artist = await Artist.findOne({
+      userInfo: new ObjectId(user._id)
+    }).populate({ path: 'userInfo' });
+
+    const filteredArtist = filterDoc(
+      artist,
+      '_id',
+      'external_urls',
+      'followers',
+      'genres',
+      'images',
+      'userInfo'
+    );
+    createAndSendToken(filteredArtist, 200, res);
+  } else {
+    const filteredUser = filterDoc(
+      user,
+      '_id',
+      'name',
+      'email',
+      'gender',
+      'birthday',
+      'birthmonth',
+      'birthyear',
+      'type',
+      'product',
+      'country',
+      'image',
+      'followers'
+    );
+    createAndSendToken(filteredUser, 200, res);
+  }
+};
+
 /*
  ########   #######  ##     ## ######## ########    ##     ##    ###    ##    ## ########  ##       ######## ########   ######  
  ##     ## ##     ## ##     ##    ##    ##          ##     ##   ## ##   ###   ## ##     ## ##       ##       ##     ## ##    ## 
@@ -117,41 +153,15 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
   if (req.body.type === 'artist') {
     try {
-      let newArtist = await Artist.create({
+      await Artist.create({
         userInfo: newUser._id
       });
-      newArtist = await Artist.populate(newArtist, { path: 'userInfo' });
-      const filteredArtist = filterDoc(
-        newArtist,
-        '_id',
-        'external_urls',
-        'followers',
-        'genres',
-        'images',
-        'userInfo'
-      );
-      createAndSendToken(filteredArtist, 201, res);
     } catch (err) {
       await User.findOneAndDelete({ _id: newUser._id });
       return next(err);
     }
-  } else {
-    const filteredUser = filterDoc(
-      newUser,
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthday',
-      'birthmonth',
-      'birthyear',
-      'type',
-      'product',
-      'country',
-      'image'
-    );
-    createAndSendToken(filteredUser, 201, res);
   }
+  sendUser(newUser, res);
 });
 
 /*
@@ -180,38 +190,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 400));
   }
 
-  if (user.type === 'artist') {
-    const artist = await Artist.findOne({
-      userInfo: new ObjectId(user._id)
-    }).populate({ path: 'userInfo' });
-
-    const filteredArtist = filterDoc(
-      artist,
-      '_id',
-      'external_urls',
-      'followers',
-      'genres',
-      'images',
-      'userInfo'
-    );
-    createAndSendToken(filteredArtist, 200, res);
-  } else {
-    const filteredUser = filterDoc(
-      user,
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthday',
-      'birthmonth',
-      'birthyear',
-      'type',
-      'product',
-      'country',
-      'image'
-    );
-    createAndSendToken(filteredUser, 200, res);
-  }
+  sendUser(user, res);
 });
 
 /*
@@ -307,7 +286,7 @@ exports.restrictTo = (...roles) => {
  
 */
 
-exports.userAuthentication = Model => {
+exports.userAuthorization = Model => {
   return catchAsync(async (req, res, next) => {
     const doc = await Model.findById(req.params.id);
     if (!doc) return next(new AppError('No document found with that ID', 401));
@@ -402,38 +381,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpiresAt = undefined;
   await user.save();
 
-  if (user.type === 'artist') {
-    const artist = await Artist.findOne({
-      userInfo: new ObjectId(user._id)
-    }).populate({ path: 'userInfo' });
-
-    const filteredArtist = filterDoc(
-      artist,
-      '_id',
-      'external_urls',
-      'followers',
-      'genres',
-      'images',
-      'userInfo'
-    );
-    createAndSendToken(filteredArtist, 200, res);
-  } else {
-    const filteredUser = filterDoc(
-      user,
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthday',
-      'birthmonth',
-      'birthyear',
-      'type',
-      'product',
-      'country',
-      'image'
-    );
-    createAndSendToken(filteredUser, 200, res);
-  }
+  sendUser(user, res);
 });
 
 /*
@@ -458,36 +406,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   user.password = req.body.newPassword;
   user.passwordConfirm = req.body.newPasswordConfirm;
   await user.save();
-  if (user.type === 'artist') {
-    const artist = await Artist.findOne({
-      userInfo: new ObjectId(user._id)
-    }).populate({ path: 'userInfo' });
-
-    const filteredArtist = filterDoc(
-      artist,
-      '_id',
-      'external_urls',
-      'followers',
-      'genres',
-      'images',
-      'userInfo'
-    );
-    createAndSendToken(filteredArtist, 200, res);
-  } else {
-    const filteredUser = filterDoc(
-      user,
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthday',
-      'birthmonth',
-      'birthyear',
-      'type',
-      'product',
-      'country',
-      'image'
-    );
-    createAndSendToken(filteredUser, 200, res);
-  }
+  sendUser(user, res);
 });

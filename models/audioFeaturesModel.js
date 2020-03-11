@@ -57,6 +57,9 @@ const audioFeaturesSchema = new mongoose.Schema({
     max: [1, 'valence must be between 0 and 1']
   }
 });
-
+const type = audioFeaturesSchema.virtual('type');
+type.get(function() {
+  return 'audio_features';
+});
 const AudioFeatures = mongoose.model('AudioFeatures', audioFeaturesSchema);
 module.exports = AudioFeatures;
