@@ -1,16 +1,28 @@
+const mongoose = require('mongoose');
 const ExternalUrlObject = require('./externalUrlObject');
 
-const ContextObject = {
-  type: {
-    type: String
+const ContextObject = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      trim: true,
+      required: [true, 'A context object has to have a type.']
+    },
+    href: {
+      type: String,
+      trim: true,
+      required: [true, 'A context object has to have an href.']
+    },
+    external_urls: {
+      type: [ExternalUrlObject]
+    }
   },
-  href: {
-    type: String
-  },
-  external_urls: {
-    type: [ExternalUrlObject]
+  {
+    id: false,
+    _id: false,
+    __v: false
   }
-};
+);
 
 module.exports = ContextObject;
 
