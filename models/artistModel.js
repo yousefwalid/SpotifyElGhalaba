@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const idValidator = require('mongoose-id-validator');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 const ImageObject = require('./objects/imageObject');
+const FollowersObject = require('./objects/followersObject');
 
 const artistSchema = new mongoose.Schema(
   {
@@ -13,12 +14,7 @@ const artistSchema = new mongoose.Schema(
     },
     followers: {
       // Array of user ids following this artist account
-      type: [
-        {
-          type: mongoose.Schema.ObjectId,
-          ref: 'User'
-        }
-      ],
+      type: [FollowersObject],
       default: null
     },
     genres: [

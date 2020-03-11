@@ -1,10 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const User = require('./../models/userModel');
-const Artist = require('./../models/artistModel');
+
 const authenticationController = require('./../controllers/authenticationController');
 // const userController = require('./../controllers/userController');
-const catchAsync = require('./../utils/catchAsync');
 
 const router = express.Router();
 
@@ -53,54 +50,73 @@ router.patch('/updatePassword', authenticationController.updatePassword);
 //   });
 // });
 
-router.post(
-  '/test',
-  catchAsync(async (req, res, next) => {
-    const user = await User.findOne({ email: 'artist@spotify.com' });
+/*
 
-    let artist = await Artist.findOne({
-      userInfo: new mongoose.Types.ObjectId(user._id)
-    });
-    artist = await Artist.findByIdAndUpdate(
-      artist,
-      { $push: { genres: req.body.genres } },
-      {
-        new: true,
-        runValidators: true
-      }
-    );
 
-    // console.log(req.body.image);
-    // const user = await User.findByIdAndUpdate(
-    //   await User.find({ email: 'mohamed.adel_5@yahoo.com' }),
-    //   { image: req.body.image },
-    //   {
-    //     new: true,
-    //     runValidators: true
-    //   }
-    // );
-    // const newUser = await User.create({
-    //   name: req.body.name,
-    //   email: req.body.email,
-    //   password: req.body.password,
-    //   passwordConfirm: req.body.passwordConfirm,
-    //   gender: req.body.gender,
-    //   birthday: req.body.birthday,
-    //   birthmonth: req.body.birthmonth,
-    //   birthyear: req.body.birthyear,
-    //   type: req.body.type,
-    //   product: 'free',
-    //   country: req.geoip.country
-    // });
-    res.status(200).json({
-      status: 'success',
-      data: {
-        // newUser
-        // user
-        artist
-      }
-    });
-  })
-);
+
+
+
+
+
+
+
+
+
+
+*/
+
+// const mongoose = require('mongoose');
+// const User = require('./../models/userModel');
+// const Artist = require('./../models/artistModel');
+// const catchAsync = require('./../utils/catchAsync');
+// router.post(
+//   '/test',
+//   catchAsync(async (req, res, next) => {
+//     const user = await User.findOne({ email: 'artist@spotify.com' });
+
+//     let artist = await Artist.findOne({
+//       userInfo: new mongoose.Types.ObjectId(user._id)
+//     });
+//     artist = await Artist.findByIdAndUpdate(
+//       artist,
+//       { $push: { genres: req.body.genres } },
+//       {
+//         new: true,
+//         runValidators: true
+//       }
+//     );
+
+//     // console.log(req.body.image);
+//     // const user = await User.findByIdAndUpdate(
+//     //   await User.find({ email: 'mohamed.adel_5@yahoo.com' }),
+//     //   { image: req.body.image },
+//     //   {
+//     //     new: true,
+//     //     runValidators: true
+//     //   }
+//     // );
+//     // const newUser = await User.create({
+//     //   name: req.body.name,
+//     //   email: req.body.email,
+//     //   password: req.body.password,
+//     //   passwordConfirm: req.body.passwordConfirm,
+//     //   gender: req.body.gender,
+//     //   birthday: req.body.birthday,
+//     //   birthmonth: req.body.birthmonth,
+//     //   birthyear: req.body.birthyear,
+//     //   type: req.body.type,
+//     //   product: 'free',
+//     //   country: req.geoip.country
+//     // });
+//     res.status(200).json({
+//       status: 'success',
+//       data: {
+//         // newUser
+//         // user
+//         artist
+//       }
+//     });
+//   })
+// );
 
 module.exports = router;
