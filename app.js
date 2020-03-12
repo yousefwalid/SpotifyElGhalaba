@@ -8,6 +8,9 @@ const app = express();
 
 // Routers
 const userRouter = require('./routes/userRoutes');
+const albumRouter = require('./routes/albumRoutes');
+const trackRouter = require('./routes/trackRoutes');
+//utils
 const playlistRouter = require('./routes/playlistRoutes');
 
 // Utils
@@ -36,6 +39,8 @@ app.use((req, res, next) => {
 // 2) ROUTES
 
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/albums', albumRouter);
+app.use('/api/v1/tracks', trackRouter);
 app.use('/api/v1/playlists', playlistRouter);
 
 // 404, route not found
