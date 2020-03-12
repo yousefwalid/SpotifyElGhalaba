@@ -11,7 +11,7 @@ const handleDuplicateFields = err => {
   return new AppError(message, 400);
 };
 const handleValidationErrorDB = err => {
-  const errors = Object.values(err.errors).map(el => el.message); //Object.values(obj) returns an array of the object values check https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Object/values
+  const errors = Object.values(err.errors).map(el => el.message);
   const message = `Invalid input data. ${errors.join('. ')}`;
   return new AppError(message, 400);
 };
@@ -20,6 +20,9 @@ const handleJWTError = () => {
 };
 const handleJWTExpiredError = () => {
   return new AppError(`Your token has expired. Please login again`, 401);
+};
+const handleBodyParserError = err => {
+  return new AppError(`The Body Content is Invalid:   ${err.message}`, 400);
 };
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -31,18 +34,14 @@ const sendErrorDev = (err, res) => {
 };
 
 const sendErrorProd = (err, res) => {
-  //Operational errors ==> are errors that we trust and handled ==> send a message to the client
-  //other errors such as programming errors shouldn't be sent
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message
     });
   } else {
-    //1) Log error to the console
     console.error('Error!: ', err);
 
-    //2) Send a generic message
     res.status(500).json({
       status: 'error',
       message: 'something went very wrong!'
@@ -51,24 +50,26 @@ const sendErrorProd = (err, res) => {
 };
 
 module.exports = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500; //500 => internal server error
+  err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
-    //Note that this deep copy (using spread operator) does not get the properties of the parent class. i.e: AppError inherits from Error so it has its properties(e.g: message) but if you make a copy using the spread operator syntax you will not get the Error properties
-    //To fix this we can use a whole module to make a deep copy but we just need the message property so we will add it manually
     error.message = err.message;
-    //Note that if the error was not of type AppError and it was only of type Error so the message property would be cloned without any problem
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     else if (error.code === 11000) error = handleDuplicateFields(error);
-    //We used the code here instead of the name because this error does not have an error name
-    else if (error.name === 'ValidationError') error = handleValidationErrorDB(error);
+    else if (error.name === 'ValidationError')
+      error = handleValidationErrorDB(error);
     else if (error.name === 'JsonWebTokenError') error = handleJWTError();
-    else if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
-    //in these error handlers we don't use the error object so we can ommit it
+    else if (error.name === 'TokenExpiredError')
+      error = handleJWTExpiredError();
+    else if (
+      error.type === 'entity.parse.failed' &&
+      error.message.includes('in JSON at position')
+    )
+      error = handleBodyParserError(error);
     sendErrorProd(error, res);
   }
 };

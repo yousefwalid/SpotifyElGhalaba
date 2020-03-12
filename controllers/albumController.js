@@ -2,16 +2,17 @@ const mongoose = require('mongoose');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
+const catchAsync = require('./../utils/catchAsync');
 
-exports.getAlbum = async (req, res, next) => {
+exports.getAlbum = catchAsync(async (req, res, next) => {
   const album = await Album.findById(req.params.id).populate('tracks');
   if (!album) {
     return next(new AppError('No album found with that ID', 404));
   }
   res.status(200).json(album);
-};
+});
 //Fucntion used to seed db
-exports.saveDocs = async (req, res, next) => {
+exports.saveDocs = catchAsync(async (req, res, next) => {
   const track = new Track({
     _id: new mongoose.Types.ObjectId(),
 
@@ -37,20 +38,20 @@ exports.saveDocs = async (req, res, next) => {
   });
   track.save(function(err) {
     if (err) {
-      console.log(`Error saving track${err}`);
+      //console.log(`Error saving track${err}`);
     }
   });
   const album = await Album.findById(req.params.id);
   album.tracks.push(track._id);
   album.save(function(err) {
     if (err) {
-      console.log(`Error saving track to album ${err}`);
+      //console.log(`Error saving track to album ${err}`);
     }
   });
   next();
-};
+});
 
-exports.getAlbumTracks = async (req, res, next) => {
+exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   const offset = req.query.offset * 1 || 0;
   const limit =
     req.query.limit >= 1 && req.query.limit <= 50 ? req.query.limit * 1 : 20;
@@ -64,4 +65,4 @@ exports.getAlbumTracks = async (req, res, next) => {
     return next(new AppError('No album found with that ID', 404));
   }
   res.status(200).json(limitedTracks);
-};
+});
