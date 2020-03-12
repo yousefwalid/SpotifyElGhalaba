@@ -12,8 +12,6 @@ const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
 const categoryRouter = require('./routes/categoryRoutes');
 const browseRouter = require('./routes/browseRoutes');
-
-//utils
 const playlistRouter = require('./routes/playlistRoutes');
 const meRouter = require('./routes/meRoutes');
 
@@ -50,6 +48,7 @@ app.use(`${baseApiUrl}/albums`, albumRouter);
 app.use(`${baseApiUrl}/tracks`, trackRouter);
 app.use(`${baseApiUrl}/playlists`, playlistRouter);
 app.use(`${baseApiUrl}/browse`, browseRouter);
+app.use(`${baseApiUrl}/me`, meRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {
