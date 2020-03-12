@@ -89,9 +89,7 @@ exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
 
 exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = req.body;
-  const today = new Date();
-  newAlbum.release_date = today.getFullYear();
-  newAlbum.release_date_precision = 'year';
+  newAlbum.release_date = new Date();
   newAlbum.artists = req.user._id;
 
   await Album.create(newAlbum);
