@@ -10,6 +10,9 @@ const app = express();
 const userRouter = require('./routes/userRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
+const categoryRouter = require("./routes/categoryRoutes");
+const browseRouter = require("./routes/browseRoutes");
+
 //utils
 const playlistRouter = require('./routes/playlistRoutes');
 
@@ -37,11 +40,15 @@ app.use((req, res, next) => {
   next();
 });
 // 2) ROUTES
+const apiVersion = 1;
+const baseApiUrl = `/api/v${apiVersion}`;
 
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/albums', albumRouter);
-app.use('/api/v1/tracks', trackRouter);
-app.use('/api/v1/playlists', playlistRouter);
+app.use(`${baseApiUrl}/users`, userRouter);
+app.use(`${baseApiUrl}/albums`, albumRouter);
+app.use(`${baseApiUrl}/tracks`, trackRouter);
+app.use(`${baseApiUrl}/playlists`, playlistRouter);
+app.use(`${baseApiUrl}/browse`, browseRouter);
+
 
 // 404, route not found
 app.use('*', (req, res, next) => {
