@@ -6,7 +6,8 @@ const app = express();
 
 //routers
 const userRouter = require('./routes/userRoutes');
-
+const albumRouter = require('./routes/albumRoutes');
+const trackRouter = require('./routes/trackRoutes');
 //utils
 const AppError = require('./utils/appError');
 
@@ -24,7 +25,8 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/v1/users', userRouter);
-
+app.use('/api/v1/albums', albumRouter);
+app.use('/api/v1/tracks', trackRouter);
 // 404, route not found
 app.use('*', (req, res, next) => {
   const error = new AppError("This route can't be found", 404);
