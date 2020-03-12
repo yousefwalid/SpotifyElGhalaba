@@ -245,14 +245,33 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  const filteredUser = filterDoc(
-    currentUser,
-    'name',
-    'email',
-    '_id',
-    'active',
-    'role'
-  );
+  let filteredUser;
+  if (currentUser.type === 'artist') {
+    const artist = await Artist.findOne({
+      userInfo: new ObjectId(currentUser._id)
+    }).populate({ path: 'userInfo' });
+
+    filteredUser = filterDoc(
+      artist,
+      ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
+      ['uri']
+    );
+  } else {
+    filteredUser = filterDoc(currentUser, [
+      '_id',
+      'name',
+      'email',
+      'gender',
+      'birthday',
+      'birthmonth',
+      'birthyear',
+      'type',
+      'product',
+      'country',
+      'image',
+      'followers'
+    ]);
+  }
   req.user = filteredUser;
   next();
 });
