@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const imageObject = require('./objects/imageObject');
+const idValidator = require('mongoose-id-validator');
+const ImageObject = require('./objects/imageObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
 const albumSchema = new mongoose.Schema(
@@ -23,13 +24,10 @@ const albumSchema = new mongoose.Schema(
         type: String
       }
     ],
-    // images: [
-    //   {
-    //     type: imageObject
-    //     //required: true
-    //   }
-    // ],
-    href: String,
+    images: {
+      type: [ImageObject],
+      default: null
+    },
     external_urls: {
       // Contains the external URLs for the playlist
       type: ExternalUrlObject
@@ -69,6 +67,8 @@ const albumSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 );
+albumSchema.plugin(idValidator, { message: 'Bad ID value for {PATH}' });
+
 const URI = albumSchema.virtual('uri');
 URI.get(function() {
   return `spotify:track:${this._id}`;
@@ -76,6 +76,10 @@ URI.get(function() {
 const type = albumSchema.virtual('type');
 type.get(function() {
   return 'album';
+});
+const href = albumSchema.virtual('href');
+href.get(function() {
+  return `http://localhost:${process.env.PORT}/v1/albums/${this._id}`;
 });
 const Album = mongoose.model('Album', albumSchema, 'Albums');
 module.exports = Album;

@@ -11,7 +11,7 @@ exports.getAlbum = catchAsync(async (req, res, next) => {
   }
   res.status(200).json(album);
 });
-//Fucntion used to seed db
+//Fucntion used to seed db with some tracks
 exports.saveDocs = catchAsync(async (req, res, next) => {
   const track = new Track({
     _id: new mongoose.Types.ObjectId(),
@@ -65,4 +65,35 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
     return next(new AppError('No album found with that ID', 404));
   }
   res.status(200).json(limitedTracks);
+});
+
+exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
+  let AlbumsIds = req.query.ids.split(',');
+  if (AlbumsIds.length > 20) {
+    AlbumsIds = AlbumsIds.slice(0, 20);
+  }
+  let Albums = [];
+  for (var i = 0; i < AlbumsIds.length; i++) {
+    result = await Album.findById(AlbumsIds[i]);
+    if (!result) {
+      Albums[i] = null;
+    } else {
+      Albums[i] = result;
+    }
+  }
+  if (!Albums) {
+    return next(new AppError('No albums found'), 404);
+  }
+  res.status(200).json(Albums);
+});
+
+exports.createAlbum = catchAsync(async (req, res, next) => {
+  let newAlbum = req.body;
+  const today = new Date();
+  newAlbum.release_date = today.getFullYear();
+  newAlbum.release_date_precision = 'year';
+  newAlbum.artists = req.user._id;
+
+  await Album.create(newAlbum);
+  res.status(201).json(newAlbum);
 });

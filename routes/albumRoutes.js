@@ -10,4 +10,8 @@ router
 router
   .route('/:id/tracks')
   .get(authenticationController.protect, albumController.getAlbumTracks);
+router
+  .route('/')
+  .get(authenticationController.protect, albumController.getSeveralAlbums)
+  .post(authenticationController.protect, albumController.createAlbum);
 module.exports = router;
