@@ -1,20 +1,24 @@
 const express = require('express');
-const playlistController = require('../controllers/playlistController');
-
+const playlistController = require('./../controllers/playlistController');
+const authController = require('./../controllers/authenticationController');
 const router = express.Router();
 
 /**
  * @todo add authentication and authorization to routes
  */
 
-router.route('/:playlist_id').get(playlistController.getPlaylist);
+router.use(authController.protect);
 
-/**
- * @todo change this route (merge with users)
- */
+router
+  .route('/:playlist_id')
+  .get(playlistController.getPlaylist)
+  .put(playlistController.changePlaylistDetails);
 
-router.route('/createPlaylist').post(playlistController.createPlaylist);
+router
+  .route('/:playlist_id/tracks')
+  .get(playlistController.getPlaylistTracks)
+  .post(playlistController.addPlaylistTrack);
 
-router.route('/:playlist_id/tracks').get(playlistController.getPlaylistTracks);
+router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
 
 module.exports = router;

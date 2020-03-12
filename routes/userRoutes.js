@@ -1,6 +1,7 @@
 const express = require('express');
 
 const authenticationController = require('./../controllers/authenticationController');
+const playlistController = require('./../controllers/playlistController');
 // const userController = require('./../controllers/userController');
 
 const router = express.Router();
@@ -19,6 +20,14 @@ router.post('/login', authenticationController.login);
 router.post('/forgotPassword', authenticationController.forgotPassword);
 router.patch('/resetPassword/:token', authenticationController.resetPassword);
 
+//This middleware will be applied on all routes that come after it
+router.use(authenticationController.protect);
+
+// Playlists routes
+
+router.route('/:user_id/playlists').get(playlistController.getUserPlaylists);
+router.route('/playlists').post(playlistController.createPlaylist);
+
 /*
  ##     ## ########    ########   #######  ##     ## ######## ########  ######  
  ###   ### ##          ##     ## ##     ## ##     ##    ##    ##       ##    ## 
@@ -28,9 +37,6 @@ router.patch('/resetPassword/:token', authenticationController.resetPassword);
  ##     ## ##          ##    ##  ##     ## ##     ##    ##    ##       ##    ## 
  ##     ## ########    ##     ##  #######   #######     ##    ########  ######  
 */
-
-//This middleware will be applied on all routes that come after it
-router.use(authenticationController.protect);
 
 // router.get('/me', userController.getMe, userController.getUser);
 // router.patch('/updateMe', userController.updateMe);

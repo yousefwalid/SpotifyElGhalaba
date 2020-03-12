@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 const ImageObject = require('./objects/imageObject');
+const PlaylistTrackObject = require('./objects/playlistTrackObject');
 
 const playlistSchema = new mongoose.Schema(
   {
@@ -47,8 +48,14 @@ const playlistSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
+    followers: {
+      // The number of followers to this playlist
+      total: Number
+    },
     // Array of track ids that this playlist contains
-    tracks: [{ type: mongoose.Schema.ObjectId, ref: 'Track' }],
+    tracks: {
+      items: [PlaylistTrackObject]
+    },
     collaborators: {
       // Array of collaborators of this playlist
       // It is empty if the playlist is not collaborative
@@ -81,6 +88,14 @@ playlistSchema.virtual('type').get(function() {
 
 playlistSchema.virtual('uri').get(function() {
   return `spotify:playlist:${this.id}`;
+});
+
+playlistSchema.virtual('href').get(function() {
+  return `https://api.spotify.com/v1/users/spotify/playlists/${this.id}`;
+});
+
+playlistSchema.virtual('tracks.href').get(function() {
+  return `https://api.spotify.com/v1/users/spotify/playlists/${this.id}/tracks`;
 });
 
 const Playlist = mongoose.model('Playlist', playlistSchema);

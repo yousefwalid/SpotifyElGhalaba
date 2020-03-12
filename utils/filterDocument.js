@@ -15,6 +15,7 @@ module.exports = (doc, allowedFields, virtualFields) => {
   Object.keys(filteredDoc).forEach(el => {
     if (!allowedFields.includes(el)) filteredDoc[el] = undefined;
   });
+  //console.log(virtualFields);
   if (virtualFields) {
     virtualFields.forEach(el => {
       filteredDoc[el] = doc[el];

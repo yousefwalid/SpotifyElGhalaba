@@ -9,6 +9,7 @@ const app = express();
 // Routers
 const userRouter = require('./routes/userRoutes');
 const playlistRouter = require('./routes/playlistRoutes');
+const meRouter = require('./routes/meRoutes');
 
 // Utils
 const AppError = require('./utils/appError');
@@ -33,10 +34,12 @@ app.use((req, res, next) => {
   req.geoip = geoip.lookup(req.ip);
   next();
 });
+
 // 2) ROUTES
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/playlists', playlistRouter);
+app.use('/api/v1/me', meRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {
