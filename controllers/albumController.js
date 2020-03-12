@@ -48,7 +48,8 @@ exports.saveDocs = catchAsync(async (req, res, next) => {
       //console.log(`Error saving track to album ${err}`);
     }
   });
-  next();
+
+  res.status(200).json('success');
 });
 
 exports.getAlbumTracks = catchAsync(async (req, res, next) => {
@@ -96,4 +97,14 @@ exports.createAlbum = catchAsync(async (req, res, next) => {
 
   await Album.create(newAlbum);
   res.status(201).json(newAlbum);
+});
+
+exports.getNewReleases = catchAsync(async (req, res, next) => {
+  const albums = await Album.find();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      albums
+    }
+  });
 });

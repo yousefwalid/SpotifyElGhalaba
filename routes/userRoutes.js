@@ -1,10 +1,12 @@
 const express = require('express');
 
 const authenticationController = require('./../controllers/authenticationController');
-// const userController = require('./../controllers/userController');
+const userController = require("./../controllers//userController");
 
 const router = express.Router();
 
+router.get("/me", authenticationController.protect, userController.getMe);
+router.get("/:id", authenticationController.protect, userController.getUser);
 /*
     ###    ##     ## ######## ##     ## ######## ##    ## ######## ####  ######     ###    ######## ####  #######  ##    ##    ########   #######  ##     ## ######## ########  ######  
    ## ##   ##     ##    ##    ##     ## ##       ###   ##    ##     ##  ##    ##   ## ##      ##     ##  ##     ## ###   ##    ##     ## ##     ## ##     ##    ##    ##       ##    ## 
