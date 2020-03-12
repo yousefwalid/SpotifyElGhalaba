@@ -68,7 +68,13 @@ const trackSchema = new mongoose.Schema(
   },
 
   {
-    toJSON: { virtuals: true }, //show virtual properties when providing the data as JSON
+    toJSON: {
+      virtuals: true,
+      transform: function(doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+      }
+    }, //show virtual properties when providing the data as JSON
     toObject: { virtuals: true } //show virtual properties when providing the data as Objects
   }
 );
@@ -78,6 +84,6 @@ URI.get(function() {
   return `spotify:track:${this._id}`;
 });
 
-const Track = mongoose.model('Track', trackSchema);
+const Track = mongoose.model('Track', trackSchema, 'Tracks');
 
 module.exports = Track;
