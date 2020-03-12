@@ -42,13 +42,6 @@ const albumSchema = new mongoose.Schema(
       type: Date,
       required: [true, 'An album must have a release date']
     },
-    release_date_precision: {
-      type: String,
-      enum: {
-        values: ['year', 'month', 'day'],
-        message: 'date precision values must be year,month or day'
-      }
-    },
     tracks: [
       {
         type: mongoose.Schema.ObjectId,
