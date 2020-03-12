@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.use("/categories", categoryRouter);
 
-router.route("/new-releases").get(albumController.getNewReleases);
+// router.route("/new-releases").get(albumController);
 
 module.exports = router;
