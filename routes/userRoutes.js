@@ -113,9 +113,7 @@ router.patch('/updatePassword', authenticationController.updatePassword);
 //     //   password: req.body.password,
 //     //   passwordConfirm: req.body.passwordConfirm,
 //     //   gender: req.body.gender,
-//     //   birthday: req.body.birthday,
-//     //   birthmonth: req.body.birthmonth,
-//     //   birthyear: req.body.birthyear,
+//     //   birthday: req.body.birthdate,
 //     //   type: req.body.type,
 //     //   product: 'free',
 //     //   country: req.geoip.country
