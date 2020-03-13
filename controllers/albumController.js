@@ -30,19 +30,20 @@ exports.saveDocs = catchAsync(async (req, res, next) => {
     is_local: false,
     name: 'Cut To The Feeling',
     popularity: 63,
-    preview_url: 'https://p.scdn.co/mp3-preview/3eb16018c2a700240e9dfb8817b6f2d041f15eb1?cid=774b29d4f13844c495f206cafdad9c86',
+    preview_url:
+      'https://p.scdn.co/mp3-preview/3eb16018c2a700240e9dfb8817b6f2d041f15eb1?cid=774b29d4f13844c495f206cafdad9c86',
     track_number: 1,
     type: 'track',
     uri: 'spotify:track:11dFghVXANMlKmJXsNCbNl'
   });
-  track.save(function (err) {
+  track.save(function(err) {
     if (err) {
       //console.log(`Error saving track${err}`);
     }
   });
   const album = await Album.findById(req.params.id);
   album.tracks.push(track._id);
-  album.save(function (err) {
+  album.save(function(err) {
     if (err) {
       //console.log(`Error saving track to album ${err}`);
     }
@@ -64,7 +65,10 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   if (!Tracks) {
     return next(new AppError('No album found with that ID', 404));
   }
-  res.status(200).json(limitedTracks);
+  res.status(200).json({
+    href: `http://localhost:${process.env.PORT}/v1/albums/${req.params.id}`,
+    items: limitedTracks
+  });
 });
 
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
@@ -84,7 +88,9 @@ exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
   if (!Albums) {
     return next(new AppError('No albums found'), 404);
   }
-  res.status(200).json(Albums);
+  res.status(200).json({
+    Albums
+  });
 });
 
 exports.createAlbum = catchAsync(async (req, res, next) => {
