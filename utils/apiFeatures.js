@@ -5,7 +5,9 @@ class APIFeatures {
   }
 
   filter() {
-    const queryObj = { ...this.queryString };
+    const queryObj = {
+      ...this.queryString
+    };
     const excludedFields = ['page', 'sort', 'limit', 'fields', 'offset'];
     excludedFields.forEach(el => delete queryObj[el]);
 
@@ -56,8 +58,8 @@ class APIFeatures {
 
     if (this.query)
       this.query = this.query
-        .skip(this.queryString.offset)
-        .limit(this.queryString.limit);
+      .skip(this.queryString.offset)
+      .limit(this.queryString.limit);
 
     return this;
   }

@@ -1,6 +1,7 @@
 const Category = require("./../models/categoryModel");
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
+const ApiFeatures = require('./../utils/apiFeatures');
 
 exports.getCategory = catchAsync(async (req, res, next) => {
     const category = await Category.findById(req.params.id);
@@ -16,7 +17,14 @@ exports.getCategory = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllCategories = catchAsync(async (req, res, next) => {
-    const categories = await Category.find();
+
+    const features = new ApiFeatures(
+        Category.find(),
+        req.query
+    ).skip();
+
+    const categories = await features.query;
+
 
     res.status(200).json({
         status: "success",

@@ -11,9 +11,13 @@
 */
 
 const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
+const {
+  promisify
+} = require('util');
 const crypto = require('crypto');
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -43,7 +47,9 @@ const filterDoc = require('./../utils/filterDocument.js');
   ######  ####  ######   ##    ##       ##     #######  ##    ## ######## ##    ## 
 */
 const signToken = id => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({
+    id
+  }, process.env.JWT_SECRET, {
     //the secret string should be at least 32 characters long
     expiresIn: process.env.JWT_EXPIRES_IN
   });
@@ -94,7 +100,9 @@ const sendUser = async (user, res) => {
   if (user.type === 'artist') {
     const artist = await Artist.findOne({
       userInfo: new ObjectId(user._id)
-    }).populate({ path: 'userInfo' });
+    }).populate({
+      path: 'userInfo'
+    });
 
     const filteredArtist = filterDoc(
       artist,
@@ -159,7 +167,9 @@ exports.signup = catchAsync(async (req, res, next) => {
         userInfo: newUser._id
       });
     } catch (err) {
-      await User.findOneAndDelete({ _id: newUser._id });
+      await User.findOneAndDelete({
+        _id: newUser._id
+      });
       return next(err);
     }
   }
@@ -179,12 +189,17 @@ exports.signup = catchAsync(async (req, res, next) => {
 */
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    password
+  } = req.body;
 
   if (!email || !password)
     return next(new AppError('Please provide email and password!', 400));
 
-  const user = await User.findOne({ email: email }).select('+password');
+  const user = await User.findOne({
+    email: email
+  }).select('+password');
   if (!user) return next(new AppError('Incorrect email or password', 400));
   const correct = await user.correctPassword(password, user.password);
 
@@ -245,7 +260,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (currentUser.type === 'artist') {
     const artist = await Artist.findOne({
       userInfo: new ObjectId(currentUser._id)
-    }).populate({ path: 'userInfo' });
+    }).populate({
+      path: 'userInfo'
+    });
 
     filteredUser = filterDoc(
       artist,
@@ -332,13 +349,17 @@ exports.userAuthorization = Model => {
 */
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const user = await User.findOne({
+    email: req.body.email
+  });
   if (!user) {
     return next(new AppError(`There is no user with this email`, 404));
   }
   const resetToken = user.createPasswordResetToken();
 
-  await user.save({ validateBeforeSave: false }); //To avoid the passwordConfirm field validation
+  await user.save({
+    validateBeforeSave: false
+  }); //To avoid the passwordConfirm field validation
 
   const resetURL = `${req.protocol}://${req.get(
     'host'
@@ -359,7 +380,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpiresAt = undefined;
-    await user.save({ validateBeforeSave: false });
+    await user.save({
+      validateBeforeSave: false
+    });
     return next(
       new AppError(
         `There was an error sending the email. Try again later.`,
@@ -389,7 +412,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
-    passwordResetExpiresAt: { $gt: Date.now() }
+    passwordResetExpiresAt: {
+      $gt: Date.now()
+    }
   });
 
   if (!user) return next(new AppError(`Token is invalid or has expired`, 400));
