@@ -13,6 +13,7 @@ const errorController = require('./controllers/errorController');
 const app = express();
 
 // Routers
+const authenticationRouter = require('./routes/authenticationRoutes');
 const userRouter = require('./routes/userRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
@@ -82,6 +83,7 @@ app.use((req, res, next) => {
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
 
+app.use(`${baseApiUrl}/authentication`, authenticationRouter);
 app.use(`${baseApiUrl}/users`, userRouter);
 app.use(`${baseApiUrl}/albums`, albumRouter);
 app.use(`${baseApiUrl}/tracks`, trackRouter);

@@ -78,6 +78,21 @@ exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
 
 exports.getUserPlaylists = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(
+    Playlist.find({ owner: req.params.user_id }),
+    req.query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .skip();
+
+  const playlists = await features.query;
+
+  res.status(200).json(playlists);
+});
+
+exports.getMyUserPlaylists = catchAsync(async (req, res, next) => {
+  const features = new APIFeatures(
     Playlist.find({ owner: req.user }),
     req.query
   )

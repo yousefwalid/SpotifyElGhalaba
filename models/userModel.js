@@ -135,6 +135,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.virtual('uri').get(function() {
+  return `spotify:user:${this._id}`;
+});
+
 /*
  ##     ##  #######  ########  ######## ##          ##     ##  #######   #######  ##    ##  ######  
  ###   ### ##     ## ##     ## ##       ##          ##     ## ##     ## ##     ## ##   ##  ##    ## 

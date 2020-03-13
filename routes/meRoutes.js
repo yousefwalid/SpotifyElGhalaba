@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.use(authenticationController.protect);
 
-router.route('/playlists').get(playlistController.getUserPlaylists);
+router.route('/playlists').get(playlistController.getMyUserPlaylists);
 
 module.exports = router;
