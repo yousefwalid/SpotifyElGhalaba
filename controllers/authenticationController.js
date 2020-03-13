@@ -60,7 +60,12 @@ const signToken = id => {
 */
 
 const createAndSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+  let id;
+
+  //if the user is an artist (userInfo != undefined) then sign the token with his userInfo Id
+  if (user.userInfo) id = user.userInfo._id;
+  else id = user._id;
+  const token = signToken(id);
 
   //Setting a cookie:-
   //   const cookieOptions = {
@@ -101,20 +106,25 @@ const sendUser = async (user, res) => {
       ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
       ['uri']
     );
+
     createAndSendToken(filteredArtist, 200, res);
   } else {
-    const filteredUser = filterDoc(user, [
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthdate',
-      'type',
-      'product',
-      'country',
-      'image',
-      'followers'
-    ]);
+    const filteredUser = filterDoc(
+      user,
+      [
+        '_id',
+        'name',
+        'email',
+        'gender',
+        'birthdate',
+        'type',
+        'product',
+        'country',
+        'image',
+        'followers'
+      ],
+      ['uri']
+    );
     createAndSendToken(filteredUser, 200, res);
   }
 };
@@ -225,8 +235,11 @@ exports.protect = catchAsync(async (req, res, next) => {
   //   }
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
   const currentUser = await User.findById(decoded.id);
+  console.log(decoded.id);
+
+  console.log(currentUser);
+
   if (!currentUser)
     return next(
       new AppError(`The user that belongs to this token no longer exists`, 401)
@@ -241,31 +254,31 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  let filteredUser;
-  if (currentUser.type === 'artist') {
-    const artist = await Artist.findOne({
-      userInfo: new ObjectId(currentUser._id)
-    }).populate({ path: 'userInfo' });
+  // let filteredUser;
+  // if (currentUser.type === 'artist') {
+  //   const artist = await Artist.findOne({
+  //     userInfo: new ObjectId(currentUser._id)
+  //   }).populate({ path: 'userInfo' });
 
-    filteredUser = filterDoc(
-      artist,
-      ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
-      ['uri']
-    );
-  } else {
-    filteredUser = filterDoc(currentUser, [
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthdate',
-      'type',
-      'product',
-      'country',
-      'image',
-      'followers'
-    ]);
-  }
+  //   filteredUser = filterDoc(
+  //     artist,
+  //     ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
+  //     ['uri']
+  //   );
+  // } else {
+  const filteredUser = filterDoc(currentUser, [
+    '_id',
+    'name',
+    'email',
+    'gender',
+    'birthdate',
+    'type',
+    'product',
+    'country',
+    'image',
+    'followers'
+  ]);
+  // }
   req.user = filteredUser;
   next();
 });
