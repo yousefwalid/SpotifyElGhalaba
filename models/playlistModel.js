@@ -50,7 +50,10 @@ const playlistSchema = new mongoose.Schema(
     },
     followers: {
       // The number of followers to this playlist
-      total: Number
+      total: {
+        type: Number,
+        default: 0
+      }
     },
     // Array of track ids that this playlist contains
     tracks: {
