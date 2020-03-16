@@ -35,6 +35,10 @@ const artistSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [true, `The artist's user info has to be specifed`]
+    },
+    albums: {
+      type: [mongoose.Schema.ObjectId],
+      ref: 'Album'
     }
   },
   {
