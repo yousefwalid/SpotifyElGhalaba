@@ -3,7 +3,9 @@ const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
 const filterDoc = require('./../utils/filterDocument');
+const imageObject = require('./../models/objects/imageObject');
 const multer = require('multer');
+const sharp = require('sharp');
 
 /* Image uploading */
 
@@ -230,8 +232,25 @@ exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
 });
 
 exports.addPlaylistImage = catchAsync(async (req, res, next) => {
-  console.log(req.file);
-  res.status(200).send('done');
+  const url = './' + req.file.destination + '/' + req.file.filename;
+  await sharp(url)
+    .metadata()
+    .then(function(metadata) {
+      req.file.width = metadata.width;
+      req.file.height = metadata.height;
+    });
+
+  const imageObj = {
+    url: url,
+    width: req.file.width,
+    height: req.file.height
+  };
+
+  await Playlist.findByIdAndUpdate(req.params.playlist_id, {
+    $set: { images: [imageObj] }
+  });
+
+  res.status(202).send();
 });
 
 exports.uploadPlaylistImage = upload.single('photo');
