@@ -17,8 +17,16 @@ router
 router
   .route('/:playlist_id/tracks')
   .get(playlistController.getPlaylistTracks)
-  .post(playlistController.addPlaylistTrack);
+  .post(playlistController.addPlaylistTrack)
+  .delete(playlistController.deletePlaylistTrack);
 
 router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
+
+router
+  .route('/:playlist_id/images')
+  .post(
+    playlistController.uploadPlaylistImage,
+    playlistController.addPlaylistImage
+  );
 
 module.exports = router;

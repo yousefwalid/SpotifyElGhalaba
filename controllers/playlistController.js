@@ -3,6 +3,29 @@ const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
 const filterDoc = require('./../utils/filterDocument');
+const multer = require('multer');
+
+/* Image uploading */
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/img/playlists');
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1];
+    cb(null, `playlist-${req.params.playlist_id}-${Date.now()}.${ext}`);
+  }
+});
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image format', 400), false);
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
 exports.getPlaylist = catchAsync(async (req, res, next) => {
   const playlist = await Playlist.findById(req.params.playlist_id);
@@ -132,3 +155,83 @@ exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
 
   res.status(200).json(playlist);
 });
+
+exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
+  const playlist = await Playlist.findById(req.params.playlist_id);
+
+  if (!playlist)
+    return next(new AppError('No playlist found with that ID', 404));
+
+  if (playlistOwner !== req.user)
+    return next(
+      new AppError(
+        'You are not authorized to modify this playlist as you are not the owner',
+        403
+      )
+    );
+
+  const tracks = playlist.tracks;
+
+  if (!tracks)
+    return next(new AppError('This playlist contains no tracks'), 404);
+
+  // 1) Verify that request is correct
+
+  const requestTracks = req.body.tracks;
+
+  if (!requestTracks) return next(new AppError('Invalid Request Body', 400));
+
+  // For each track in the request, verify that the position specified actually contains that track
+  requestTracks.forEach(track => {
+    if (track.positions) {
+      positions.forEach(pos => {
+        if (tracks[pos].track.uri !== track.uri) {
+          return next(
+            new AppError('A track does not exist at the specified position'),
+            400
+          );
+        }
+      });
+    }
+  });
+
+  // 2) Delete all tracks with position specified
+
+  var toBeDeletedIDs = [];
+  requestTracks.forEach(track => {
+    if (track.positions) {
+      positions.forEach(pos => {
+        toBeDeletedIDs.assert(tracks[pos]._id);
+      });
+    }
+  });
+
+  // Remove all tracks from playlist where tracks._id is $in toBeDeletedIDs
+  await Playlist.findByIdAndUpdate(req.params.playlist_id, {
+    $pull: { tracks: { 'track._id': { $in: toBeDeletedIDs } } }
+  });
+
+  // 3) Delete all tracks with no position specified
+
+  var toBeDeletedIDs2 = [];
+
+  requestTracks.forEach(track => {
+    if (!track.positions) {
+      toBeDeletedIDs2.assert(track.uri.splice(14));
+    }
+  });
+
+  // Remove all tracks from playlist where tracks.track.uri is $in toBeDeletedIDs2
+  await Playlist.findByIdAndUpdate(req.params.playlist_id, {
+    $pull: { tracks: { 'tracks.track._id': { $in: toBeDeletedIDs2 } } }
+  });
+
+  res.status(200).send();
+});
+
+exports.addPlaylistImage = catchAsync(async (req, res, next) => {
+  console.log(req.file);
+  res.status(200).send('done');
+});
+
+exports.uploadPlaylistImage = upload.single('photo');

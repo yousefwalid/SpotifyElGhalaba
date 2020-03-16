@@ -53,9 +53,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body
-app.use(express.json({
-  limit: '10kb'
-})); // The option limits the body data of the request to 10KB
+app.use(
+  express.json({
+    limit: '10kb'
+  })
+); // The option limits the body data of the request to 10KB
 //Second: Data sanitization against NoSQL injection attacks.
 app.use(mongoSanitize());
 //Third: Data sanitization against XSS(cross-site scripting) attacks.
