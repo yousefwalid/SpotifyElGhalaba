@@ -30,7 +30,14 @@ const multerFilter = (req, file, cb) => {
 const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
 exports.getPlaylist = catchAsync(async (req, res, next) => {
-  const playlist = await Playlist.findById(req.params.playlist_id);
+  const features = new APIFeatures(
+    Playlist.findById(req.params.playlist_id),
+    req.query
+  )
+    .filter()
+    .limitFields();
+
+  const playlist = await features.query;
 
   if (!playlist) {
     return next(new AppError('No playlist found with that id', 404));

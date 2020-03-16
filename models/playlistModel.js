@@ -78,7 +78,8 @@ const playlistSchema = new mongoose.Schema(
         delete ret._id;
       }
     },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
+    versionKey: false
   }
 );
 
