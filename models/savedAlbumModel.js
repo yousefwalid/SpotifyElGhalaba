@@ -8,7 +8,13 @@ const savedAlbumSchema = new mongoose.Schema(
     },
     album: {
       type: mongoose.Schema.ObjectId,
-      ref: 'Album'
+      ref: 'Album',
+      required: true
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: true
     }
   },
   {

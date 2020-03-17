@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Album = require('./../models/albumModel');
 // const ExternalIdObject = require("./objects/externalIdObject");
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
@@ -19,8 +20,8 @@ const trackSchema = new mongoose.Schema(
           type: mongoose.Schema.ObjectId,
           ref: 'Artist'
         }
-      ],
-      required: [true, 'A track must have at least one artist reference']
+      ]
+      //required: [true, 'A track must have at least one artist reference']
     },
     disc_number: {
       type: Number,
@@ -40,9 +41,6 @@ const trackSchema = new mongoose.Schema(
     external_urls: {
       type: [ExternalUrlObject]
     },
-    href: {
-      type: String
-    },
     is_playable: {
       type: Boolean
     },
@@ -60,10 +58,6 @@ const trackSchema = new mongoose.Schema(
     // },
     track_number: {
       type: Number
-    },
-    type: {
-      type: String,
-      default: 'track'
     }
   },
 
@@ -78,12 +72,29 @@ const trackSchema = new mongoose.Schema(
     toObject: { virtuals: true } //show virtual properties when providing the data as Objects
   }
 );
-
+trackSchema.pre('save', async function(next) {
+  const album = await Album.findById(this.album);
+  console.log(album);
+  this.track_number = album.tracks.length + 1;
+});
+trackSchema.post('save', async function(next) {
+  const album = await Album.findById(this.album);
+  console.log(album);
+  album.tracks.push(this._id);
+  await album.save();
+});
+const type = trackSchema.virtual('type');
+type.get(function() {
+  return 'track';
+});
 const URI = trackSchema.virtual('uri');
 URI.get(function() {
   return `spotify:track:${this._id}`;
 });
-
+const href = trackSchema.virtual('href');
+href.get(function() {
+  return `http://localhost:${process.env.PORT}/api/v1/tracks/${this._id}`;
+});
 const Track = mongoose.model('Track', trackSchema, 'Tracks');
 
 module.exports = Track;

@@ -69,9 +69,9 @@ const albumSchema = new mongoose.Schema(
     }
   }
 );
-albumSchema.plugin(idValidator, {
-  message: 'Bad ID value for {PATH}'
-});
+// albumSchema.plugin(idValidator, {
+//   message: 'Bad ID value for {PATH}'
+// });
 
 const URI = albumSchema.virtual('uri');
 URI.get(function() {
@@ -83,7 +83,7 @@ type.get(function() {
 });
 const href = albumSchema.virtual('href');
 href.get(function() {
-  return `http://localhost:${process.env.PORT}/v1/albums/${this._id}`;
+  return `http://localhost:${process.env.PORT}/api/v1/albums/${this._id}`;
 });
 const Album = mongoose.model('Album', albumSchema, 'Albums');
 module.exports = Album;
