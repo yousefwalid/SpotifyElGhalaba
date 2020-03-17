@@ -1,6 +1,8 @@
 const express = require('express');
 const playlistController = require('./../controllers/playlistController');
 const authController = require('./../controllers/authenticationController');
+const followController = require('./../controllers/followController');
+
 const router = express.Router();
 
 /**
@@ -28,5 +30,17 @@ router
     playlistController.uploadPlaylistImage,
     playlistController.addPlaylistImage
   );
+
+router
+  .route('/:playlist_id/followers')
+  .put(followController.followPlaylist)
+  .delete(followController.unfollowPlaylist);
+
+
+router
+  .route('/:playlist_id/followers/contains')
+  .get(followController.checkFollowingPlaylist);
+
+
 
 module.exports = router;

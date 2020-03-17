@@ -17,7 +17,6 @@ const authenticationRouter = require('./routes/authenticationRoutes');
 const userRouter = require('./routes/userRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
-const categoryRouter = require('./routes/categoryRoutes');
 const browseRouter = require('./routes/browseRoutes');
 const playlistRouter = require('./routes/playlistRoutes');
 const meRouter = require('./routes/meRoutes');
