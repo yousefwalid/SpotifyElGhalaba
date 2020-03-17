@@ -22,6 +22,8 @@ const browseRouter = require('./routes/browseRoutes');
 const playlistRouter = require('./routes/playlistRoutes');
 const meRouter = require('./routes/meRoutes');
 const audioFeaturesRouter = require('./routes/audioFeaturesRoutes');
+const artistRouter = require('./routes/artistRoutes');
+
 // Utils
 const AppError = require('./utils/appError');
 
@@ -93,6 +95,8 @@ app.use(`${baseApiUrl}/playlists`, playlistRouter);
 app.use(`${baseApiUrl}/browse`, browseRouter);
 app.use(`${baseApiUrl}/me`, meRouter);
 app.use(`${baseApiUrl}/audio-features`, audioFeaturesRouter);
+app.use(`${baseApiUrl}/artists`, artistRouter);
+
 // 404, route not found
 app.use('*', (req, res, next) => {
   const error = new AppError("This route can't be found", 404);
