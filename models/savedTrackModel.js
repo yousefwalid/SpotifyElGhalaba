@@ -10,6 +10,11 @@ const savedTrackSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'Track',
       required: [true, 'saved track must reference a track']
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: true
     }
   },
   {
