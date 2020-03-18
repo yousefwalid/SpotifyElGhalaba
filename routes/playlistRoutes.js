@@ -20,7 +20,8 @@ router
   .route('/:playlist_id/tracks')
   .get(playlistController.getPlaylistTracks)
   .post(playlistController.addPlaylistTrack)
-  .delete(playlistController.deletePlaylistTrack);
+  .delete(playlistController.deletePlaylistTrack)
+  .put(playlistController.reorderPlaylistTracks);
 
 router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
 
@@ -36,11 +37,8 @@ router
   .put(followController.followPlaylist)
   .delete(followController.unfollowPlaylist);
 
-
 router
   .route('/:playlist_id/followers/contains')
   .get(followController.checkFollowingPlaylist);
-
-
 
 module.exports = router;

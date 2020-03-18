@@ -20,6 +20,22 @@ class APIFeatures {
     return this;
   }
 
+  filterOne() {
+    const queryObj = {
+      ...this.queryString
+    };
+    const excludedFields = ['page', 'sort', 'limit', 'fields', 'offset'];
+    excludedFields.forEach(el => delete queryObj[el]);
+
+    // 1B) Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+
+    if (this.query) this.query = this.query.findOne(JSON.parse(queryStr));
+
+    return this;
+  }
+
   sort() {
     if (this.queryString.sort) {
       const sortBy = this.queryString.sort.split(',').join(' ');
@@ -36,7 +52,7 @@ class APIFeatures {
       const fields = this.queryString.fields.split(',').join(' ');
       if (this.query) this.query = this.query.select(fields);
     } else if (this.query) {
-      this.query = this.query.select('-__v');
+      //this.query = this.query.select('-__v');
     }
 
     return this;
@@ -58,8 +74,8 @@ class APIFeatures {
 
     if (this.query)
       this.query = this.query
-      .skip(this.queryString.offset)
-      .limit(this.queryString.limit);
+        .skip(this.queryString.offset)
+        .limit(this.queryString.limit);
 
     return this;
   }
