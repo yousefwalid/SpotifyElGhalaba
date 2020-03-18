@@ -5,6 +5,7 @@ const APIFeatures = require('./../utils/apiFeatures');
 const filterDoc = require('./../utils/filterDocument');
 const imageObject = require('./../models/objects/imageObject');
 const pagingObject = require('./../models/objects/pagingObject');
+const parseFields = require('./../utils/parseFields');
 const multer = require('multer');
 const sharp = require('sharp');
 
@@ -71,16 +72,14 @@ exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
       new AppError('Limit query parameter can not be greater than 100', 500)
     );
 
-  const queryObject = {
-    'tracks.items': { $slice: [offset, limit] }
-  };
+  let queryObject = {};
 
   if (req.query.fields) {
-    const fields = req.query.fields.split(',');
-    fields.forEach(el => {
-      queryObject[`tracks.items.${el}`] = 1;
-    });
+    req.query.fields = req.query.fields.replace('items', 'tracks.items');
+    queryObject = parseFields(req.query.fields);
   }
+
+  queryObject['tracks.items'] = { $slice: [offset, limit] };
 
   const features = new APIFeatures(
     Playlist.findById(req.params.playlist_id, queryObject).select('tracks'),
@@ -286,7 +285,7 @@ exports.addPlaylistImage = catchAsync(async (req, res, next) => {
 exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   const range_start = req.body.range_start;
   const range_length = req.body.range_length * 1 || 1;
-  var insert_before = req.body.insert_before;
+  let insert_before = req.body.insert_before;
 
   if (
     insert_before >= range_start &&
@@ -310,7 +309,7 @@ exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   )
     return next(new AppError('Please specify all parameters correctly', 500));
 
-  var playlistTracksArray = (await Playlist.findById(
+  let playlistTracksArray = (await Playlist.findById(
     req.params.playlist_id
   ).select('tracks')).tracks.items;
 
