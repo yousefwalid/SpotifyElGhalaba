@@ -16,7 +16,9 @@ exports.getPlaylist = catchAsync(async (req, res, next) => {
 
 exports.createPlaylist = catchAsync(async (req, res, next) => {
   req.body.owner = req.user;
+
   const newPlaylist = await Playlist.create(req.body);
+  console.log(newPlaylist);
 
   res.status(201).json(newPlaylist);
 });

@@ -14,6 +14,7 @@ const app = express();
 
 // Routers
 const authenticationRouter = require('./routes/authenticationRoutes');
+const streamingRouter = require('./routes/streamingRoutes');
 const userRouter = require('./routes/userRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
@@ -42,7 +43,6 @@ const limiter = rateLimit({
     message: 'Two many requests from this IP. please try again in an hour.'
   }
 });
-app.use('/api', limiter);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -53,9 +53,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body
-app.use(express.json({
-  limit: '10kb'
-})); // The option limits the body data of the request to 10KB
+app.use(
+  express.json({
+    limit: '10kb'
+  })
+); // The option limits the body data of the request to 10KB
 //Second: Data sanitization against NoSQL injection attacks.
 app.use(mongoSanitize());
 //Third: Data sanitization against XSS(cross-site scripting) attacks.
@@ -83,6 +85,9 @@ app.use((req, res, next) => {
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
 
+app.use(`${baseApiUrl}/streaming`, streamingRouter);
+
+app.use('/api', limiter); //Use rate limiter for all routes except streaming routes
 app.use(`${baseApiUrl}/authentication`, authenticationRouter);
 app.use(`${baseApiUrl}/users`, userRouter);
 app.use(`${baseApiUrl}/albums`, albumRouter);

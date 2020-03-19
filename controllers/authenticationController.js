@@ -11,13 +11,9 @@
 */
 
 const jwt = require('jsonwebtoken');
-const {
-  promisify
-} = require('util');
+const { promisify } = require('util');
 const crypto = require('crypto');
-const {
-  ObjectId
-} = require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -47,12 +43,16 @@ const filterDoc = require('./../utils/filterDocument.js');
   ######  ####  ######   ##    ##       ##     #######  ##    ## ######## ##    ## 
 */
 const signToken = id => {
-  return jwt.sign({
-    id
-  }, process.env.JWT_SECRET, {
-    //the secret string should be at least 32 characters long
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
+  return jwt.sign(
+    {
+      id
+    },
+    process.env.JWT_SECRET,
+    {
+      //the secret string should be at least 32 characters long
+      expiresIn: process.env.JWT_EXPIRES_IN
+    }
+  );
 };
 
 /*
@@ -199,10 +199,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 */
 
 exports.login = catchAsync(async (req, res, next) => {
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password)
     return next(new AppError('Please provide email and password!', 400));
@@ -251,9 +248,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const currentUser = await User.findById(decoded.id);
-  console.log(decoded.id);
-
-  console.log(currentUser);
 
   if (!currentUser)
     return next(
