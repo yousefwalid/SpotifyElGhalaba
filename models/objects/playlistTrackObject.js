@@ -7,7 +7,7 @@ const PlaylistTrackObject = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  track: [{ type: mongoose.Schema.ObjectId, ref: 'Track' }]
+  track: { type: mongoose.Schema.ObjectId, ref: 'Track' }
 });
 
 module.exports = PlaylistTrackObject;

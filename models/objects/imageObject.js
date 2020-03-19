@@ -13,7 +13,7 @@ const ImageObject = new mongoose.Schema(
     url: {
       type: String,
       trim: true,
-      required: [true, 'The url width is required.']
+      required: [true, 'The url is required.']
     }
   },
   {

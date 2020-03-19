@@ -7,6 +7,10 @@ const router = express.Router();
 router
   .route('/:id')
   .get(authenticationController.protect, albumController.getAlbum);
+// .put(
+//   authenticationController.protect,
+//   albumController.addSeveralTracksToAlbum
+// )
 router
   .route('/:id/tracks')
   .get(authenticationController.protect, albumController.getAlbumTracks);

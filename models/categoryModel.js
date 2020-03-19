@@ -11,7 +11,12 @@ const categoryModels = new mongoose.Schema({
     type: String,
     required: [true, 'A category must have a name'],
     unique: true
-  }
+  },
+  playlists: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Playlist',
+    unique: true
+  }]
 });
 
 const Category = mongoose.model('Category', categoryModels);

@@ -18,9 +18,10 @@ const audioFeaturesSchema = new mongoose.Schema(
       min: [0, 'energy must be between 0 and 1'],
       max: [1, 'energy must be between 0 and 1']
     },
-    id: {
+    track: {
       type: mongoose.Schema.ObjectId,
-      ref: 'Track'
+      ref: 'Track',
+      unique: true
     },
     instrumentalness: {
       type: Number,
@@ -50,8 +51,6 @@ const audioFeaturesSchema = new mongoose.Schema(
     },
     tempo: Number,
     time_signature: Number,
-    track_href: String,
-    uri: String,
     valence: {
       type: Number,
       min: [0, 'valence must be between 0 and 1'],
@@ -60,11 +59,7 @@ const audioFeaturesSchema = new mongoose.Schema(
   },
   {
     toJSON: {
-      virtuals: true,
-      transform: function(doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-      }
+      virtuals: true
     }, //show virtual properties when providing the data as JSON
     toObject: { virtuals: true } //show virtual properties when providing the data as Objects
   }

@@ -13,9 +13,9 @@ router
     .route('/:id')
     .get(categoryController.getCategory);
 
+router
+    .route('/:category_id/playlists')
+    .get(categoryController.getCategoryPlaylists);
 
-// router
-//     .route('/:id/tracks')
-//     .get(authenticationController.protect, albumController.getAlbumTracks);
 
 module.exports = router;

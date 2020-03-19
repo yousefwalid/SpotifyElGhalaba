@@ -1,7 +1,14 @@
 const express = require('express');
 const trackController = require('./../controllers/trackController');
+const authenticationController = require('./../controllers/authenticationController');
 
 const router = express.Router();
 
-router.route('/:id').get(trackController.getTrack);
+router
+  .route('/:id')
+  .get(authenticationController.protect, trackController.getTrack);
+router
+  .route('/')
+  .get(authenticationController.protect, trackController.getSeveralTracks)
+  .post(authenticationController.protect, trackController.createTrack);
 module.exports = router;
