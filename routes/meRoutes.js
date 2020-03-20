@@ -13,6 +13,10 @@ router
   .put(
     authenticationController.protect,
     libraryController.saveAlbumsForCurrentUser
+  )
+  .delete(
+    authenticationController.protect,
+    libraryController.removeUserSavedAlbum
   );
 router
   .route('/tracks')
@@ -20,5 +24,21 @@ router
   .put(
     authenticationController.protect,
     libraryController.saveTracksForCurrentUser
+  )
+  .delete(
+    authenticationController.protect,
+    libraryController.removeUserSavedTrack
+  );
+router
+  .route('/albums/contains')
+  .get(
+    authenticationController.protect,
+    libraryController.checkUserSavedAlbums
+  );
+router
+  .route('/tracks/contains')
+  .get(
+    authenticationController.protect,
+    libraryController.checkUserSavedTracks
   );
 module.exports = router;
