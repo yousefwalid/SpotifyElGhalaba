@@ -7,7 +7,8 @@
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "jest"
+    "test": "jest",
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
   },
   "author": "BackEndTeam",
   "license": "ISC",
@@ -48,6 +49,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-react": "^7.12.4",
     "jest": "^25.1.0",
+    "jsdoc": "^3.6.3",
     "prettier": "^1.17.0"
   },
   "engines": {
