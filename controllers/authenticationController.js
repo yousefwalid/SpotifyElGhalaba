@@ -161,9 +161,7 @@ const sendUser = async (user, res) => {
   ######  ####  ######   ##    ##  #######  ##        
 */
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log(req.body);
-
-  console.log(req.headers);
+  console.log('signup');
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -252,9 +250,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const currentUser = await User.findById(decoded.id);
-  //console.log(decoded.id);
-
-  //console.log(currentUser);
 
   if (!currentUser)
     return next(
