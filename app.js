@@ -14,10 +14,10 @@ const app = express();
 
 // Routers
 const authenticationRouter = require('./routes/authenticationRoutes');
+const streamingRouter = require('./routes/streamingRoutes');
 const userRouter = require('./routes/userRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
-const categoryRouter = require('./routes/categoryRoutes');
 const browseRouter = require('./routes/browseRoutes');
 const playlistRouter = require('./routes/playlistRoutes');
 const meRouter = require('./routes/meRoutes');
@@ -44,7 +44,6 @@ const limiter = rateLimit({
     message: 'Two many requests from this IP. please try again in an hour.'
   }
 });
-app.use('/api', limiter);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -87,6 +86,9 @@ app.use((req, res, next) => {
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
 
+app.use(`${baseApiUrl}/streaming`, streamingRouter);
+
+app.use('/api', limiter); //Use rate limiter for all routes except streaming routes
 app.use(`${baseApiUrl}/authentication`, authenticationRouter);
 app.use(`${baseApiUrl}/users`, userRouter);
 app.use(`${baseApiUrl}/albums`, albumRouter);

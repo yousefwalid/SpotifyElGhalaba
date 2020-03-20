@@ -4,12 +4,18 @@ const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
 const filterDoc = require('./../utils/filterDocument');
 const imageObject = require('./../models/objects/imageObject');
+const pagingObject = require('./../models/objects/pagingObject');
+const parseFields = require('./../utils/parseFields');
 const multer = require('multer');
 const sharp = require('sharp');
 
 /* Image uploading */
 
-const multerStorage = multer.diskStorage({
+/**
+ *  An object used for disk storage configurations of multer
+ */
+
+multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'public/img/playlists');
   },
@@ -19,7 +25,11 @@ const multerStorage = multer.diskStorage({
   }
 });
 
-const multerFilter = (req, file, cb) => {
+/**
+ * An object used for filtering images for multer
+ */
+
+multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
@@ -27,7 +37,18 @@ const multerFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+/**
+ *  Used to initalize the multer object with storage settings and filter
+ */
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter
+});
+
+/**
+ *  Route handler for getting a playlist
+ */
 
 exports.getPlaylist = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(
@@ -48,32 +69,56 @@ exports.getPlaylist = catchAsync(async (req, res, next) => {
 
 exports.createPlaylist = catchAsync(async (req, res, next) => {
   req.body.owner = req.user;
+
   const newPlaylist = await Playlist.create(req.body);
+  console.log(newPlaylist);
 
   res.status(201).json(newPlaylist);
 });
 
 exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
-  // const features = new APIFeatures(
-  //   Playlist.findById(req.params.playlist_id).select('tracks.items'),
-  //   req.query
-  // )
-  //   .filter()
-  //   .sort()
-  //   .limitFields()
-  //   .skip();
+  const limit = req.query.limit * 1 || 100;
+  const offset = req.query.offset * 1 || 0;
 
-  // const tracks = (await Playlist.findById(req.params.playlist_id).select(
-  //   'tracks'
-  // )).tracks;
+  if (limit <= 0)
+    return next(
+      new AppError(
+        'Limit query parameter can not be less than or equal to 0',
+        500
+      )
+    );
 
-  console.log(tracks);
+  if (limit > 100)
+    return next(
+      new AppError('Limit query parameter can not be greater than 100', 500)
+    );
 
-  res.status(200).json({
-    // tracks,
-    // limit: features.queryString.limit,
-    // offset: features.queryString.offset
-  });
+  let queryObject = {};
+
+  if (req.query.fields) {
+    req.query.fields = req.query.fields.replace('items', 'tracks.items');
+    queryObject = parseFields(req.query.fields);
+  }
+
+  queryObject['tracks.items'] = { $slice: [offset, limit] };
+
+  const features = new APIFeatures(
+    Playlist.findById(req.params.playlist_id, queryObject).select('tracks'),
+    req.query
+  ).filterOne();
+
+  const tracks = await features.query;
+
+  const pagingObject = {
+    href:
+      'https://api.spotify.com/v1/' +
+      `playlists/${req.params.playlist_id}/tracks`,
+    items: tracks.tracks.items,
+    limit,
+    offset
+  };
+
+  res.status(200).json(pagingObject);
 });
 
 exports.getPlaylistImages = catchAsync(async (req, res, next) => {
@@ -146,8 +191,6 @@ exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
   Object.keys(bodyParams).forEach(el => {
     if (!allowedFields.includes(el)) delete bodyParams[el];
   });
-
-  console.log(bodyParams);
 
   const playlist = await Playlist.findByIdAndUpdate(
     req.params.playlist_id,
@@ -258,6 +301,54 @@ exports.addPlaylistImage = catchAsync(async (req, res, next) => {
   });
 
   res.status(202).send();
+});
+
+exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
+  const range_start = req.body.range_start;
+  const range_length = req.body.range_length * 1 || 1;
+  let insert_before = req.body.insert_before;
+
+  if (
+    insert_before >= range_start &&
+    insert_before < range_length + range_start
+  ) {
+    return next(
+      new AppError(
+        'insert_before cannot lie between range_start and range_start + range_length',
+        500
+      )
+    );
+  }
+
+  if (
+    (!range_start && range_start !== 0) ||
+    !range_length ||
+    (!insert_before && insert_before !== 0) ||
+    range_start < 0 ||
+    range_length < 0 ||
+    insert_before < 0
+  )
+    return next(new AppError('Please specify all parameters correctly', 500));
+
+  let playlistTracksArray = (await Playlist.findById(
+    req.params.playlist_id
+  ).select('tracks')).tracks.items;
+
+  const omittedArray = playlistTracksArray.splice(range_start, range_length);
+
+  if (insert_before >= range_start + range_length)
+    insert_before -= range_length;
+
+  const secondHalf = playlistTracksArray.splice(insert_before);
+
+  playlistTracksArray = playlistTracksArray.concat(omittedArray);
+  playlistTracksArray = playlistTracksArray.concat(secondHalf);
+
+  await Playlist.findByIdAndUpdate(req.params.playlist_id, {
+    'tracks.items': playlistTracksArray
+  });
+
+  res.status(200).send();
 });
 
 exports.uploadPlaylistImage = upload.single('photo');

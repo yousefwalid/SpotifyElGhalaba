@@ -44,3 +44,15 @@ exports.addCategory = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
+    const features = new ApiFeatures(Category.findById(req.params.category_id), req.query).skip();
+
+    features.query = features.query.populate('playlists');
+
+    const {
+        playlists
+    } = await features.query;
+
+    res.status(200).json(playlists);
+});

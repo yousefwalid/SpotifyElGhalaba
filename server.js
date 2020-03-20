@@ -13,6 +13,15 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+  })
+  .then(() => console.log('DB connection successful! ✅'));
+
+// Local databases
 // mongoose
 //   .connect(DB, {
 //     useNewUrlParser: true,
@@ -22,14 +31,14 @@ const DB = process.env.DATABASE.replace(
 //   .then(() => console.log('DB connection successful!'));
 
 // Local databases
-mongoose
-  .connect(process.env.DATABASE_LOCAL, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false
-  })
-  .then(() => console.log('DB connection successful!'))
-  .catch(err => console.log(err));
+// mongoose
+//   .connect(process.env.DATABASE_LOCAL, {
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false
+//   })
+//   .then(() => console.log('DB connection successful!'))
+//   .catch(err => console.log(err));
 
 const port = process.env.PORT || 3000;
 
