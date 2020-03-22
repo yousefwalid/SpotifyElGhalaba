@@ -1,4 +1,8 @@
 {
+  "env": {
+    "node": true,
+    "mocha": true
+  },
   "extends": ["airbnb", "prettier", "plugin:node/recommended"],
   "plugins": ["prettier"],
   "rules": {
