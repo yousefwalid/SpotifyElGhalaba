@@ -7,19 +7,22 @@
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "mocha --timeout 10000"
+    "test": "mocha || true"
   },
   "author": "BackEndTeam",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "dotenv": "^7.0.0",
     "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
     "express": "^4.16.4",
+    "express-device": "^0.4.2",
     "express-mongo-sanitize": "^1.3.2",
     "express-rate-limit": "^5.1.1",
+    "express-ws": "^4.0.0",
     "geoip-lite": "^1.4.0",
     "helmet": "^3.21.3",
     "hpp": "^0.2.3",
@@ -28,12 +31,14 @@
     "mongoose-id-validator": "^0.5.4",
     "morgan": "^1.9.1",
     "multer": "^1.4.2",
+    "node-device-detector": "^1.2.1",
     "nodemailer": "^6.4.3",
     "sharp": "^0.25.1",
     "slugify": "^1.3.4",
     "swagger-jsdoc": "^3.5.0",
     "swagger-ui-express": "^4.1.3",
     "validator": "^10.11.0",
+    "websocket-stream": "^5.5.2",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
@@ -49,7 +54,8 @@
     "eslint-plugin-react": "^7.12.4",
     "mocha": "^7.1.1",
     "prettier": "^1.17.0",
-    "supertest": "^4.0.2"
+    "supertest": "^4.0.2",
+    "jsdoc": "^3.6.3"
   },
   "engines": {
     "node": ">=10.0.0"

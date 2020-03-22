@@ -2,8 +2,22 @@ const mongoose = require('mongoose');
 
 const DeviceObject = new mongoose.Schema(
   {
-    name: String,
-    id: Number
+    id: {
+      type: Number,
+      required: true
+    },
+    name: {
+      type: String,
+      trim: true
+    },
+    type: {
+      type: String,
+      trim: true
+    },
+    isActive: {
+      type: Boolean,
+      defaut: true
+    }
   },
   {
     _id: false,

@@ -11,7 +11,11 @@ const sharp = require('sharp');
 
 /* Image uploading */
 
-const multerStorage = multer.diskStorage({
+/**
+ *  An object used for disk storage configurations of multer
+ */
+
+multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'public/img/playlists');
   },
@@ -21,7 +25,11 @@ const multerStorage = multer.diskStorage({
   }
 });
 
-const multerFilter = (req, file, cb) => {
+/**
+ * An object used for filtering images for multer
+ */
+
+multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
@@ -29,7 +37,18 @@ const multerFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+/**
+ *  Used to initalize the multer object with storage settings and filter
+ */
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter
+});
+
+/**
+ *  Route handler for getting a playlist
+ */
 
 exports.getPlaylist = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(
@@ -50,7 +69,9 @@ exports.getPlaylist = catchAsync(async (req, res, next) => {
 
 exports.createPlaylist = catchAsync(async (req, res, next) => {
   req.body.owner = req.user;
+
   const newPlaylist = await Playlist.create(req.body);
+  console.log(newPlaylist);
 
   res.status(201).json(newPlaylist);
 });
