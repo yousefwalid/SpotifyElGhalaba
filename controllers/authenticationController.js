@@ -33,6 +33,70 @@ const filterDoc = require('./../utils/filterDocument.js');
  ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### #######
  ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### #######
 */
+
+const addDevice = async (user, device) => {
+  console.log(user.devices.length);
+
+  if (user.devices.length < 3) {
+    user = await User.findByIdAndUpdate(
+      user._id,
+      {
+        $push: {
+          devices: {
+            id: user.devices.length,
+            name: device.client.name,
+            type: device.device.type,
+            isActive: true
+          }
+        }
+      },
+      { new: true, runValidators: true }
+    );
+    return user;
+  }
+  //else
+  // console.log(user);
+  return user;
+};
+
+const setActiveDevice = async (user, deviceId) => {
+  if (user.devices.length > 0) {
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: { 'devices.$[].isActive': false }
+      }
+    );
+    user = await User.findOneAndUpdate(
+      { _id: user._id, 'devices.id': deviceId },
+      { $set: { 'devices.$.isActive': true } },
+      { new: true, runValidators: true }
+    );
+  }
+  return user;
+};
+
+const filterUser = user => {
+  return filterDoc(
+    user,
+    [
+      '_id',
+      'name',
+      'email',
+      'gender',
+      'birthdate',
+      'type',
+      'product',
+      'country',
+      'image',
+      'followers',
+      'followedPlaylists',
+      'devices',
+      'currentlyPlaying'
+    ],
+    ['uri']
+  );
+};
 /*
   ######  ####  ######   ##    ##    ########  #######  ##    ## ######## ##    ## 
  ##    ##  ##  ##    ##  ###   ##       ##    ##     ## ##   ##  ##       ###   ## 
@@ -102,7 +166,7 @@ const createAndSendToken = (user, statusCode, res) => {
  
 */
 const sendUser = async (user, res) => {
-  console.log('send user');
+  // console.log('send user');
   if (user.type === 'artist') {
     const artist = await Artist.findOne({
       userInfo: new ObjectId(user._id)
@@ -118,22 +182,8 @@ const sendUser = async (user, res) => {
 
     createAndSendToken(filteredArtist, 200, res);
   } else {
-    const filteredUser = filterDoc(
-      user,
-      [
-        '_id',
-        'name',
-        'email',
-        'gender',
-        'birthdate',
-        'type',
-        'product',
-        'country',
-        'image',
-        'followers'
-      ],
-      ['uri']
-    );
+    const filteredUser = filterUser(user);
+
     createAndSendToken(filteredUser, 200, res);
   }
 };
@@ -162,6 +212,9 @@ const sendUser = async (user, res) => {
 */
 exports.signup = catchAsync(async (req, res, next) => {
   console.log('signup');
+  if (!req.geoip || !req.geoip.country)
+    return next(new AppError('Sorry... Cannot Read The Country Code'));
+
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -206,7 +259,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password)
     return next(new AppError('Please provide email and password!', 400));
 
-  const user = await User.findOne({
+  let user = await User.findOne({
     email: email
   }).select('+password');
   if (!user) return next(new AppError('Incorrect email or password', 400));
@@ -215,7 +268,12 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!correct) {
     return next(new AppError('Incorrect email or password', 400));
   }
-
+  //Check if a device is saved.
+  //If not add device to db and send cookie to this new device and save the device to the req object
+  // user = await addDevice(user, req.thisDevice);
+  //set the device to be the active one in the db
+  // user = await setActiveDevice(user, 2);
+  
   sendUser(user, res);
 });
 
@@ -249,6 +307,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   //   }
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
   const currentUser = await User.findById(decoded.id);
 
   if (!currentUser)
@@ -265,32 +324,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // let filteredUser;
-  // if (currentUser.type === 'artist') {
-  //   const artist = await Artist.findOne({
-  //     userInfo: new ObjectId(currentUser._id)
-  //   }).populate({ path: 'userInfo' });
-
-  //   filteredUser = filterDoc(
-  //     artist,
-  //     ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
-  //     ['uri']
-  //   );
-  // } else {
-  const filteredUser = filterDoc(currentUser, [
-    '_id',
-    'name',
-    'email',
-    'gender',
-    'birthdate',
-    'type',
-    'product',
-    'country',
-    'image',
-    'followers'
-  ]);
-  // }
-  req.user = filteredUser;
+  req.user = filterUser(currentUser);
   next();
 });
 
@@ -459,3 +493,54 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
   sendUser(user, res);
 });
+
+/*
+ ##      ## ######## ########      ######   #######   ######  ##    ## ######## ########  ######        ###    ##     ## ######## ##     ## ######## ##    ## ######## ####  ######     ###    ######## ####  #######  ##    ## 
+ ##  ##  ## ##       ##     ##    ##    ## ##     ## ##    ## ##   ##  ##          ##    ##    ##      ## ##   ##     ##    ##    ##     ## ##       ###   ##    ##     ##  ##    ##   ## ##      ##     ##  ##     ## ###   ## 
+ ##  ##  ## ##       ##     ##    ##       ##     ## ##       ##  ##   ##          ##    ##           ##   ##  ##     ##    ##    ##     ## ##       ####  ##    ##     ##  ##        ##   ##     ##     ##  ##     ## ####  ## 
+ ##  ##  ## ######   ########      ######  ##     ## ##       #####    ######      ##     ######     ##     ## ##     ##    ##    ######### ######   ## ## ##    ##     ##  ##       ##     ##    ##     ##  ##     ## ## ## ## 
+ ##  ##  ## ##       ##     ##          ## ##     ## ##       ##  ##   ##          ##          ##    ######### ##     ##    ##    ##     ## ##       ##  ####    ##     ##  ##       #########    ##     ##  ##     ## ##  #### 
+ ##  ##  ## ##       ##     ##    ##    ## ##     ## ##    ## ##   ##  ##          ##    ##    ##    ##     ## ##     ##    ##    ##     ## ##       ##   ###    ##     ##  ##    ## ##     ##    ##     ##  ##     ## ##   ### 
+  ###  ###  ######## ########      ######   #######   ######  ##    ## ########    ##     ######     ##     ##  #######     ##    ##     ## ######## ##    ##    ##    ####  ######  ##     ##    ##    ####  #######  ##    ## 
+*/
+
+const closeSocket = ws => {
+  ws.send(
+    'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
+      'Upgrade: WebSocket\r\n' +
+      'Connection: Upgrade\r\n' +
+      '\r\n'
+  );
+  ws.end();
+};
+
+exports.protectWs = async (req, ws) => {
+  let token;
+  if (req.query.Authorization && req.query.Authorization.startsWith('Bearer'))
+    token = req.query.Authorization.split(' ')[1];
+  else {
+    return closeSocket(ws);
+  }
+
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  const currentUser = await User.findById(decoded.id);
+
+  if (!currentUser) {
+    return closeSocket(ws);
+  }
+
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return closeSocket(ws);
+  }
+  req.user = currentUser;
+  // console.log(req.user);
+  // ws.userId = currentUser._id;
+  // console.log(req);
+  // ws.write(
+  //   'HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
+  //     'Upgrade: WebSocket\r\n' +
+  //     'Connection: Upgrade\r\n' +
+  //     '\r\n'
+  // );
+};

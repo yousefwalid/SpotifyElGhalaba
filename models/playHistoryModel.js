@@ -1,3 +1,4 @@
+const idValidator = require('mongoose-id-validator');
 const mongoose = require('mongoose');
 const ContextObject = require('./objects/contextObject');
 
@@ -7,6 +8,11 @@ const playHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'Track',
       required: [true, 'A playHistory must have a Track reference.']
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: [true, 'A playHistory must have a User reference.']
     },
     played_at: {
       type: Date,
@@ -21,6 +27,9 @@ const playHistorySchema = new mongoose.Schema(
   }
 );
 
+playHistorySchema.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 const PlayHistory = mongoose.model('PlayHistory', playHistorySchema);
 
 module.exports = PlayHistory;
