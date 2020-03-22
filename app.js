@@ -16,6 +16,7 @@ const errorController = require('./controllers/errorController');
 
 const app = express();
 const appws = expressWs(app);
+const cors = require('cors');
 
 // Routers
 const authenticationRouter = require('./routes/authenticationRoutes');
