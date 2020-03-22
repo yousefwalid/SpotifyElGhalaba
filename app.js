@@ -11,6 +11,7 @@ const geoip = require('geoip-lite');
 const device = require('express-device');
 const DeviceDetector = require('node-device-detector');
 const expressWs = require('express-ws');
+const cors = require('cors');
 
 const errorController = require('./controllers/errorController');
 
@@ -60,8 +61,19 @@ if (process.env.NODE_ENV === 'development') {
   app.enable('trust proxy');
 }
 
+//CORS headers
+const corsOptions = {
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type,Authorization',
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+app.use(cors(corsOptions));
+
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body
+
 app.use(
   express.json({
     // This option limits the body data of the request to 10KB
