@@ -1,9 +1,12 @@
 const AudioFeatures = require('./../models/audioFeaturesModel');
+const Track = require('./../models/trackModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 
 exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
-  const trackAudioFeatures = await AudioFeatures.find({ track: req.params.id });
+  const trackAudioFeatures = await AudioFeatures.findOne({
+    track: req.params.id
+  });
   if (!trackAudioFeatures) {
     return next(new AppError('there is no audio features for this track', 404));
   }
@@ -18,9 +21,10 @@ exports.getAudioFeaturesForSeveralTracks = catchAsync(
     }
     const audioFeatures = await AudioFeatures.find({
       track: { $in: tracksIDs }
-    }).populate('tracks');
+    });
+    console.log(audioFeatures);
     if (!audioFeatures) {
-      return next(new AppError('No audioFeatures found'), 404);
+      return next(new AppError('No audioFeatures found', 404));
     }
     let audioFeaturesList = [];
     tracksIDs.forEach(el => {
@@ -43,6 +47,12 @@ exports.getAudioFeaturesForSeveralTracks = catchAsync(
 );
 exports.addAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const newAudioFeatures = req.body;
-  await AudioFeatures.create(newAudioFeatures);
-  res.status(201).json(newAudioFeatures);
+  const track = await Track.findById(req.body.track);
+  console.log(track);
+  if (track) {
+    await AudioFeatures.create(newAudioFeatures);
+    res.status(201).json(newAudioFeatures);
+  } else {
+    next(new AppError('No track found for this id', 404));
+  }
 });

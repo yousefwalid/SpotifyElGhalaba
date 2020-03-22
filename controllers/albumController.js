@@ -19,6 +19,9 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   const Tracks = await Album.findById(req.params.id)
     .select('tracks')
     .populate('tracks');
+  if (!Tracks) {
+    next(new AppError('No Album found with this ID', 404));
+  }
   const totalCount = Tracks.tracks.length;
   const limitedTracks = Tracks.tracks.slice(offset, limit + offset);
   const nextPage =

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const AppError = require('./../utils/appError');
 const Album = require('./../models/albumModel');
 // const ExternalIdObject = require("./objects/externalIdObject");
 const ExternalUrlObject = require('./objects/externalUrlObject');
@@ -74,12 +75,13 @@ const trackSchema = new mongoose.Schema(
 );
 trackSchema.pre('save', async function(next) {
   const album = await Album.findById(this.album);
-  console.log(album);
+  if (!album) {
+    next(new AppError('No album found with this id', 404));
+  }
   this.track_number = album.tracks.length + 1;
 });
 trackSchema.post('save', async function(next) {
   const album = await Album.findById(this.album);
-  console.log(album);
   album.tracks.push(this._id);
   await album.save();
 });

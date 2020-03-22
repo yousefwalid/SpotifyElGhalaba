@@ -6,10 +6,13 @@ const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 
 exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide album ids', 400));
+  }
   const albumIds = req.query.ids.split(',');
   const albums = await Album.find({ _id: { $in: albumIds } });
-  if (!albums) {
-    return next(new AppError('No albums found'), 404);
+  if (albums.length < 1) {
+    return next(new AppError('No albums found', 404));
   }
   let filteredAlbumIds = [];
   albums.forEach(el => {
@@ -33,16 +36,18 @@ exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
       user: req.user._id
     });
   });
-  console.log(savedAlbumDocs);
   savedAlbum.create(savedAlbumDocs);
   res.status(201).send();
 });
 
 exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide track ids', 400));
+  }
   const trackIds = req.query.ids.split(',');
   const tracks = await Track.find({ _id: { $in: trackIds } });
-  if (!tracks) {
-    return next(new AppError('No tracks found'), 404);
+  if (tracks.length < 1) {
+    return next(new AppError('No tracks found', 404));
   }
   let filteredTrackIds = [];
   tracks.forEach(el => {
@@ -66,7 +71,6 @@ exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
       user: req.user._id
     });
   });
-  console.log(savedTrackDocs);
   savedTrack.create(savedTrackDocs);
   res.status(201).send();
 });
@@ -136,4 +140,64 @@ exports.getSavedTracks = catchAsync(async (req, res, next) => {
     previous: previousPage,
     total: totalCount
   });
+});
+
+exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide album ids', 400));
+  }
+  const albumIds = req.query.ids.split(',');
+  const currentlySavedAlbums = await savedAlbum.find({
+    album: { $in: albumIds }
+  });
+  let boolArray = [];
+  currentlySavedAlbums.forEach(el => {
+    for (let i = 0; i < albumIds.length; i += 1) {
+      if (String(el.album) === String(albumIds[i])) {
+        boolArray.push(true);
+      } else {
+        boolArray.push(false);
+      }
+    }
+  });
+  res.status(200).json(boolArray);
+});
+
+exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide album ids', 400));
+  }
+  const trackIds = req.query.ids.split(',');
+  const currentlySavedTracks = await savedTrack.find({
+    track: { $in: trackIds }
+  });
+  let boolArray = [];
+  currentlySavedTracks.forEach(el => {
+    for (let i = 0; i < trackIds.length; i += 1) {
+      if (String(el.track) === String(trackIds[i])) {
+        boolArray.push(true);
+      } else {
+        boolArray.push(false);
+      }
+    }
+  });
+  res.status(200).json(boolArray);
+});
+
+exports.removeUserSavedTrack = catchAsync(async (req, res, next) => {
+  const trackIds = req.query.ids.split(',');
+  await savedTrack.deleteMany(
+    { track: { $in: trackIds } },
+    { user: req.user._id }
+  );
+  res.status(200).send();
+});
+
+exports.removeUserSavedAlbum = catchAsync(async (req, res, next) => {
+  const albumIds = req.query.ids.split(',');
+  await savedAlbum.deleteMany(
+    { album: { $in: albumIds } },
+    { user: req.user._id }
+  );
+  res.status(200).send();
 });

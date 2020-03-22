@@ -24,6 +24,15 @@ mongoose
 
 // Local databases
 // mongoose
+//   .connect(DB, {
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false
+//   })
+//   .then(() => console.log('DB connection successful!'));
+
+// Local databases
+// mongoose
 //   .connect(process.env.DATABASE_LOCAL, {
 //     useNewUrlParser: true,
 //     useCreateIndex: true,
