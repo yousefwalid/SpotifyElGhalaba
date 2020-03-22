@@ -137,13 +137,15 @@ const createAndSendToken = (user, statusCode, res) => {
   else id = user._id;
   const token = signToken(id);
 
-  //Setting a cookie:-
-  //   const cookieOptions = {
-  //     expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-  //     httpOnly: true
-  //   };
-  //   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  //   res.cookie('jwt', token, cookieOptions);
+  // Setting a cookie:-
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  res.cookie('jwt', token, cookieOptions);
 
   res.status(statusCode).json({
     status: 'success',
@@ -273,7 +275,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // user = await addDevice(user, req.thisDevice);
   //set the device to be the active one in the db
   // user = await setActiveDevice(user, 2);
-  
+
   sendUser(user, res);
 });
 
@@ -294,17 +296,17 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
-  )
+  ) {
     token = req.headers.authorization.split(' ')[1];
-  else
+  } else if (req.cookies.jwt) {
+    // console.log('cookie here');
+    token = req.cookies.jwt;
+  } else
     return next(
       new AppError(`you're not logged in. Please login to get access`, 401)
     );
 
   //Check for the cookie
-  //   if (req.cookies.jwt) {
-  //     console.log(req.cookies.jwt);
-  //   }
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 

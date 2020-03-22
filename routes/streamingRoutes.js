@@ -59,7 +59,7 @@ const streamingController = require('./../controllers/streamingController');
 
 streamingRouter.get(
   '/:trackId',
-  //   authenticationController.protect,
+  authenticationController.protect,
   streamingController.downloadTrack
 );
 streamingRouter.post(
