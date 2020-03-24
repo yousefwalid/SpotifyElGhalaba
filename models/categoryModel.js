@@ -1,3 +1,11 @@
+/**
+ * The Category Object
+ * @typedef {Object} Category
+ * @property {Array} icons - The icons of the category
+ * @property {string} name - The name of the cateogry 
+ * @property {Array<ObjectId>} Playlists - Array of playlists in this category
+ */
+
 const mongoose = require('mongoose');
 const ImageObject = require('./objects/imageObject');
 
