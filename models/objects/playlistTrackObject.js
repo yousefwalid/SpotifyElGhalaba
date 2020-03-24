@@ -10,4 +10,8 @@ const PlaylistTrackObject = new mongoose.Schema({
   track: { type: mongoose.Schema.ObjectId, ref: 'Track' }
 });
 
+PlaylistTrackObject.pre(/^find/, function() {
+  this.populate('track');
+});
+
 module.exports = PlaylistTrackObject;

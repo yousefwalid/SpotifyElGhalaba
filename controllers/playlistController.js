@@ -8,6 +8,7 @@ const pagingObject = require('./../models/objects/pagingObject');
 const parseFields = require('./../utils/parseFields');
 const multer = require('multer');
 const sharp = require('sharp');
+const excludePopulationFields = require('./../utils/excludePopulationFields');
 
 /* Image uploading */
 
@@ -86,7 +87,26 @@ class PlaylistController {
    */
 
   async getPlaylist(playlistId, queryParams, next) {
-    const features = new APIFeatures(Playlist.findById(playlistId), queryParams)
+    let returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'owner'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    const ownerPopulationFields = returnObj.trimmedString;
+
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'tracks.items.track'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    const trackPopulationFields = returnObj.trimmedString;
+
+    const features = new APIFeatures(
+      Playlist.findById(playlistId)
+        .populate('owner', ownerPopulationFields)
+        .populate('tracks.items.track', trackPopulationFields),
+      queryParams
+    )
       .filterOne()
       .limitFieldsParenthesis();
 
@@ -106,6 +126,7 @@ class PlaylistController {
    * @param {Object} next The next object for handling errors in express
    * @returns {PagingObject}
    * @todo Handle unselecting limit and offset in limitFields
+   * @todo Fix fields on population
    */
 
   async getPlaylistTracks(playlistId, queryParams, next) {
@@ -115,12 +136,23 @@ class PlaylistController {
       next
     );
 
-    queryParams.fields = queryParams.fields.replace('items', 'tracks.items'); // As the object in DB is tracks.items but in response it is items only
+    const returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'items.track'
+    );
+
+    queryParams.fields = returnObj.fieldsString;
+    const populationFields = returnObj.trimmedString;
+
+    queryParams.fields = queryParams.fields.replace(/items/g, 'tracks.items'); // As the object in DB is tracks.items but in response it is items only
 
     const queryObject = { 'tracks.items': { $slice: [offset, limit] } }; // Apply slicing on offset and limit
 
     const features = new APIFeatures(
-      Playlist.findById(playlistId, queryObject),
+      Playlist.findById(playlistId, queryObject).populate(
+        'tracks.items.track',
+        populationFields
+      ),
       queryParams
     )
       .filterOne()
@@ -128,7 +160,7 @@ class PlaylistController {
 
     const tracks = await features.query;
 
-    const pagingObject = {
+    let pagingObject = {
       href: 'https://api.spotify.com/v1/' + `playlists/${playlistId}/tracks`,
       items: tracks.tracks.items,
       limit,
