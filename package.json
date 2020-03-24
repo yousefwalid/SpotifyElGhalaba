@@ -8,7 +8,7 @@
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
     "test": "mocha || true",
-    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
+    "doc": "jsdoc -c jsdoc.json"
   },
   "author": "BackEndTeam",
   "license": "ISC",
