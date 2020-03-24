@@ -56,6 +56,7 @@ class PlaylistController {
    * @param {Number} offset The offset parameter, defaults to 0 if not passed
    * @param {Object} next The next object for handling errors in express
    */
+
   validateLimitOffset(limit, offset, next) {
     limit = limit * 1 || 100;
     offset = offset * 1 || 0;
@@ -79,13 +80,14 @@ class PlaylistController {
   /**
    * Gets a Playlist given its id
    * @param {String} playlistId The id of the Playlist to be retrieved
-   * @param {Object} queryFields The query parameters of the request
+   * @param {Object} queryParams The query parameters of the request
    * @param {Object} next The next object for handling errors in express
    * @returns {PlaylistObject}
    * @todo Handle different errors
    */
-  async getPlaylist(playlistId, queryFields, next) {
-    const features = new APIFeatures(Playlist.findById(playlistId), queryFields)
+
+  async getPlaylist(playlistId, queryParams, next) {
+    const features = new APIFeatures(Playlist.findById(playlistId), queryParams)
       .filterOne()
       .limitFieldsParenthesis();
 
@@ -101,11 +103,12 @@ class PlaylistController {
   /**
    * Gets tracks of a certain playlist given its id
    * @param {String} playlistId The id of the playlist
-   * @param {Object} queryFields The query parameters of the request
+   * @param {Object} queryParams The query parameters of the request
    * @param {Object} next The next object for handling errors in express
    * @returns {PagingObject}
    * @todo Handle unselecting limit and offset in limitFields
    */
+
   async getPlaylistTracks(playlistId, queryParams, next) {
     const { limit, offset } = playlistController.validateLimitOffset(
       queryParams.limit,
@@ -134,6 +137,102 @@ class PlaylistController {
     };
 
     return pagingObject;
+  }
+
+  /**
+   * Adds a list of tracks into a playlist given its id, can have a position specified to insert the tracks at
+   * @param {String} playlistId The id of the playlist
+   * @param {Array<String>} uris An array of the Spotify track URIs to add
+   * @param {Number} position The position to insert the tracks, a zero-based index
+   * @param {String} userId The id of the user issuing the request
+   * @param {Object} next The next object for handling errors in express
+   * @returns {null}
+   */
+
+  async addPlaylistTrack(playlistId, uris, position, userId, next) {
+    if (!uris || uris.length == 0) {
+      return next(new AppError('No URIs specified', 400));
+    }
+
+    if (!userId) {
+      return next(new AppError('A user must be passed', 500));
+    }
+
+    const playlist = await Playlist.findById(playlistId);
+
+    if (!playlist) {
+      return next(new AppError('No playlist found with that id', 404));
+    }
+
+    if (playlist.owner != userId) {
+      return next(new AppError('You are not the owner of this playlist', 403));
+    }
+
+    if (playlist.tracks.length + uris.length > 10000) {
+      return next(
+        new AppError("Playlist size can't exceed 10,000 tracks", 403)
+      );
+    }
+
+    let playlistTracks = []; // Temporary array to create
+
+    uris.forEach(uri => {
+      // Crop the track id out of the uri
+      uri = uri.slice(14);
+
+      const playlistTrack = {
+        // Create a new PlaylistTrackObject
+        added_at: Date.now(),
+        added_by: userId,
+        track: uri
+      };
+
+      playlistTracks.push(playlistTrack); // Push the items in the playlist tracks array
+    });
+
+    if (position == undefined)
+      playlist.tracks.items = playlist.tracks.items.concat(playlistTracks);
+    else {
+      const tempArray = playlist.tracks.items.splice(position);
+      playlist.tracks.items = playlist.tracks.items.concat(playlistTracks);
+      playlist.tracks.items = playlist.tracks.items.concat(tempArray);
+    }
+
+    playlist.save(); // Save the document
+  }
+
+  /**
+   * Retrieve a list of a playlists for a certain user
+   * @param {String} userId The id of the user to have his playlists retrieved
+   * @param {Object} queryParams The query parameters of the request
+   * @param {Object} next The next object for handling errors in express
+   * @returns {Array<PlaylistObject>}
+   */
+
+  async getUserPlaylists(userId, queryParams, next) {
+    queryParams.limit = queryParams.limit * 1 || 20;
+    queryParams.offset = queryParams.offset * 1 || 0;
+
+    if (queryParams.limit <= 0 || query.params.limit > 50)
+      return next(
+        new AppError('Limit query parameter out of allowed range', 500)
+      );
+
+    if (queryParams.offset <= 0 || queryParams.offset > 100000)
+      return next(
+        new AppError('Offset query parameter out of allowed range', 500)
+      );
+
+    const features = new APIFeatures(
+      Playlist.find({ owner: userId }),
+      queryParams
+    )
+      .filter()
+      .skip();
+
+    const playlists = await features.query;
+
+    return playlists;
   }
 }
 
@@ -166,50 +265,28 @@ exports.getPlaylistImages = catchAsync(async (req, res, next) => {
 
 exports.createPlaylist = catchAsync(async (req, res, next) => {
   req.body.owner = req.user;
-
   const newPlaylist = await Playlist.create(req.body);
-  console.log(newPlaylist);
 
   res.status(201).json(newPlaylist);
 });
 
 exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
-  const playlist = await Playlist.findById(req.params.playlist_id);
-  const uris = req.body.uris;
-  const position = req.body.position * 1 || undefined;
-
-  if (playlist.tracks.length + uris.length > 10000) {
-    return new AppError("Playlist size can't exceed 10,000 tracks", 403);
-  }
-
-  uris.forEach(uri => {
-    uri = uri.slice(14);
-
-    const playlistTrack = {
-      added_at: Date.now(),
-      added_by: req.user,
-      track: uri
-    };
-
-    playlist.tracks.items.push(playlistTrack);
-  });
-
-  playlist.save();
+  playlistController.addPlaylistTrack(
+    req.params.playlist_id,
+    req.body.uris,
+    req.body.position,
+    req.user._id,
+    next
+  );
 
   res.status(201).send();
 });
 
 exports.getUserPlaylists = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(
-    Playlist.find({ owner: req.params.user_id }),
+  const playlists = await playlistController.getUserPlaylists(
+    req.params.user_id,
     req.query
-  )
-    .filter()
-    .sort()
-    .limitFields()
-    .skip();
-
-  const playlists = await features.query;
+  );
 
   res.status(200).json(playlists);
 });
