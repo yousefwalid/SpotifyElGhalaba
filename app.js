@@ -17,7 +17,6 @@ const errorController = require('./controllers/errorController');
 
 const app = express();
 const appws = expressWs(app);
-const cors = require('cors');
 
 // Routers
 const authenticationRouter = require('./routes/authenticationRoutes');
@@ -41,7 +40,6 @@ const AppError = require('./utils/appError');
 //Should be put at the top of the middleware stack
 //Adds security headers
 app.use(helmet());
-app.use(cors());
 //2) Limit requests
 const limiter = rateLimit({
   //limits 100 requests for each IP in one hour.
