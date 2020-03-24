@@ -1,3 +1,5 @@
+const parseFields = require('./parseFields');
+
 class APIFeatures {
   constructor(query, queryString) {
     this.query = query;
@@ -53,6 +55,18 @@ class APIFeatures {
       if (this.query) this.query = this.query.select(fields);
     } else if (this.query) {
       //this.query = this.query.select('-__v');
+    }
+
+    return this;
+  }
+
+  /**
+   * Parses the request fields parameter in Spotify's parenthesis format, and then apply query select on those fields
+   */
+  limitFieldsParenthesis() {
+    if (this.queryString.fields) {
+      const fields = parseFields(this.queryString.fields);
+      if (this.query) this.query = this.query.select(fields);
     }
 
     return this;
