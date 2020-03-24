@@ -47,24 +47,121 @@ const upload = multer({
 });
 
 /**
- *  Route handler for getting a playlist
+ * This class contains all the business logic for the Playlist Controller
  */
+class PlaylistController {
+  /**
+   * Validates the ranges of limit and offset
+   * @param {Number} limit The limit parameter, defaults to 100 if not passed
+   * @param {Number} offset The offset parameter, defaults to 0 if not passed
+   * @param {Object} next The next object for handling errors in express
+   */
+  validateLimitOffset(limit, offset, next) {
+    limit = limit * 1 || 100;
+    offset = offset * 1 || 0;
 
-exports.getPlaylist = catchAsync(async (req, res, next) => {
-  const features = new APIFeatures(
-    Playlist.findById(req.params.playlist_id),
-    req.query
-  )
-    .filter()
-    .limitFields();
+    if (limit <= 0)
+      return next(
+        new AppError(
+          'Limit query parameter can not be less than or equal to 0',
+          500
+        )
+      );
 
-  const playlist = await features.query;
+    if (limit > 100)
+      return next(
+        new AppError('Limit query parameter can not be greater than 100', 500)
+      );
 
-  if (!playlist) {
-    return next(new AppError('No playlist found with that id', 404));
+    return { limit, offset };
   }
 
+  /**
+   * Gets a Playlist given its id
+   * @param {String} playlistId The id of the Playlist to be retrieved
+   * @param {Object} queryFields The query parameters of the request
+   * @param {Object} next The next object for handling errors in express
+   * @returns {PlaylistObject}
+   * @todo Handle different errors
+   */
+  async getPlaylist(playlistId, queryFields, next) {
+    const features = new APIFeatures(Playlist.findById(playlistId), queryFields)
+      .filterOne()
+      .limitFieldsParenthesis();
+
+    const playlist = await features.query;
+
+    if (!playlist) {
+      return next(new AppError('No playlist found with that id', 404));
+    }
+
+    return playlist;
+  }
+
+  /**
+   * Gets tracks of a certain playlist given its id
+   * @param {String} playlistId The id of the playlist
+   * @param {Object} queryFields The query parameters of the request
+   * @param {Object} next The next object for handling errors in express
+   * @returns {PagingObject}
+   * @todo Handle unselecting limit and offset in limitFields
+   */
+  async getPlaylistTracks(playlistId, queryParams, next) {
+    const { limit, offset } = playlistController.validateLimitOffset(
+      queryParams.limit,
+      queryParams.offset,
+      next
+    );
+
+    queryParams.fields = queryParams.fields.replace('items', 'tracks.items'); // As the object in DB is tracks.items but in response it is items only
+
+    const queryObject = { 'tracks.items': { $slice: [offset, limit] } }; // Apply slicing on offset and limit
+
+    const features = new APIFeatures(
+      Playlist.findById(playlistId, queryObject),
+      queryParams
+    )
+      .filterOne()
+      .limitFieldsParenthesis();
+
+    const tracks = await features.query;
+
+    const pagingObject = {
+      href: 'https://api.spotify.com/v1/' + `playlists/${playlistId}/tracks`,
+      items: tracks.tracks.items,
+      limit,
+      offset
+    };
+
+    return pagingObject;
+  }
+}
+
+let playlistController = new PlaylistController();
+
+exports.getPlaylist = catchAsync(async (req, res, next) => {
+  const playlist = await playlistController.getPlaylist(
+    req.params.playlist_id,
+    req.query
+  );
+
   res.status(200).json(playlist);
+});
+
+exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
+  const tracks = await playlistController.getPlaylistTracks(
+    req.params.playlist_id,
+    req.query,
+    next
+  );
+
+  res.status(200).json(tracks);
+});
+
+exports.getPlaylistImages = catchAsync(async (req, res, next) => {
+  const images = (await Playlist.findById(req.params.playlist_id)).images;
+
+  res.status(200).json(images);
 });
 
 exports.createPlaylist = catchAsync(async (req, res, next) => {
@@ -74,57 +171,6 @@ exports.createPlaylist = catchAsync(async (req, res, next) => {
   console.log(newPlaylist);
 
   res.status(201).json(newPlaylist);
-});
-
-exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
-  const limit = req.query.limit * 1 || 100;
-  const offset = req.query.offset * 1 || 0;
-
-  if (limit <= 0)
-    return next(
-      new AppError(
-        'Limit query parameter can not be less than or equal to 0',
-        500
-      )
-    );
-
-  if (limit > 100)
-    return next(
-      new AppError('Limit query parameter can not be greater than 100', 500)
-    );
-
-  let queryObject = {};
-
-  if (req.query.fields) {
-    req.query.fields = req.query.fields.replace('items', 'tracks.items');
-    queryObject = parseFields(req.query.fields);
-  }
-
-  queryObject['tracks.items'] = { $slice: [offset, limit] };
-
-  const features = new APIFeatures(
-    Playlist.findById(req.params.playlist_id, queryObject).select('tracks'),
-    req.query
-  ).filterOne();
-
-  const tracks = await features.query;
-
-  const pagingObject = {
-    href:
-      'https://api.spotify.com/v1/' +
-      `playlists/${req.params.playlist_id}/tracks`,
-    items: tracks.tracks.items,
-    limit,
-    offset
-  };
-
-  res.status(200).json(pagingObject);
-});
-
-exports.getPlaylistImages = catchAsync(async (req, res, next) => {
-  const images = (await Playlist.findById(req.params.playlist_id)).images;
-
-  res.status(200).json(images);
 });
 
 exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
@@ -207,6 +253,10 @@ exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
 
   res.status(200).json(playlist);
 });
+
+/**
+ * Deletes a track
+ */
 
 exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
   const playlist = await Playlist.findById(req.params.playlist_id);

@@ -4,7 +4,7 @@ module.exports = function(fieldString) {
   fieldString = fieldString.replace(/\(/g, '(,');
   let parsedArray = fieldString.split(/[,]+/);
   let parent = [];
-  let object = {};
+  let paramsArray = [];
 
   parsedArray.forEach(el => {
     if (el.endsWith('(')) {
@@ -12,10 +12,10 @@ module.exports = function(fieldString) {
     } else if (el == ')') {
       parent.pop();
     } else {
-      if (parent.length == 0) object[el] = 1;
-      else object[parent.join('.') + '.' + el] = 1;
+      if (parent.length == 0) paramsArray.push(el);
+      else paramsArray.push(parent.join('.') + '.' + el);
     }
   });
 
-  return object;
+  return paramsArray.join(' ');
 };
