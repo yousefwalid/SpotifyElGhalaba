@@ -1,7 +1,7 @@
 /**
- * @module Utility Module
  * This function takes a fields string and removes all strings with fieldName prefix
  * If the fieldName isn't in the query string, the function adds it
+ * @module Utility Module
  * @param {String} fieldsString The string to be parsed
  * @param {String} fieldName The prefix that must be removed by the function
  * @return {Object} An object containing the modified fieldsString and the trimmedString containing the filter Object
