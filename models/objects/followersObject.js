@@ -1,16 +1,23 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 
-const FollowersObject = new mongoose.Schema({
-  href: {
-    type: String
+const FollowersObject = new mongoose.Schema(
+  {
+    href: {
+      type: String
+    },
+    total: {
+      type: Number
+    }
   },
-  total: {
-    type: Number
+  {
+    _id: false,
+    id: false,
+    strict: 'throw'
   }
-}, {
-  _id: false,
-  id: false,
-  __v: false
-});
+);
 
+FollowersObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 module.exports = FollowersObject;

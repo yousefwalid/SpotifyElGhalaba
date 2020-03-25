@@ -1,11 +1,8 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 
 const DeviceObject = new mongoose.Schema(
   {
-    id: {
-      type: Number,
-      required: true
-    },
     name: {
       type: String,
       trim: true
@@ -20,10 +17,12 @@ const DeviceObject = new mongoose.Schema(
     }
   },
   {
-    _id: false,
     id: false,
-    __v: false
+    strict: 'throw'
   }
 );
+DeviceObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 
 module.exports = DeviceObject;

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const idValidator = require('mongoose-id-validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const ImageObject = require('./objects/imageObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
@@ -66,12 +67,14 @@ const albumSchema = new mongoose.Schema(
     },
     toObject: {
       virtuals: true
-    }
+    },
+    strict: 'throw'
   }
 );
 albumSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+albumSchema.plugin(mongooseLeanVirtuals);
 
 const URI = albumSchema.virtual('uri');
 URI.get(function() {

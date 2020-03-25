@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
 const savedAlbumSchema = new mongoose.Schema(
   {
@@ -25,8 +27,14 @@ const savedAlbumSchema = new mongoose.Schema(
         delete ret._id;
       }
     }, //show virtual properties when providing the data as JSON
-    toObject: { virtuals: true } //show virtual properties when providing the data as Objects
+    toObject: { virtuals: true }, //show virtual properties when providing the data as Objects
+    strict: 'throw'
   }
 );
+savedAlbumSchema.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
+savedAlbumSchema.plugin(mongooseLeanVirtuals);
+
 const SavedAlbum = mongoose.model('SavedAlbum', savedAlbumSchema);
 module.exports = SavedAlbum;

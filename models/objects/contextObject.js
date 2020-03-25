@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 const ExternalUrlObject = require('./externalUrlObject');
 
 const ContextObject = new mongoose.Schema(
@@ -20,10 +21,12 @@ const ContextObject = new mongoose.Schema(
   {
     id: false,
     _id: false,
-    __v: false
+    strict: 'throw'
   }
 );
-
+ContextObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 module.exports = ContextObject;
 
 //Two level embedding

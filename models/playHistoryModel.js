@@ -1,5 +1,6 @@
-const idValidator = require('mongoose-id-validator');
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const ContextObject = require('./objects/contextObject');
 
 const playHistorySchema = new mongoose.Schema(
@@ -23,13 +24,17 @@ const playHistorySchema = new mongoose.Schema(
 
   {
     toJSON: { virtuals: true }, //show virtual properties when providing the data as JSON
-    toObject: { virtuals: true } //show virtual properties when providing the data as Objects
+    toObject: { virtuals: true }, //show virtual properties when providing the data as Objects
+    strict: 'throw'
   }
 );
 
 playHistorySchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+
+playHistorySchema.plugin(mongooseLeanVirtuals);
+
 const PlayHistory = mongoose.model('PlayHistory', playHistorySchema);
 
 module.exports = PlayHistory;

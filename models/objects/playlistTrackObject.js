@@ -1,13 +1,23 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 
-const PlaylistTrackObject = new mongoose.Schema({
-  added_at: Date,
-  added_by: mongoose.Schema.ObjectId,
-  is_local: {
-    type: Boolean,
-    default: false
+const PlaylistTrackObject = new mongoose.Schema(
+  {
+    added_at: Date,
+    added_by: mongoose.Schema.ObjectId,
+    is_local: {
+      type: Boolean,
+      default: false
+    },
+    track: { type: mongoose.Schema.ObjectId, ref: 'Track' }
   },
-  track: { type: mongoose.Schema.ObjectId, ref: 'Track' }
+  {
+    strict: 'throw'
+  }
+);
+
+PlaylistTrackObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
 });
 
 module.exports = PlaylistTrackObject;

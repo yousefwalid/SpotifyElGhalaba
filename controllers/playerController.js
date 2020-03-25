@@ -12,7 +12,7 @@ exports.status = async (ws, req) => {
 
   //ON CONNECION
   console.log(`${req.user.email} Connected [WebSocket]`);
-  await User.findByIdAndUpdate(req.user._id, { active: true });
+  await User.findByIdAndUpdate(req.user._id, { online: true });
 
   //CHECK ONLINE/OFFLINE LOGIC:
   ws.isAlive = true;
@@ -22,7 +22,7 @@ exports.status = async (ws, req) => {
 
   const interval = setInterval(async function ping() {
     if (ws.isAlive === false) {
-      await User.findByIdAndUpdate(req.user._id, { active: false });
+      await User.findByIdAndUpdate(req.user._id, { online: false });
       return ws.terminate();
     }
     ws.isAlive = false;
@@ -69,7 +69,7 @@ exports.status = async (ws, req) => {
       });
     }
     if (ws.isAlive) {
-      await User.findByIdAndUpdate(req.user._id, { active: false });
+      await User.findByIdAndUpdate(req.user._id, { online: false });
     }
   });
 };

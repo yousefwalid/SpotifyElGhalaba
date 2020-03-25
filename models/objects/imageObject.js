@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 
 const ImageObject = new mongoose.Schema(
   {
@@ -19,8 +20,12 @@ const ImageObject = new mongoose.Schema(
   {
     id: false,
     _id: false,
-    __v: false
+    strict: 'throw'
   }
 );
+
+ImageObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 
 module.exports = ImageObject;

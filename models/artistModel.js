@@ -1,54 +1,63 @@
 const mongoose = require('mongoose');
 // const validator = require('validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const idValidator = require('mongoose-id-validator');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 const ImageObject = require('./objects/imageObject');
 const FollowersObject = require('./objects/followersObject');
 
-const artistSchema = new mongoose.Schema({
-  external_urls: {
-    // Array of external URLs of this artist account
-    type: [ExternalUrlObject],
-    default: null
+const artistSchema = new mongoose.Schema(
+  {
+    external_urls: {
+      // Array of external URLs of this artist account
+      type: [ExternalUrlObject],
+      default: null
+    },
+    followers: {
+      // Array of user ids following this artist account
+      type: [FollowersObject],
+      default: null
+    },
+    genres: [
+      {
+        // Array of this artist's genres
+        type: String,
+        trim: true,
+        maxlength: 30,
+        minlength: 2,
+        default: null
+      }
+    ],
+    images: {
+      type: [ImageObject],
+      default: null
+    },
+    userInfo: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: [true, `The artist's user info has to be specifed`]
+    },
+    albums: {
+      type: [mongoose.Schema.ObjectId],
+      ref: 'Album'
+    }
   },
-  followers: {
-    // Array of user ids following this artist account
-    type: [FollowersObject],
-    default: null
-  },
-  genres: [{
-    // Array of this artist's genres
-    type: String,
-    trim: true,
-    maxlength: 30,
-    minlength: 2,
-    default: null
-  }],
-  images: {
-    type: [ImageObject],
-    default: null
-  },
-  userInfo: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    required: [true, `The artist's user info has to be specifed`]
-  },
-  albums: {
-    type: [mongoose.Schema.ObjectId],
-    ref: 'Album'
+  {
+    toJSON: {
+      virtuals: true
+    },
+    toObject: {
+      virtuals: true
+    },
+    strict: 'throw'
   }
-}, {
-  toJSON: {
-    virtuals: true
-  },
-  toObject: {
-    virtuals: true
-  }
-});
+);
 
 artistSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+artistSchema.plugin(mongooseLeanVirtuals);
+
 artistSchema.pre();
 
 // artistSchema.virtual('popularity').get(function() {
@@ -63,7 +72,7 @@ artistSchema.pre();
 //   return 'artist';
 // });
 
-artistSchema.virtual('uri').get(function () {
+artistSchema.virtual('uri').get(function() {
   return `spotify:artist:${this._id}`;
 });
 

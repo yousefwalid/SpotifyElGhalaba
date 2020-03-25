@@ -19,7 +19,7 @@ const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
-const filterDoc = require('./../utils/filterDocument.js');
+// const filterDoc = require('./../utils/filterDocument.js');
 
 /*
  ##     ## ######## #### ##       #### ######## ##    ##    ######## ##     ## ##    ##  ######  ######## ####  #######  ##    ##  ######  
@@ -33,17 +33,42 @@ const filterDoc = require('./../utils/filterDocument.js');
  ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### #######
  ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### ####### #######
 */
+// const setActiveDevice = async (user, deviceId) => {
+//   if (user.devices.length > 0) {
+//     await User.findOneAndUpdate(
+//       { _id: user._id },
+//       {
+//         $set: { 'devices.$[].isActive': false }
+//       }
+//     );
+//     user = await User.findOneAndUpdate(
+//       { _id: user._id, 'devices._id': deviceId },
+//       { $set: { 'devices.$.isActive': true } },
+//       { new: true, runValidators: true }
+//     );
+//   }
+//   return user;
+// };
+
+const setAllDevicesInactive = async user => {
+  if (user.devices.length > 0) {
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: { 'devices.$[].isActive': false }
+      }
+    );
+  }
+  return user;
+};
 
 const addDevice = async (user, device) => {
-  console.log(user.devices.length);
-
   if (user.devices.length < 3) {
     user = await User.findByIdAndUpdate(
       user._id,
       {
         $push: {
           devices: {
-            id: user.devices.length,
             name: device.client.name,
             type: device.device.type,
             isActive: true
@@ -52,51 +77,37 @@ const addDevice = async (user, device) => {
       },
       { new: true, runValidators: true }
     );
-    return user;
-  }
-  //else
-  // console.log(user);
-  return user;
-};
+  } else {
+    let deviceId;
 
-const setActiveDevice = async (user, deviceId) => {
-  if (user.devices.length > 0) {
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      {
-        $set: { 'devices.$[].isActive': false }
+    for (let i = 0; i < 3; i += 1) {
+      if (!user.devices[i].isActive) {
+        deviceId = user.devices[i]._id;
+        break;
       }
-    );
+    }
+
     user = await User.findOneAndUpdate(
-      { _id: user._id, 'devices.id': deviceId },
-      { $set: { 'devices.$.isActive': true } },
+      {
+        _id: user._id,
+        'devices._id': deviceId
+      },
+      {
+        $set: {
+          'devices.$': {
+            name: device.client.name,
+            type: device.device.type,
+            isActive: true
+          }
+        }
+      },
       { new: true, runValidators: true }
     );
   }
+
   return user;
 };
 
-const filterUser = user => {
-  return filterDoc(
-    user,
-    [
-      '_id',
-      'name',
-      'email',
-      'gender',
-      'birthdate',
-      'type',
-      'product',
-      'country',
-      'image',
-      'followers',
-      'followedPlaylists',
-      'devices',
-      'currentlyPlaying'
-    ],
-    ['uri']
-  );
-};
 /*
   ######  ####  ######   ##    ##    ########  #######  ##    ## ######## ##    ## 
  ##    ##  ##  ##    ##  ###   ##       ##    ##     ## ##   ##  ##       ###   ## 
@@ -106,6 +117,8 @@ const filterUser = user => {
  ##    ##  ##  ##    ##  ##   ###       ##    ##     ## ##   ##  ##       ##   ### 
   ######  ####  ######   ##    ##       ##     #######  ##    ## ######## ##    ## 
 */
+//params: user id
+//returns: JWT token
 const signToken = id => {
   return jwt.sign(
     {
@@ -129,6 +142,12 @@ const signToken = id => {
   ######  ##     ## ######## ##     ##    ##    ########     ######  ######## ##    ## ########        ##     #######  ##    ## ######## ##    ## 
 */
 
+//params:
+//  user: user/artist object
+//  statusCode: status code of the response
+//  res: res
+//Creates a token and sends the response containing the user object and the token.
+//returns: none
 const createAndSendToken = (user, statusCode, res) => {
   let id;
 
@@ -144,7 +163,9 @@ const createAndSendToken = (user, statusCode, res) => {
     ),
     httpOnly: true
   };
+
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
   res.cookie('jwt', token, cookieOptions);
 
   res.status(statusCode).json({
@@ -167,25 +188,26 @@ const createAndSendToken = (user, statusCode, res) => {
   ######  ######## ##    ## ########      #######   ######  ######## ##     ## 
  
 */
+
+//params:
+//  user: user doc
+//  res:  res object
+//sends the user to the response
+//returns: none
 const sendUser = async (user, res) => {
-  // console.log('send user');
   if (user.type === 'artist') {
     const artist = await Artist.findOne({
       userInfo: new ObjectId(user._id)
     }).populate({
-      path: 'userInfo'
+      path: 'userInfo',
+      select: User.publicUser()
     });
 
-    const filteredArtist = filterDoc(
-      artist,
-      ['_id', 'external_urls', 'followers', 'genres', 'images', 'userInfo'],
-      ['uri']
-    );
-
-    createAndSendToken(filteredArtist, 200, res);
+    //No need to filter artist fields [The nested user document is already filtered in the populate function]
+    createAndSendToken(artist, 200, res);
   } else {
-    const filteredUser = filterUser(user);
-
+    //Filter private fields of the user and send only the public user
+    const filteredUser = user.privateToPublic();
     createAndSendToken(filteredUser, 200, res);
   }
 };
@@ -213,7 +235,6 @@ const sendUser = async (user, res) => {
   ######  ####  ######   ##    ##  #######  ##        
 */
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log('signup');
   if (!req.geoip || !req.geoip.country)
     return next(new AppError('Sorry... Cannot Read The Country Code'));
 
@@ -261,15 +282,23 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password)
     return next(new AppError('Please provide email and password!', 400));
 
-  let user = await User.findOne({
-    email: email
-  }).select('+password');
-  if (!user) return next(new AppError('Incorrect email or password', 400));
-  const correct = await user.correctPassword(password, user.password);
+  let user = await User.findOne(
+    {
+      email: email
+    },
+    User.privateUser()
+  );
 
+  //INCORRECT EMAIL
+  if (!user) return next(new AppError('Incorrect email or password', 400));
+
+  const correct = await User.correctPassword(password, user.password);
+
+  //INCORRECT PASSWORD
   if (!correct) {
     return next(new AppError('Incorrect email or password', 400));
   }
+
   //Check if a device is saved.
   //If not add device to db and send cookie to this new device and save the device to the req object
   // user = await addDevice(user, req.thisDevice);
@@ -293,31 +322,31 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
+  //Check for JWT token in header or cookie or URL
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
-    // console.log('cookie here');
     token = req.cookies.jwt;
+  } else if (req.query.authorization) {
+    token = req.query.authorization;
   } else
     return next(
       new AppError(`you're not logged in. Please login to get access`, 401)
     );
 
-  //Check for the cookie
-
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  const currentUser = await User.findById(decoded.id);
+  const currentUser = await User.findById(decoded.id, User.privateUser());
 
   if (!currentUser)
     return next(
       new AppError(`The user that belongs to this token no longer exists`, 401)
     );
 
-  if (currentUser.changedPasswordAfter(decoded.iat)) {
+  if (User.changedPasswordAfter(currentUser, decoded.iat)) {
     return next(
       new AppError(
         `User recently changed his password. Please login again`,
@@ -326,7 +355,9 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  req.user = filterUser(currentUser);
+  //Send the public user info to the next middleware
+  req.user = currentUser.privateToPublic();
+
   next();
 });
 
@@ -367,7 +398,7 @@ exports.restrictTo = (...roles) => {
 
 exports.userAuthorization = Model => {
   return catchAsync(async (req, res, next) => {
-    const doc = await Model.findById(req.params.id);
+    const doc = await Model.findById(req.params.id, User.publicUser());
     if (!doc) return next(new AppError('No document found with that ID', 401));
 
     if (!req.user._id.equals(doc.user._id) && !req.user._id.equals(doc.user)) {
@@ -392,9 +423,12 @@ exports.userAuthorization = Model => {
 */
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({
-    email: req.body.email
-  });
+  const user = await User.findOne(
+    {
+      email: req.body.email
+    },
+    User.privateUser()
+  );
   if (!user) {
     return next(new AppError(`There is no user with this email`, 404));
   }
@@ -448,17 +482,27 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 */
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
+  if (!req.body.password || !req.body.passwordConfirm)
+    return next(
+      new AppError(
+        `Please send a password and a passwordConfirm in the request body.`,
+        400
+      )
+    );
   const hashedToken = crypto
     .createHash('SHA256')
     .update(req.params.token)
     .digest('hex');
 
-  const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpiresAt: {
-      $gt: Date.now()
-    }
-  });
+  const user = await User.findOne(
+    {
+      passwordResetToken: hashedToken,
+      passwordResetExpiresAt: {
+        $gt: Date.now()
+      }
+    },
+    User.privateUser()
+  );
 
   if (!user) return next(new AppError(`Token is invalid or has expired`, 400));
 
@@ -484,15 +528,16 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 */
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user._id).select('+password');
+  const user = await User.findById(req.user._id).select(User.privateUser());
   if (!user) return next(new AppError(`This user doesn't exist`, 400));
 
-  if (!(await user.correctPassword(req.body.password, user.password)))
+  if (!(await User.correctPassword(req.body.password, user.password)))
     return next(new AppError(`Incorrect password`, 401));
 
   user.password = req.body.newPassword;
   user.passwordConfirm = req.body.newPasswordConfirm;
   await user.save();
+
   sendUser(user, res);
 });
 

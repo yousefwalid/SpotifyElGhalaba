@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const AppError = require('./../utils/appError');
 const Album = require('./../models/albumModel');
 // const ExternalIdObject = require("./objects/externalIdObject");
@@ -70,9 +72,16 @@ const trackSchema = new mongoose.Schema(
         delete ret._id;
       }
     }, //show virtual properties when providing the data as JSON
-    toObject: { virtuals: true } //show virtual properties when providing the data as Objects
+    toObject: { virtuals: true }, //show virtual properties when providing the data as Objects
+    strict: 'throw'
   }
 );
+
+trackSchema.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
+trackSchema.plugin(mongooseLeanVirtuals);
+
 trackSchema.pre('save', async function(next) {
   const album = await Album.findById(this.album);
   if (!album) {

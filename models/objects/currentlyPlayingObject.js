@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
 const DeviceObject = require('./deviceObject');
 
 const CurrentlyPlayingObject = new mongoose.Schema(
@@ -39,8 +40,11 @@ const CurrentlyPlayingObject = new mongoose.Schema(
   {
     _id: false,
     id: false,
-    __v: false
+    strict: 'throw'
   }
 );
+CurrentlyPlayingObject.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 
 module.exports = CurrentlyPlayingObject;

@@ -1,11 +1,24 @@
 const mongoose = require('mongoose');
+const idValidator = require('mongoose-id-validator');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
 const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
-const idValidator = require('mongoose-id-validator');
+
+/*
+ 
+  ######   ######  ##     ## ######## ##     ##    ###    
+ ##    ## ##    ## ##     ## ##       ###   ###   ## ##   
+ ##       ##       ##     ## ##       #### ####  ##   ##  
+  ######  ##       ######### ######   ## ### ## ##     ## 
+       ## ##       ##     ## ##       ##     ## ######### 
+ ##    ## ##    ## ##     ## ##       ##     ## ##     ## 
+  ######   ######  ##     ## ######## ##     ## ##     ## 
+ 
+*/
 
 const userSchema = new mongoose.Schema(
   {
@@ -84,13 +97,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
       minlength: 8,
-      maxlength: 64,
-      select: false
+      maxlength: 64
+      // select: false
     },
     passwordConfirm: {
       type: String,
       required: [true, 'Password confirmation is not true'],
-      select: false,
+      // select: false,
       validate: {
         // this only works on SAVE and CREATE not UPDATE
         validator: function(el) {
@@ -106,10 +119,15 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiresAt: Date,
-    active: {
+    online: {
       type: Boolean,
-      default: false,
-      select: false
+      default: false
+    },
+    active: {
+      // The user's account is active --> not deleted
+      type: Boolean,
+      default: true
+      // select: false
     },
     //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
     currentlyPlaying: {
@@ -148,29 +166,74 @@ const userSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true
+      // transform: function(doc, ret, options) {
+      //   ret.id = ret._id;
+      //   delete ret.__v;
+      //   delete ret.password;
+      //   delete ret.passwordConfirm;
+      //   delete ret.passwordChangedAt;
+      //   delete ret.passwordResetToken;
+      //   delete ret.passwordResetExpiresAt;
+
+      //   return ret;
+      // }
     },
     toObject: {
       virtuals: true
-    }
+    },
+    strict: 'throw'
   }
 );
+
+/*
+ 
+ ########  ##       ##     ##  ######   #### ##    ##  ######  
+ ##     ## ##       ##     ## ##    ##   ##  ###   ## ##    ## 
+ ##     ## ##       ##     ## ##         ##  ####  ## ##       
+ ########  ##       ##     ## ##   ####  ##  ## ## ##  ######  
+ ##        ##       ##     ## ##    ##   ##  ##  ####       ## 
+ ##        ##       ##     ## ##    ##   ##  ##   ### ##    ## 
+ ##        ########  #######   ######   #### ##    ##  ######  
+ 
+*/
+
 userSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+userSchema.plugin(mongooseLeanVirtuals);
 
 userSchema.virtual('uri').get(function() {
   return `spotify:user:${this._id}`;
 });
 
+/*
+ 
+ ##     ##  #######   #######  ##    ##  ######  
+ ##     ## ##     ## ##     ## ##   ##  ##    ## 
+ ##     ## ##     ## ##     ## ##  ##   ##       
+ ######### ##     ## ##     ## #####     ######  
+ ##     ## ##     ## ##     ## ##  ##         ## 
+ ##     ## ##     ## ##     ## ##   ##  ##    ## 
+ ##     ##  #######   #######  ##    ##  ######  
+ 
+*/
+
+//Always unsave passwordConfirm in DB.
+userSchema.pre('save', async function(next) {
+  this.passwordConfirm = undefined;
+  next();
+});
+
+//If the password is modified set the last time changed at.
 userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 12);
     if (!this.isNew) this.passwordChangedAt = Date.now() - 1000;
   }
-  this.passwordConfirm = undefined;
   next();
 });
 
+//Always deselect active field from queries
 userSchema.pre(/^find/g, function(next) {
   this.find({
     active: {
@@ -180,18 +243,52 @@ userSchema.pre(/^find/g, function(next) {
   next();
 });
 
-userSchema.methods.correctPassword = async function(
+/*
+ 
+  ######  ########    ###    ######## ####  ######   ######  
+ ##    ##    ##      ## ##      ##     ##  ##    ## ##    ## 
+ ##          ##     ##   ##     ##     ##  ##       ##       
+  ######     ##    ##     ##    ##     ##  ##        ######  
+       ##    ##    #########    ##     ##  ##             ## 
+ ##    ##    ##    ##     ##    ##     ##  ##    ## ##    ## 
+  ######     ##    ##     ##    ##    ####  ######   ######  
+ 
+*/
+
+//Returns a select options object for private user
+userSchema.statics.privateUser = () => {
+  return {
+    active: 0,
+    __v: 0
+  };
+};
+
+//Returns a select options object for public user
+userSchema.statics.publicUser = () => {
+  return {
+    password: 0,
+    passwordConfirm: 0,
+    passwordChangedAt: 0,
+    passwordResetToken: 0,
+    passwordResetExpiresAt: 0,
+    active: 0,
+    __v: 0
+  };
+};
+
+//Compares two passwords
+userSchema.statics.correctPassword = async function(
   candidatePassword,
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-//Check if password changed after the signing the jwt  token
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
-  if (this.passwordChangedAt) {
+//Check if password changed after signing the jwt  token
+userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
+  if (user.passwordChangedAt) {
     const passChangedAttimeStamp = parseInt(
-      this.passwordChangedAt.getTime() / 1000,
+      user.passwordChangedAt.getTime() / 1000,
       10
     );
     return passChangedAttimeStamp > JWTTimestamp;
@@ -199,6 +296,19 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
+/*
+ 
+ ##     ## ######## ######## ##     ##  #######  ########   ######  
+ ###   ### ##          ##    ##     ## ##     ## ##     ## ##    ## 
+ #### #### ##          ##    ##     ## ##     ## ##     ## ##       
+ ## ### ## ######      ##    ######### ##     ## ##     ##  ######  
+ ##     ## ##          ##    ##     ## ##     ## ##     ##       ## 
+ ##     ## ##          ##    ##     ## ##     ## ##     ## ##    ## 
+ ##     ## ########    ##    ##     ##  #######  ########   ######  
+ 
+*/
+
+//Creates a hashed reset token and returns it.
 userSchema.methods.createPasswordResetToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
@@ -207,6 +317,19 @@ userSchema.methods.createPasswordResetToken = function() {
     .digest('hex');
   this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
   return resetToken;
+};
+
+//Returns an object contains the public user info.
+userSchema.methods.privateToPublic = function() {
+  const publicUser = this.toObject({ virtuals: true });
+  const fieldsToExclude = userSchema.statics.publicUser();
+
+  Object.keys(publicUser).forEach(el => {
+    if (fieldsToExclude[el] === 0) {
+      delete publicUser[el];
+    }
+  });
+  return publicUser;
 };
 
 const User = mongoose.model('User', userSchema);
