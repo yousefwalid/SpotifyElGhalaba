@@ -111,8 +111,6 @@ playlistSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
 playlistSchema.plugin(mongooseLeanVirtuals);
-  }
-);
 
 playlistSchema.virtual('type').get(function() {
   return 'playlist';
