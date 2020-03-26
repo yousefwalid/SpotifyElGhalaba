@@ -2,7 +2,6 @@ const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
-const filterDoc = require('./../utils/filterDocument');
 const imageObject = require('./../models/objects/imageObject');
 const multer = require('multer');
 const sharp = require('sharp');

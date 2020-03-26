@@ -19,7 +19,6 @@ const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
-// const filterDoc = require('./../utils/filterDocument.js');
 
 /*
  ##     ## ######## #### ##       #### ######## ##    ##    ######## ##     ## ##    ##  ######  ######## ####  #######  ##    ##  ######  

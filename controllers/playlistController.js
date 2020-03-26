@@ -2,7 +2,6 @@ const Playlist = require('./../models/playlistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
-const filterDoc = require('./../utils/filterDocument');
 const imageObject = require('./../models/objects/imageObject');
 const pagingObject = require('./../models/objects/pagingObject');
 const parseFields = require('./../utils/parseFields');
