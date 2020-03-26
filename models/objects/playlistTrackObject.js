@@ -20,4 +20,8 @@ PlaylistTrackObject.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
 
+PlaylistTrackObject.pre(/^find/, function() {
+  this.populate('track');
+});
+
 module.exports = PlaylistTrackObject;

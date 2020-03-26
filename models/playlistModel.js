@@ -5,6 +5,23 @@ const PlaylistTrackObject = require('./objects/playlistTrackObject');
 const idValidator = require('mongoose-id-validator');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
+/**
+ * @typedef {Object} PlaylistObject
+ * @property {String} id The id for the playlist
+ * @property {Boolean} collaborative `true` if the owner allows other users to modify the playlist
+ * @property {String} description The playlist description
+ * @property {ExternalUrlObject} external_urls Known external URLs for this playlist
+ * @property {Array<ImageObject>} images Images for the playlist. The array may be empty or contain up to three images. The images are returned by size in descending order
+ * @property {String} name The name of the playlist
+ * @property {PublicUserObject} owner The user who owns the playlist
+ * @property {Boolean | null} public The playlist’s public/private status: `true` the playlist is public, `false` the playlist is private, `null` the playlist status is not relevant
+ * @property {FollowersObject} followers Information about the followers of the playlist
+ * @property {PagingObject<Array<TrackObject>>} tracks Information about the tracks of the playlist
+ * @property {String} type The object type: `playlist`
+ * @property {String} uri The Spotify URI for the playlist
+ * @property {String} href A link to the Web API endpoint providing full details of the playlist
+ */
+
 const playlistSchema = new mongoose.Schema(
   {
     collaborative: {
@@ -42,7 +59,8 @@ const playlistSchema = new mongoose.Schema(
       /**
        * @todo Add PublicUserObject instead of ObjectId
        */
-      type: mongoose.Schema.ObjectId
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
       //,required: [true, 'A playlist must have an owner']
     },
     public: {
@@ -74,17 +92,18 @@ const playlistSchema = new mongoose.Schema(
   {
     // properties object
     toJSON: {
-      virtuals: true,
       transform: function(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
-      }
+      },
+      virtuals: true
     },
     toObject: {
       virtuals: true
     },
     versionKey: false,
-    strict: 'throw'
+    strict: 'throw',
+    selectPopulatedPaths: false
   }
 );
 
@@ -92,6 +111,8 @@ playlistSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
 playlistSchema.plugin(mongooseLeanVirtuals);
+  }
+);
 
 playlistSchema.virtual('type').get(function() {
   return 'playlist';
