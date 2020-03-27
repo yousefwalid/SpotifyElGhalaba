@@ -132,14 +132,17 @@ const userSchema = new mongoose.Schema(
     //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
     currentlyPlaying: {
       type: CurrentlyPlayingObject,
-      default: {
-        track: null,
-        timestamp: null
-      }
+      default: {}
     },
     devices: {
       type: [DeviceObject],
-      default: null
+      validate: [
+        function arrayLimit(val) {
+          return val.length <= 3;
+        },
+        '{PATH} exceeds the limit of 3'
+      ],
+      default: []
     },
     followers: {
       type: Number,
@@ -166,17 +169,6 @@ const userSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true
-      // transform: function(doc, ret, options) {
-      //   ret.id = ret._id;
-      //   delete ret.__v;
-      //   delete ret.password;
-      //   delete ret.passwordConfirm;
-      //   delete ret.passwordChangedAt;
-      //   delete ret.passwordResetToken;
-      //   delete ret.passwordResetExpiresAt;
-
-      //   return ret;
-      // }
     },
     toObject: {
       virtuals: true
@@ -297,7 +289,6 @@ userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
 };
 
 /*
- 
  ##     ## ######## ######## ##     ##  #######  ########   ######  
  ###   ### ##          ##    ##     ## ##     ## ##     ## ##    ## 
  #### #### ##          ##    ##     ## ##     ## ##     ## ##       
@@ -305,17 +296,20 @@ userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
  ##     ## ##          ##    ##     ## ##     ## ##     ##       ## 
  ##     ## ##          ##    ##     ## ##     ## ##     ## ##    ## 
  ##     ## ########    ##    ##     ##  #######  ########   ######  
- 
 */
 
 //Creates a hashed reset token and returns it.
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = async function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('SHA256')
     .update(resetToken)
     .digest('hex');
   this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+  await this.save({
+    //To avoid the passwordConfirm field validation
+    validateBeforeSave: false
+  });
   return resetToken;
 };
 

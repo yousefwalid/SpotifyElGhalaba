@@ -21,10 +21,13 @@ const playHistorySchema = new mongoose.Schema(
     },
     context: ContextObject
   },
-
   {
-    toJSON: { virtuals: true }, //show virtual properties when providing the data as JSON
-    toObject: { virtuals: true }, //show virtual properties when providing the data as Objects
+    toJSON: {
+      virtuals: true
+    },
+    toObject: {
+      virtuals: true
+    },
     strict: 'throw'
   }
 );
