@@ -57,7 +57,8 @@ const playlistSchema = new mongoose.Schema(
       /**
        * @todo Add PublicUserObject instead of ObjectId
        */
-      type: mongoose.Schema.ObjectId
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
       //,required: [true, 'A playlist must have an owner']
     },
     public: {
@@ -98,7 +99,8 @@ const playlistSchema = new mongoose.Schema(
     toObject: {
       virtuals: true
     },
-    versionKey: false
+    versionKey: false,
+    selectPopulatedPaths: false
   }
 );
 

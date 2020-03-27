@@ -97,6 +97,7 @@ const href = trackSchema.virtual('href');
 href.get(function() {
   return `http://localhost:${process.env.PORT}/api/v1/tracks/${this._id}`;
 });
+
 const Track = mongoose.model('Track', trackSchema, 'Tracks');
 
 module.exports = Track;

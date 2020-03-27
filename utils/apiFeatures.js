@@ -66,6 +66,7 @@ class APIFeatures {
   limitFieldsParenthesis() {
     if (this.queryString.fields) {
       const fields = parseFields(this.queryString.fields);
+
       if (this.query) this.query = this.query.select(fields);
     }
 
@@ -88,8 +89,8 @@ class APIFeatures {
 
     if (this.query)
       this.query = this.query
-      .skip(this.queryString.offset)
-      .limit(this.queryString.limit);
+        .skip(this.queryString.offset)
+        .limit(this.queryString.limit);
 
     return this;
   }
