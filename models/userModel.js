@@ -1,3 +1,24 @@
+/**
+ * The User Object
+ * @typedef {Object} User
+ * @property {String} name - The user name
+ * @property {String} email - The user email
+ * @property {String} gender - The user gender "m" or "f"
+ * @property {String} country - The user country
+ * @property {String} type - The role of the user "user" , "admin" or "artist"
+ * @property {String} product - The account product "free" or "premium"
+ * @property {Date} birthdate - The user birthdate
+ * @property {String} password - The password of the user
+ * @property {String} passwordConfirm - The password confirm of the user
+ * @property {String} image - The avatar of the user
+ * @property {Boolean} active - Boolean to define if user is active or not
+ * @property {Object} currentlyPlaying - Object of the currently playing track
+ * @property {Object} devices - Array of devices object
+ * @property {Number} followers - The number of the followers
+ * @property {Array} following - Array of followed users
+ * @property {Array} followedPlaylists - Array of followed playlists
+ */
+
 const mongoose = require('mongoose');
 const idValidator = require('mongoose-id-validator');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
@@ -19,6 +40,22 @@ const ImageObject = require('./objects/imageObject');
   ######   ######  ##     ## ######## ##     ## ##     ## 
  
 */
+
+const followedPlaylist = new mongoose.Schema(
+  {
+    playlist: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Playlist',
+      unique: true
+    },
+    public: Boolean
+  },
+  {
+    _id: false,
+    id: false,
+    __v: false
+  }
+);
 
 const userSchema = new mongoose.Schema(
   {
@@ -155,16 +192,7 @@ const userSchema = new mongoose.Schema(
         unique: true
       }
     ],
-    followedPlaylists: [
-      {
-        playlist: {
-          type: mongoose.Schema.ObjectId,
-          ref: 'Playlist',
-          unique: true
-        },
-        public: Boolean
-      }
-    ]
+    followedPlaylists: [followedPlaylist]
   },
   {
     toJSON: {
