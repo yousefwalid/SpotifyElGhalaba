@@ -28,6 +28,19 @@ const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
 const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
 
+const followedPlaylist = new mongoose.Schema({
+  playlist: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Playlist',
+    unique: true
+  },
+  public: Boolean
+}, {
+  _id: false,
+  id: false,
+  __v: false
+});
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -151,14 +164,7 @@ const userSchema = new mongoose.Schema({
     ref: 'User',
     unique: true
   }],
-  followedPlaylists: [{
-    playlist: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Playlist',
-      unique: true
-    },
-    public: Boolean
-  }]
+  followedPlaylists: [followedPlaylist]
 }, {
   toJSON: {
     virtuals: true
