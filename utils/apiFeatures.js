@@ -49,7 +49,7 @@ class APIFeatures {
     return this;
   }
 
-  limitFields() {
+  Fields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(',').join(' ');
       if (this.query) this.query = this.query.select(fields);

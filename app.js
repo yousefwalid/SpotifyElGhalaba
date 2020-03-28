@@ -103,9 +103,16 @@ app.use((req, res, next) => {
   next();
 });
 
-//Get the country of the public ip address that sends the request
+//Get the country of the public ip address that sends the request.
+//Send error if the country code is not sent in signup.
 app.use((req, res, next) => {
-  req.geoip = geoip.lookup(req.ip);
+  const countryObject = geoip.lookup(req.ip);
+  if (req.url.includes('signup')) {
+    if (!countryObject || !countryObject.country)
+      return next(new AppError('Sorry... Cannot Read The Country Code'));
+    //else
+    req.body.geoip = countryObject;
+  }
   next();
 });
 
@@ -125,6 +132,11 @@ app.use(express.static(`${__dirname}/public`));
 // 2) ROUTES
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
+
+app.use((req, res, next) => {
+  req.baseApiUrl = baseApiUrl;
+  next();
+});
 
 app.use(`${baseApiUrl}/streaming`, streamingRouter);
 

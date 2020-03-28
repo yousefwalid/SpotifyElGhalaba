@@ -25,7 +25,6 @@ const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const idValidator = require('mongoose-id-validator');
 const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
 const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
@@ -42,86 +41,78 @@ const ImageObject = require('./objects/imageObject');
  
 */
 
-const followedPlaylist = new mongoose.Schema({
-  playlist: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Playlist',
-    unique: true
+const followedPlaylist = new mongoose.Schema(
+  {
+    playlist: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Playlist',
+      unique: true
+    },
+    public: Boolean
   },
-  public: Boolean
-}, {
-  _id: false,
-  id: false,
-  __v: false
-});
+  {
+    _id: false,
+    id: false,
+    __v: false
+  }
+);
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    trim: true,
-    maxlength: 30,
-    minlength: 2,
-    required: [true, 'Name of the user is required'],
-    validate: {
-      validator: function (v) {
-        return /^[a-z ,.'-]+$/i.test(v);
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 30,
+      minlength: 2,
+      required: [true, 'Name of the user is required'],
+      validate: {
+        validator: function(v) {
+          return /^[a-z ,.'-]+$/i.test(v);
+        },
+        message: 'Invalid Name'
+      }
+    },
+    email: {
+      type: String,
+      trim: true,
+      maxlength: 50,
+      minlength: 5,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true, //transform the emails to lowercase,
+      validate: [validator.isEmail, 'Please enter a valid email']
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: ['m', 'f'],
+        message: 'Invalid gender value. Please specify either m or f.'
       },
-      message: 'Invalid Name'
-    }
-  },
-  email: {
-    type: String,
-    trim: true,
-    maxlength: 50,
-    minlength: 5,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true, //transform the emails to lowercase,
-    validate: [validator.isEmail, 'Please enter a valid email']
-  },
-  gender: {
-    type: String,
-    enum: {
-      values: ['m', 'f'],
-      message: 'Invalid gender value. Please specify either m or f.'
+      required: [true, `You have to specify the current user's gender`]
     },
-    required: [true, `You have to specify the current user's gender`]
-  },
-  country: {
-    type: String,
-    validate: [
-      validator.isISO31661Alpha2,
-      'Please enter a valid counrty code'
-    ]
-  },
-  type: {
-    type: String,
-    required: [true, 'user type is required'],
-    enum: {
-      values: ['user', 'artist', 'admin'],
-      message: 'Invalid type value. Please specify one of the three user types: user, artist or admin'
+    country: {
+      type: String,
+      validate: [
+        validator.isISO31661Alpha2,
+        'Please enter a valid counrty code'
+      ]
     },
-    default: 'user'
-  },
-  product: {
-    type: String,
-    required: [true, 'user product is required'],
-    enum: {
-      values: ['free', 'premium'],
-      message: 'Invalid product value. Please specify either free or premium.'
+    type: {
+      type: String,
+      required: [true, 'user type is required'],
+      enum: {
+        values: ['user', 'artist', 'admin'],
+        message:
+          'Invalid type value. Please specify one of the three user types: user, artist or admin'
+      },
+      default: 'user'
     },
-    default: 'free'
-  },
-  birthdate: {
-    type: Date,
-    required: [true, "Please specify the user's birthdate"],
-    validate: {
-      validator: function (date) {
-        const currentYear = new Date().getFullYear();
-        const candidateYear = date.getFullYear();
-        return (
-          candidateYear <= currentYear && candidateYear >= currentYear - 100
-        );
+    product: {
+      type: String,
+      required: [true, 'user product is required'],
+      enum: {
+        values: ['free', 'premium'],
+        message: 'Invalid product value. Please specify either free or premium.'
       },
       default: 'free'
     },
@@ -178,14 +169,17 @@ const userSchema = new mongoose.Schema({
     //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
     currentlyPlaying: {
       type: CurrentlyPlayingObject,
-      default: {
-        track: null,
-        timestamp: null
-      }
+      default: {}
     },
     devices: {
       type: [DeviceObject],
-      default: null
+      validate: [
+        function arrayLimit(val) {
+          return val.length <= 3;
+        },
+        '{PATH} exceeds the limit of 3'
+      ],
+      default: []
     },
     followers: {
       type: Number,
@@ -198,31 +192,11 @@ const userSchema = new mongoose.Schema({
         unique: true
       }
     ],
-    followedPlaylists: [
-      {
-        playlist: {
-          type: mongoose.Schema.ObjectId,
-          ref: 'Playlist',
-          unique: true
-        },
-        public: Boolean
-      }
-    ]
+    followedPlaylists: [followedPlaylist]
   },
   {
     toJSON: {
       virtuals: true
-      // transform: function(doc, ret, options) {
-      //   ret.id = ret._id;
-      //   delete ret.__v;
-      //   delete ret.password;
-      //   delete ret.passwordConfirm;
-      //   delete ret.passwordChangedAt;
-      //   delete ret.passwordResetToken;
-      //   delete ret.passwordResetExpiresAt;
-
-      //   return ret;
-      // }
     },
     toObject: {
       virtuals: true
@@ -248,7 +222,7 @@ userSchema.plugin(idValidator, {
 });
 userSchema.plugin(mongooseLeanVirtuals);
 
-userSchema.virtual('uri').get(function () {
+userSchema.virtual('uri').get(function() {
   return `spotify:user:${this._id}`;
 });
 
@@ -343,7 +317,6 @@ userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
 };
 
 /*
- 
  ##     ## ######## ######## ##     ##  #######  ########   ######  
  ###   ### ##          ##    ##     ## ##     ## ##     ## ##    ## 
  #### #### ##          ##    ##     ## ##     ## ##     ## ##       
@@ -351,17 +324,20 @@ userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
  ##     ## ##          ##    ##     ## ##     ## ##     ##       ## 
  ##     ## ##          ##    ##     ## ##     ## ##     ## ##    ## 
  ##     ## ########    ##    ##     ##  #######  ########   ######  
- 
 */
 
 //Creates a hashed reset token and returns it.
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = async function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('SHA256')
     .update(resetToken)
     .digest('hex');
   this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+  await this.save({
+    //To avoid the passwordConfirm field validation
+    validateBeforeSave: false
+  });
   return resetToken;
 };
 
