@@ -2,10 +2,8 @@ const Playlist = require('./../models/playlistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
-const filterDoc = require('./../utils/filterDocument');
+var mongoose = require('mongoose');
 const filterObj = require('./../utils/filterObject');
-const imageObject = require('./../models/objects/imageObject');
-const pagingObject = require('./../models/objects/pagingObject');
 const parseFields = require('./../utils/parseFields');
 const multer = require('multer');
 const sharp = require('sharp');
@@ -77,14 +75,44 @@ const validateLimitOffset = (limit, offset) => {
 };
 
 /**
+ * Authorizes if the user has access to the playlist
+ * @param {String} userId The id of the user making the request
+ * @param {String} playlistId The id of the playlist
+ */
+const authorizeUserToPlaylist = async (userId, playlistId) => {
+  if (!userId || !playlistId)
+    throw new AppError('userId or PlaylistId not specified', 500);
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) {
+    throw new AppError('No playlist found with that id', 404);
+  }
+
+  if (!playlist.public) {
+    // If user is not owner and not in the collaborators IF it is collaborative
+    if (
+      String(playlist.owner.id) != String(userId) &&
+      !(
+        playlist.collaborative == true &&
+        playlist.collaborators.map(id => id.toString()).includes(String(userId))
+      )
+    ) {
+      throw new AppError('You do not have access to this playlist', 403);
+    }
+  }
+};
+
+/**
  * Gets a Playlist given its id
  * @param {String} playlistId The id of the Playlist to be retrieved
+ * @param {String} userId The id of the user making the request
  * @param {Object} queryParams The query parameters of the request
  * @returns {PlaylistObject}
  * @todo Handle different errors
  */
 
-const getPlaylist = async (playlistId, queryParams) => {
+const getPlaylist = async (playlistId, userId, queryParams) => {
   let returnObj = excludePopulationFields(
     parseFields(queryParams.fields),
     'owner'
@@ -114,19 +142,22 @@ const getPlaylist = async (playlistId, queryParams) => {
     throw new AppError('No playlist found with that id', 404);
   }
 
+  await authorizeUserToPlaylist(userId, playlistId);
+
   return playlist;
 };
 
 /**
  * Gets tracks of a certain playlist given its id
  * @param {String} playlistId The id of the playlist
+ * @param {String} userId The id of the user making the request
  * @param {Object} queryParams The query parameters of the request
  * @returns {PagingObject}
  * @todo Handle unselecting limit and offset in limitFields
  * @todo Fix fields on population
  */
 
-const getPlaylistTracks = async (playlistId, queryParams) => {
+const getPlaylistTracks = async (playlistId, userId, queryParams) => {
   const { limit, offset } = validateLimitOffset(
     queryParams.limit,
     queryParams.offset
@@ -163,6 +194,8 @@ const getPlaylistTracks = async (playlistId, queryParams) => {
     offset
   };
 
+  await authorizeUserToPlaylist(userId, playlistId);
+
   return pagingObject;
 };
 
@@ -191,9 +224,7 @@ const addPlaylistTrack = async (playlistId, uris, position, userId) => {
     throw new AppError('No playlist found with that id', 404);
   }
 
-  if (String(playlist.owner) != userId) {
-    throw new AppError('You are not the owner of this playlist', 403);
-  }
+  await authorizeUserToPlaylist(userId, playlistId);
 
   if (playlist.tracks.length + uris.length > 10000) {
     throw new AppError("Playlist size can't exceed 10,000 tracks", 403);
@@ -387,7 +418,7 @@ const addPlaylistImage = async (playlistId, requestFile) => {
 
   const imageObj = {
     url: url,
-    width: requestfile.width,
+    width: requestFile.width,
     height: requestFile.height
   };
 
@@ -453,19 +484,35 @@ const reorderPlaylistTracks = async (
 };
 
 exports.getPlaylist = catchAsync(async (req, res, next) => {
-  const playlist = await getPlaylist(req.params.playlist_id, req.query);
+  const playlist = await getPlaylist(
+    req.params.playlist_id,
+    req.user._id,
+    req.query
+  );
 
   res.status(200).json(playlist);
 });
 
 exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
-  const tracks = await getPlaylistTracks(req.params.playlist_id, req.query);
+  const tracks = await getPlaylistTracks(
+    req.params.playlist_id,
+    req.user._id,
+    req.query
+  );
 
   res.status(200).json(tracks);
 });
 
 exports.getPlaylistImages = catchAsync(async (req, res, next) => {
-  const images = (await Playlist.findById(req.params.playlist_id)).images;
+  if (!req.params.playlist_id)
+    return next(new AppError('Playlist Id not specified', 400));
+
+  const playlist = await Playlist.findById(req.params.playlist_id);
+
+  if (!playlist)
+    return next(new AppError('No playlist found with that id', 404));
+
+  const images = playlist.images;
 
   res.status(200).json(images);
 });
@@ -511,7 +558,7 @@ exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
-  const playlist = await deletePlaylistTrack(
+  await deletePlaylistTrack(
     req.params.playlist_id,
     req.user._id,
     req.body.tracks
