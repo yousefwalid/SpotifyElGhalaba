@@ -31,10 +31,6 @@ const playlistSchema = new mongoose.Schema(
       // Description of the playlist
       type: String
     },
-    external_urls: {
-      // Contains the external URLs for the playlist
-      type: ExternalUrlObject
-    },
     images: {
       // Array of images of the playlist
       type: [ImageObject],
@@ -99,7 +95,6 @@ const playlistSchema = new mongoose.Schema(
     toObject: {
       virtuals: true
     },
-    versionKey: false,
     selectPopulatedPaths: false
   }
 );
@@ -113,11 +108,21 @@ playlistSchema.virtual('uri').get(function() {
 });
 
 playlistSchema.virtual('href').get(function() {
-  return `https://api.spotify.com/v1/users/spotify/playlists/${this.id}`;
+  return `http://localhost:${
+    process.env.PORT
+  }/api/v1/users/spotify/playlists/${this.id}`;
 });
 
 playlistSchema.virtual('tracks.href').get(function() {
-  return `https://api.spotify.com/v1/users/spotify/playlists/${this.id}/tracks`;
+  return `http://localhost:${
+    process.env.PORT
+  }/api/v1/users/spotify/playlists/${this.id}/tracks`;
+});
+
+playlistSchema.virtual('external_urls').get(function() {
+  return {
+    spotify: `http://open.spotify.com/user/spotify/playlist/${this.id}`
+  };
 });
 
 const Playlist = mongoose.model('Playlist', playlistSchema);
