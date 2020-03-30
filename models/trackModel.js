@@ -4,8 +4,7 @@ const Album = require('./../models/albumModel');
 // const ExternalIdObject = require("./objects/externalIdObject");
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
-const trackSchema = new mongoose.Schema(
-  {
+const trackSchema = new mongoose.Schema({
     name: {
       type: String,
       required: [true, 'A track must have a name.']
@@ -16,12 +15,11 @@ const trackSchema = new mongoose.Schema(
       required: [true, 'A track must have an album reference.']
     },
     artists: {
-      type: [
-        {
-          type: mongoose.Schema.ObjectId,
-          ref: 'Artist'
-        }
-      ]
+      type: [{
+
+        type: mongoose.Schema.ObjectId,
+        ref: 'Artist'
+      }]
       //required: [true, 'A track must have at least one artist reference']
     },
     disc_number: {
@@ -65,36 +63,38 @@ const trackSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function (doc, ret) {
         ret.id = ret._id;
         delete ret._id;
       }
     }, //show virtual properties when providing the data as JSON
-    toObject: { virtuals: true } //show virtual properties when providing the data as Objects
+    toObject: {
+      virtuals: true
+    } //show virtual properties when providing the data as Objects
   }
 );
-trackSchema.pre('save', async function(next) {
+trackSchema.pre('save', async function (next) {
   const album = await Album.findById(this.album);
   if (!album) {
     next(new AppError('No album found with this id', 404));
   }
   this.track_number = album.tracks.length + 1;
 });
-trackSchema.post('save', async function(next) {
+trackSchema.post('save', async function (next) {
   const album = await Album.findById(this.album);
   album.tracks.push(this._id);
   await album.save();
 });
 const type = trackSchema.virtual('type');
-type.get(function() {
+type.get(function () {
   return 'track';
 });
 const URI = trackSchema.virtual('uri');
-URI.get(function() {
+URI.get(function () {
   return `spotify:track:${this._id}`;
 });
 const href = trackSchema.virtual('href');
-href.get(function() {
+href.get(function () {
   return `http://localhost:${process.env.PORT}/api/v1/tracks/${this._id}`;
 });
 

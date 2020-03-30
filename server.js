@@ -2,9 +2,11 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authenticationController = require('./controllers/authenticationController');
 
+
 dotenv.config({
   path: './config.env'
 });
+
 
 const app = require('./app');
 
