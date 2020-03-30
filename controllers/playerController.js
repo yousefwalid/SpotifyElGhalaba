@@ -1,4 +1,6 @@
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const AppError = require('./../utils/appError');
 const User = require('./../models/userModel');
 const PlayHistory = require('./../models/playHistoryModel');
@@ -12,7 +14,9 @@ exports.status = async (ws, req) => {
 
   //ON CONNECION
   console.log(`${req.user.email} Connected [WebSocket]`);
-  await User.findByIdAndUpdate(req.user._id, { active: true });
+  await User.findByIdAndUpdate(req.user._id, {
+    active: true
+  });
 
   //CHECK ONLINE/OFFLINE LOGIC:
   ws.isAlive = true;
@@ -22,7 +26,9 @@ exports.status = async (ws, req) => {
 
   const interval = setInterval(async function ping() {
     if (ws.isAlive === false) {
-      await User.findByIdAndUpdate(req.user._id, { active: false });
+      await User.findByIdAndUpdate(req.user._id, {
+        active: false
+      });
       return ws.terminate();
     }
     ws.isAlive = false;
@@ -39,7 +45,9 @@ exports.status = async (ws, req) => {
       isPlaying = false;
       //DB STOPPED PLAYING
       await User.findByIdAndUpdate(req.user._id, {
-        $set: { 'currentlyPlaying.is_playing': false }
+        $set: {
+          'currentlyPlaying.is_playing': false
+        }
       });
     }
   }, 30000);
@@ -50,7 +58,9 @@ exports.status = async (ws, req) => {
         isPlaying = true;
         //DB IS PLAYING
         await User.findByIdAndUpdate(req.user._id, {
-          $set: { 'currentlyPlaying.is_playing': true }
+          $set: {
+            'currentlyPlaying.is_playing': true
+          }
         });
       }
       lastTime = Date.now();
@@ -65,11 +75,15 @@ exports.status = async (ws, req) => {
     console.log(`${req.user.email} Disconnected  [WebSocket]`);
     if (isPlaying) {
       await User.findByIdAndUpdate(req.user._id, {
-        $set: { 'currentlyPlaying.is_playing': false }
+        $set: {
+          'currentlyPlaying.is_playing': false
+        }
       });
     }
     if (ws.isAlive) {
-      await User.findByIdAndUpdate(req.user._id, { active: false });
+      await User.findByIdAndUpdate(req.user._id, {
+        active: false
+      });
     }
   });
 };
@@ -123,12 +137,16 @@ exports.getRecentlyPlayed = catchAsync(async (req, res, next) => {
   if (req.query.after) {
     query = PlayHistory.find({
       user: req.user._id,
-      played_at: { $gt: Date(req.query.after) }
+      played_at: {
+        $gt: Date(req.query.after)
+      }
     });
   } else {
     query = PlayHistory.find({
       user: req.user._id,
-      played_at: { $lt: Date(req.query.before) }
+      played_at: {
+        $lt: Date(req.query.before)
+      }
     });
   }
 
@@ -154,14 +172,18 @@ exports.getCurrentlyPlayingTrack = catchAsync(async (req, res, next) => {
 
 exports.pause = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.is_playing': false }
+    $set: {
+      'currentlyPlaying.is_playing': false
+    }
   });
   res.status(204).json({});
 });
 
 exports.play = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.is_playing': true }
+    $set: {
+      'currentlyPlaying.is_playing': true
+    }
   });
   res.status(204).json({});
 });
@@ -173,7 +195,9 @@ exports.seekToPosition = catchAsync(async (req, res, next) => {
     );
   }
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.progress_ms': req.query.position_ms }
+    $set: {
+      'currentlyPlaying.progress_ms': req.query.position_ms
+    }
   });
   res.status(204).json({});
 });
@@ -185,7 +209,9 @@ exports.setRepeatMode = catchAsync(async (req, res, next) => {
     );
   }
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.repeat_state': req.query.state }
+    $set: {
+      'currentlyPlaying.repeat_state': req.query.state
+    }
   });
   res.status(204).json({});
 });
@@ -197,7 +223,9 @@ exports.setVolume = catchAsync(async (req, res, next) => {
     );
   }
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.volume_percent': req.query.volume_percent }
+    $set: {
+      'currentlyPlaying.volume_percent': req.query.volume_percent
+    }
   });
   res.status(204).json({});
 });
@@ -209,7 +237,9 @@ exports.shuffle = catchAsync(async (req, res, next) => {
     );
   }
   await User.findByIdAndUpdate(req.user._id, {
-    $set: { 'currentlyPlaying.shuffle_state': req.query.state }
+    $set: {
+      'currentlyPlaying.shuffle_state': req.query.state
+    }
   });
   res.status(204).json({});
 });

@@ -30,7 +30,7 @@ const getUser = async (userId, fields) => {
     if (!user) throw new AppError("No user found with this id", 404);
     return user;
 };
-
+exports.getUserLogic = getUser;
 
 /**
  * A method that takes the user id and the info to be updated 

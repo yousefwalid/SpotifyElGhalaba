@@ -31,8 +31,7 @@ const ImageObject = require('./objects/imageObject');
 const followedPlaylist = new mongoose.Schema({
   playlist: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Playlist',
-    unique: true
+    ref: 'Playlist'
   },
   public: Boolean
 }, {
@@ -161,8 +160,7 @@ const userSchema = new mongoose.Schema({
   },
   following: [{
     type: mongoose.Schema.ObjectId,
-    ref: 'User',
-    unique: true
+    ref: 'User'
   }],
   followedPlaylists: [followedPlaylist]
 }, {
