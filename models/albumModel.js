@@ -2,7 +2,23 @@ const mongoose = require('mongoose');
 const idValidator = require('mongoose-id-validator');
 const ImageObject = require('./objects/imageObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
-
+/**
+ *
+ * @typedef {object} AlbumObject
+ * @property {String} album_type - Album,Single,Compilation
+ * @property {Array<ArtistObject>} artists - Artists of each album
+ * @property {Array<String>} genres - List of album's genres
+ * @property {ImageObject} images - Cover art of the album
+ * @property {ExternalUrlObject} external_urls - Known external URLS for this album
+ * @property {String} label - The label for the album
+ * @property {String} name - The name of the album
+ * @property {Number} popularity - The popularity of the album.The value will be between 0 and 100, with 100 being the most popular. The popularity is calculated from the popularity of the album’s individual tracks.
+ * @property {Date} release_date - The date the album was first released
+ * @property {Array<TrackObject>} tracks -The tracks of the album
+ * @property {type} type - The object type: "Album"
+ * @property {String} uri - The Spotify URI for the Album
+ * @property {String} id - The Spotify ID for the Album.
+ */
 const albumSchema = new mongoose.Schema(
   {
     album_type: {
@@ -47,14 +63,7 @@ const albumSchema = new mongoose.Schema(
         type: mongoose.Schema.ObjectId,
         ref: 'Track'
       }
-    ],
-    release_date_precision: {
-      type: String,
-      enum: {
-        values: ['year', 'month', 'day'],
-        message: 'date precision values must be year,month or day'
-      }
-    }
+    ]
   },
   {
     toJSON: {

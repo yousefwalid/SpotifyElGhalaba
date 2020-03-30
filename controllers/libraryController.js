@@ -5,39 +5,205 @@ const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 
+/**
+ * This contains all the business logic for the library controller
+ * @module LibraryController
+ */
+
+/**
+ * Save Album or Track to user's library based on the passed model
+ * @param {Array<String>} IDs -The Ids of the objects required to be saved
+ * @param {Model} Model -Album Model or Track Model
+ * @param {UserObject} User -The logged in user details
+ * @returns The saved object
+ */
+const saveForCurrentUser = async (IDs, Model, User) => {
+  let modelName;
+  let savedModel;
+  if (Model === Track) {
+    modelName = 'track';
+    savedModel = savedTrack;
+  } else {
+    modelName = 'album';
+    savedModel = savedAlbum;
+  }
+  const ModelIDs = IDs;
+  const ModelDocs = await Model.find({ _id: { $in: ModelIDs } });
+  if (ModelDocs.length < 1) {
+    throw new AppError(`No ${modelName} found`, 404);
+  }
+  let filteredModelIds = [];
+  ModelDocs.forEach(el => {
+    filteredModelIds.push(el._id);
+  });
+  let query = {};
+  query[modelName] = { $in: filteredModelIds };
+  const currentlySavedModel = await savedModel.find(query);
+  currentlySavedModel.forEach(el => {
+    for (let i = 0; i < filteredModelIds.length; i += 1) {
+      if (String(el[modelName]) === String(filteredModelIds[i])) {
+        filteredModelIds.splice(i, 1);
+      }
+    }
+  });
+  let savedModelDocs = [];
+  filteredModelIds.forEach(el => {
+    let newModel = {};
+    newModel[modelName] = el;
+    newModel['added_at'] = new Date();
+    newModel['user'] = User._id;
+    savedModelDocs.push(newModel);
+  });
+  savedModel.create(savedModelDocs);
+  return savedModelDocs;
+};
+/**
+ * Validates the ranges of limit and offset
+ * @param {Number} limit The limit parameter, defaults to 20 if not passed
+ * @param {Number} offset The offset parameter, defaults to 0 if not passed
+ * @returns limit,offset
+ */
+const validateLimitOffset = (limit, offset) => {
+  limit = limit * 1 || 20;
+  offset = offset * 1 || 0;
+
+  if (limit <= 0)
+    throw new AppError(
+      'Limit query parameter can not be less than or equal to 0',
+      400
+    );
+
+  if (limit > 50)
+    throw new AppError('Limit query parameter can not be greater than 50', 400);
+
+  return { limit, offset };
+};
+
+/**
+ * Get's urls of next page and previous page
+ * @param {Number} offset - The number of docs to skip
+ * @param {Number} limit - The docs limit of the response
+ * @param {Model} modelName -The model name {Album,Track}
+ * @param {Number} totalCount -the total number of docs
+ */
+const getNextAndPrevious = (offset, limit, modelName, totalCount) => {
+  const nextPage =
+    offset + limit <= totalCount
+      ? `http://localhost:${
+          process.env.PORT
+        }/api/v1/me/${modelName}s/?offset=${offset + limit}&limit=${limit}`
+      : null;
+  const previousPage =
+    offset - limit >= 0
+      ? `http://localhost:${
+          process.env.PORT
+        }/api/v1/me/${modelName}s/?offset=${offset - limit}&limit=${limit}`
+      : null;
+  return { nextPage, previousPage };
+};
+/**
+ * Gets the saved albums/tracks of the logged in user
+ * @param {UserObject} user -The logged in user details
+ * @param {Number} limit -The docs limit of the response
+ * @param {Number} offset -The number of docs to skip
+ * @param {Model} Model -The required model {Album,Track}
+ * @param {String} url -The request url
+ * @returns The saved documents wrapped in a paging object
+ */
+const getSavedModel = async (user, limit, offset, Model, url) => {
+  let modelName;
+  let savedModel;
+  if (Model === Track) {
+    modelName = 'track';
+    savedModel = savedTrack;
+  } else {
+    modelName = 'album';
+    savedModel = savedAlbum;
+  }
+  const savedDocs = await savedModel
+    .find({ user: user._id })
+    .select('-user -__v')
+    .skip(offset)
+    .limit(limit)
+    .populate(modelName);
+  const totalCount = await savedModel.countDocuments({ user: user._id });
+  const { nextPage, previousPage } = getNextAndPrevious(
+    offset,
+    limit,
+    modelName,
+    totalCount
+  );
+  const pagingObject = {
+    href: `http://localhost:${process.env.PORT}/api/v1/me${url}`,
+    items: savedDocs,
+    limit,
+    next: nextPage,
+    offset,
+    previous: previousPage,
+    total: totalCount
+  };
+  return pagingObject;
+};
+/**
+ * Checks if the specified tracks,albums exist in the user's library
+ * @param {Array<String>} IDs - The ids to check for
+ * @param {Model} Model - The Model to work on {Album,Track}
+ * @return Boolean array
+ */
+const checkUsersSavedModel = async (IDs, Model) => {
+  let modelName;
+  let savedModel;
+  if (Model === Track) {
+    modelName = 'track';
+    savedModel = savedTrack;
+  } else {
+    modelName = 'album';
+    savedModel = savedAlbum;
+  }
+  let query = {};
+  query[modelName] = { $in: IDs };
+  const currentlySavedDocs = await savedModel.find(query);
+  let boolArray = [];
+  currentlySavedDocs.forEach(el => {
+    for (let i = 0; i < IDs.length; i += 1) {
+      if (String(el[modelName]) === String(IDs[i])) {
+        boolArray.push(true);
+      } else {
+        boolArray.push(false);
+      }
+    }
+  });
+  return boolArray;
+};
+/**
+ * Deletes the documents with the specified {track,album} ids
+ * @param {Array<String>} IDs -The ids to be deleted
+ * @param {UserObject} user -The logged in user details
+ * @param {Model} Model -The Model to work on {Album,Track}
+ */
+const removeUserSavedModel = async (IDs, user, Model) => {
+  let modelName;
+  let savedModel;
+  if (Model === Track) {
+    modelName = 'track';
+    savedModel = savedTrack;
+  } else {
+    modelName = 'album';
+    savedModel = savedAlbum;
+  }
+  let query = {};
+  query[modelName] = { $in: IDs };
+  query['user'] = user._id;
+  await savedModel.deleteMany(query);
+};
+
 exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide album ids', 400));
   }
   const albumIds = req.query.ids.split(',');
-  const albums = await Album.find({ _id: { $in: albumIds } });
-  if (albums.length < 1) {
-    return next(new AppError('No albums found', 404));
-  }
-  let filteredAlbumIds = [];
-  albums.forEach(el => {
-    filteredAlbumIds.push(el._id);
-  });
-  const currentlySavedAlbums = await savedAlbum.find({
-    album: { $in: filteredAlbumIds }
-  });
-  currentlySavedAlbums.forEach(el => {
-    for (let i = 0; i < filteredAlbumIds.length; i += 1) {
-      if (String(el.album) === String(filteredAlbumIds[i])) {
-        filteredAlbumIds.splice(i, 1);
-      }
-    }
-  });
-  let savedAlbumDocs = [];
-  filteredAlbumIds.forEach(el => {
-    savedAlbumDocs.push({
-      album: el,
-      added_at: new Date(),
-      user: req.user._id
-    });
-  });
-  savedAlbum.create(savedAlbumDocs);
-  res.status(201).send();
+  const savedAlbumDocs = await saveForCurrentUser(albumIds, Album, req.user);
+  res.status(201).send(savedAlbumDocs);
 });
 
 exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
@@ -45,101 +211,38 @@ exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide track ids', 400));
   }
   const trackIds = req.query.ids.split(',');
-  const tracks = await Track.find({ _id: { $in: trackIds } });
-  if (tracks.length < 1) {
-    return next(new AppError('No tracks found', 404));
-  }
-  let filteredTrackIds = [];
-  tracks.forEach(el => {
-    filteredTrackIds.push(el._id);
-  });
-  const currentlySavedTracks = await savedTrack.find({
-    track: { $in: filteredTrackIds }
-  });
-  currentlySavedTracks.forEach(el => {
-    for (let i = 0; i < filteredTrackIds.length; i += 1) {
-      if (String(el.track) === String(filteredTrackIds[i])) {
-        filteredTrackIds.splice(i, 1);
-      }
-    }
-  });
-  let savedTrackDocs = [];
-  filteredTrackIds.forEach(el => {
-    savedTrackDocs.push({
-      track: el._id,
-      added_at: new Date(),
-      user: req.user._id
-    });
-  });
-  savedTrack.create(savedTrackDocs);
-  res.status(201).send();
+  const savedTrackDocs = await saveForCurrentUser(trackIds, Track, req.user);
+  res.status(201).send(savedTrackDocs);
 });
 
 exports.getSavedAlbums = catchAsync(async (req, res, next) => {
-  const offset = req.query.offset * 1 || 0;
-  const limit =
-    req.query.limit >= 1 && req.query.limit <= 50 ? req.query.limit * 1 : 20;
-  const savedAlbums = await savedAlbum
-    .find({ user: req.user._id })
-    .select('-user -__v')
-    .skip(offset)
-    .limit(limit)
-    .populate('album');
-  const totalCount = await savedAlbum.count({ user: req.user._id });
-  const nextPage =
-    offset + limit <= totalCount
-      ? `http://localhost:${
-          process.env.PORT
-        }/api/v1/me/albums/?offset=${offset + limit}&limit=${limit}`
-      : null;
-  const previousPage =
-    offset - limit >= 0
-      ? `http://localhost:${
-          process.env.PORT
-        }/api/v1/me/albums/?offset=${offset - limit}&limit=${limit}`
-      : null;
-  res.status(200).json({
-    href: `http://localhost:${process.env.PORT}/api/v1/me${req.url}`,
-    items: savedAlbums,
+  const { limit, offset } = validateLimitOffset(
+    req.query.limit,
+    req.query.offset
+  );
+  const pagingObject = await getSavedModel(
+    req.user,
     limit,
-    next: nextPage,
     offset,
-    previous: previousPage,
-    total: totalCount
-  });
+    Album,
+    req.url
+  );
+  res.status(200).json(pagingObject);
 });
+
 exports.getSavedTracks = catchAsync(async (req, res, next) => {
-  const offset = req.query.offset * 1 || 0;
-  const limit =
-    req.query.limit >= 1 && req.query.limit <= 50 ? req.query.limit * 1 : 20;
-  const savedTracks = await savedTrack
-    .find({ user: req.user._id })
-    .select('-user -__v')
-    .skip(offset)
-    .limit(limit)
-    .populate('track');
-  const totalCount = await savedTrack.count({ user: req.user._id });
-  const nextPage =
-    offset + limit <= totalCount
-      ? `http://localhost:${
-          process.env.PORT
-        }/api/v1/me/tracks/?offset=${offset + limit}&limit=${limit}`
-      : null;
-  const previousPage =
-    offset - limit >= 0
-      ? `http://localhost:${
-          process.env.PORT
-        }/api/v1/me/tracks/?offset=${offset - limit}&limit=${limit}`
-      : null;
-  res.status(200).json({
-    href: `http://localhost:${process.env.PORT}/api/v1/me${req.url}`,
-    items: savedTracks,
+  const { limit, offset } = validateLimitOffset(
+    req.query.limit,
+    req.query.offset
+  );
+  const pagingObject = await getSavedModel(
+    req.user,
     limit,
-    next: nextPage,
     offset,
-    previous: previousPage,
-    total: totalCount
-  });
+    Track,
+    req.url
+  );
+  res.status(200).json(pagingObject);
 });
 
 exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
@@ -147,19 +250,7 @@ exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide album ids', 400));
   }
   const albumIds = req.query.ids.split(',');
-  const currentlySavedAlbums = await savedAlbum.find({
-    album: { $in: albumIds }
-  });
-  let boolArray = [];
-  currentlySavedAlbums.forEach(el => {
-    for (let i = 0; i < albumIds.length; i += 1) {
-      if (String(el.album) === String(albumIds[i])) {
-        boolArray.push(true);
-      } else {
-        boolArray.push(false);
-      }
-    }
-  });
+  const boolArray = await checkUsersSavedModel(albumIds, Album);
   res.status(200).json(boolArray);
 });
 
@@ -168,36 +259,18 @@ exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide album ids', 400));
   }
   const trackIds = req.query.ids.split(',');
-  const currentlySavedTracks = await savedTrack.find({
-    track: { $in: trackIds }
-  });
-  let boolArray = [];
-  currentlySavedTracks.forEach(el => {
-    for (let i = 0; i < trackIds.length; i += 1) {
-      if (String(el.track) === String(trackIds[i])) {
-        boolArray.push(true);
-      } else {
-        boolArray.push(false);
-      }
-    }
-  });
+  const boolArray = await checkUsersSavedModel(trackIds, Track);
   res.status(200).json(boolArray);
 });
 
 exports.removeUserSavedTrack = catchAsync(async (req, res, next) => {
   const trackIds = req.query.ids.split(',');
-  await savedTrack.deleteMany(
-    { track: { $in: trackIds } },
-    { user: req.user._id }
-  );
+  removeUserSavedModel(trackIds, req.user, Track);
   res.status(200).send();
 });
 
 exports.removeUserSavedAlbum = catchAsync(async (req, res, next) => {
   const albumIds = req.query.ids.split(',');
-  await savedAlbum.deleteMany(
-    { album: { $in: albumIds } },
-    { user: req.user._id }
-  );
+  removeUserSavedModel(albumIds, req.user, Album);
   res.status(200).send();
 });
