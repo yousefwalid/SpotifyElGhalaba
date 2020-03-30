@@ -6,7 +6,8 @@ const router = express.Router();
 
 router
   .route('/:id')
-  .get(authenticationController.protect, trackController.getTrack);
+  .get(authenticationController.protect, trackController.getTrack)
+  .delete(authenticationController.protect, trackController.removeTrack);
 router
   .route('/')
   .get(authenticationController.protect, trackController.getSeveralTracks)

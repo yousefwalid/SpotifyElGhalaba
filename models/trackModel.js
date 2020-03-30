@@ -3,7 +3,22 @@ const AppError = require('./../utils/appError');
 const Album = require('./../models/albumModel');
 // const ExternalIdObject = require("./objects/externalIdObject");
 const ExternalUrlObject = require('./objects/externalUrlObject');
-
+/**
+ *
+ * @typedef {object} TrackObject
+ * @property {AlbumObject} album - Album
+ * @property {Array<ArtistObject>} artists - Artists who performed in the track
+ * @property {Number} disc_number - The disc number
+ * @property {Number} duration_ms - The track length in milliseconds
+ * @property {ExternalUrlObject} external_urls - Known external URLS for this track
+ * @property {Boolean} explicit - Whether or not the track has explicit lyrics
+ * @property {String} name - The name of the album
+ * @property {String} href - A link to the Web API endpoint providing full details of the track
+ * @property {String} id - The Spotify ID for the track.
+ * @property {Number} track_number - The number of the track. If an album has several discs, the track number is the number on the specified disc.
+ * @property {type} type - The object type: "track"
+ * @property {String} uri - The Spotify URI for the track
+ */
 const trackSchema = new mongoose.Schema(
   {
     name: {
@@ -41,9 +56,6 @@ const trackSchema = new mongoose.Schema(
     //   },
     external_urls: {
       type: [ExternalUrlObject]
-    },
-    is_playable: {
-      type: Boolean
     },
     //TODO: I have no idea what these properties are
     // linked_from: {

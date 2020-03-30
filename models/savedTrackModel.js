@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
-
+/**
+ * @typedef {object} SavedTrackObject
+ * @property {Date} added_at - The date and time the album was saved
+ * @property {TrackObject} track - The track ID
+ * @property {UserObject} user - The user ID
+ */
 const savedTrackSchema = new mongoose.Schema(
   {
     added_at: {
