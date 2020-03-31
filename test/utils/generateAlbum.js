@@ -1,11 +1,11 @@
 const faker = require('faker');
 const Album = require('./../../models/albumModel');
-const mongoose = require('mongoose');
-exports.generateAlbum = async (artistID, tracksIDs) => {
+
+module.exports = artistID => {
   const album = {
-    album_type: 'Album',
+    album_type: 'album',
     artists: artistID,
-    genres: ['Rock,Jazz'],
+    genres: ['Rock', 'Jazz'],
     label: faker.random.words(),
     name: faker.name.findName(),
     release_date: new Date(),

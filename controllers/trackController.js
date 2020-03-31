@@ -63,8 +63,8 @@ const getSeveralTracks = async trackIDs => {
 const createTrack = async (requestBody, currentUser) => {
   const newTrack = requestBody;
   newTrack.artists = currentUser._id;
-  await Track.create(newTrack);
-  return newTrack;
+  const createdTrack = await Track.create(newTrack);
+  return createdTrack;
 };
 /**
  * Removes a track with a given ID
