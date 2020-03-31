@@ -7,7 +7,7 @@
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "mocha --recursive --timeout 10000|| true",
+    "test": "mocha --recursive --exit --timeout 10000|| true",
     "doc": "jsdoc -c jsdoc.json"
   },
   "_moduleAliases": {
@@ -51,6 +51,7 @@
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "esdoc": "^1.1.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^5.16.0",
