@@ -78,9 +78,9 @@ const albumSchema = new mongoose.Schema(
     }
   }
 );
-albumSchema.plugin(idValidator, {
-  message: 'Bad ID value for {PATH}'
-});
+// albumSchema.plugin(idValidator, {
+//   message: 'Bad ID value for {PATH}'
+// });
 
 const URI = albumSchema.virtual('uri');
 URI.get(function() {

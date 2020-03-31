@@ -14,9 +14,9 @@ const ApiFeatures = require('./../utils/apiFeatures');
  * @returns {Category} - The category with this id
  */
 const getCategory = async categoryId => {
-    const category = await Category.findById(categoryId).populate('playlists');
-    if (!category) throw new AppError('No category found for this id', 404);
-    return category;
+  const category = await Category.findById(categoryId).populate('playlists');
+  if (!category) throw new AppError('No category found for this id', 404);
+  return category;
 };
 exports.getCategoryLogic = getCategory;
 
@@ -26,10 +26,10 @@ exports.getCategoryLogic = getCategory;
  * @returns {Array<Category>} - Returns array of the categories
  */
 const getAllCategories = async queryParams => {
-    const features = new ApiFeatures(Category.find(), queryParams).skip();
+  const features = new ApiFeatures(Category.find(), queryParams).skip();
 
-    const categories = await features.query.populate('playlists');
-    return categories;
+  const categories = await features.query.populate('playlists');
+  return categories;
 };
 
 /**
@@ -38,8 +38,8 @@ const getAllCategories = async queryParams => {
  * @returns {Category} - The newly added category
  */
 const addCategory = async newCategory => {
-    const category = await Category.create(newCategory);
-    return category;
+  const category = await Category.create(newCategory);
+  return category;
 };
 exports.addCategoryLogic = addCategory;
 
@@ -50,36 +50,36 @@ exports.addCategoryLogic = addCategory;
  * @param {Object} [queryParams] - the query params to limit or set the offset of the response
  */
 const getCategoryPlaylists = async (categoryId, queryParams) => {
-    const features = new ApiFeatures(
-        Category.findById(categoryId).select('playlists'),
-        queryParams
-    ).skip();
-    const {
-        playlists
-    } = await features.query.populate('playlists');
-    return playlists;
+  const features = new ApiFeatures(
+    Category.findById(categoryId).select('playlists'),
+    queryParams
+  ).skip();
+  const {
+    playlists
+  } = await features.query.populate('playlists');
+  return playlists;
 };
 
 exports.getCategory = catchAsync(async (req, res, next) => {
-    const category = await getCategory(req.params.id);
-    res.status(200).json(category);
+  const category = await getCategory(req.params.id);
+  res.status(200).json(category);
 });
 
 exports.getAllCategories = catchAsync(async (req, res, next) => {
-    const categories = await getAllCategories(req.query);
-    res.status(200).json(categories);
+  const categories = await getAllCategories(req.query);
+  res.status(200).json(categories);
 });
 
 exports.addCategory = catchAsync(async (req, res, next) => {
-    const category = await addCategory(req.body);
+  const category = await addCategory(req.body);
 
-    res.status(200).json(category);
+  res.status(200).json(category);
 });
 
 exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
-    const playlists = await getCategoryPlaylists(
-        req.params.category_id,
-        req.query
-    );
-    res.status(200).json(playlists);
+  const playlists = await getCategoryPlaylists(
+    req.params.category_id,
+    req.query
+  );
+  res.status(200).json(playlists);
 });
