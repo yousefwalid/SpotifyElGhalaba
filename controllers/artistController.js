@@ -14,8 +14,6 @@ exports.getArtist = catchAsync(async (req, res, next) => {
   req.status(200).json(artist);
 });
 
-//exports.addArtist = catchAsync(async (req, res, next) => {});
-
 exports.getMultipleArtists = catchAsync(async (req, res, next) => {
   const artists = await Artist.find({ _id: { $in: req.params.ids } });
 

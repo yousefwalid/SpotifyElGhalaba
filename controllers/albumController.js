@@ -1,62 +1,42 @@
+/**
+ * This contains all the business logic for the album controller
+ * @module AlbumController
+ */
 const mongoose = require('mongoose');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
 const catchAsync = require('./../utils/catchAsync');
 
-exports.getAlbum = catchAsync(async (req, res, next) => {
-  const album = await Album.findById(req.params.id).populate('tracks');
+/**
+ * Gets a track with a specific ID
+ * @param {String} albumID - The id of the desired track
+ * @returns {AlbumObject} The album with the specified ID
+ */
+const getAlbum = async (albumID, next) => {
+  const album = await Album.findById(albumID).populate('tracks');
   if (!album) {
-    return next(new AppError('No album found with that ID', 404));
+    throw new AppError('No album found with that ID', 404);
   }
-  res.status(200).json(album);
-});
+  return album;
+};
 
-exports.getAlbumTracks = catchAsync(async (req, res, next) => {
-  const offset = req.query.offset * 1 || 0;
-  const limit =
-    req.query.limit >= 1 && req.query.limit <= 50 ? req.query.limit * 1 : 20;
-  const Tracks = await Album.findById(req.params.id)
-    .select('tracks')
-    .populate('tracks');
-  if (!Tracks) {
-    next(new AppError('No Album found with this ID', 404));
-  }
-  const totalCount = Tracks.tracks.length;
-  const limitedTracks = Tracks.tracks.slice(offset, limit + offset);
-  const nextPage =
-    offset + limit <= totalCount
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset +
-          limit}&limit=${limit}`
-      : null;
-  const previousPage =
-    offset - limit >= 0
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset -
-          limit}&limit=${limit}`
-      : null;
-  if (!Tracks) {
-    return next(new AppError('No album found with that ID', 404));
-  }
-  res.status(200).json({
-    href: `http://localhost:${process.env.PORT}/v1/albums${req.url}`,
-    items: limitedTracks,
-    limit,
-    next: nextPage,
-    offset,
-    previous: previousPage,
-    total: totalCount
-  });
-});
+/**
+ * Gets several albums based on the given IDs
+ * @param {Array<Numbers>} AlbumsIds - List of required albums ids
+ * @returns {Array<AlbumObject>} Array of the required albums
+ */
 
-exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
-  let AlbumsIds = req.query.ids.split(',');
+const getSeveralAlbums = async (AlbumsIds, next) => {
   if (AlbumsIds.length > 20) {
     AlbumsIds = AlbumsIds.slice(0, 20);
   }
+  //Returns the avaliable albums IDs in the DB
   const Albums = await Album.find({ _id: { $in: AlbumsIds } });
-  if (!Albums) {
-    return next(new AppError('No albums found'), 404);
+  if (Albums.length < 1) {
+    throw new AppError('No albums found', 404);
   }
+  //Iterate on the list of IDs and if not found add a null
   let albumList = [];
   AlbumsIds.forEach(el => {
     let found = false;
@@ -71,34 +51,129 @@ exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
       albumList.push(null);
     }
   });
+  return albumList;
+};
+/**
+ * Validates the ranges of limit and offset
+ * @param {Number} limit The limit parameter, defaults to 20 if not passed
+ * @param {Number} offset The offset parameter, defaults to 0 if not passed
+ */
+
+const validateLimitOffset = (limit, offset) => {
+  limit = limit * 1 || 20;
+  offset = offset * 1 || 0;
+
+  if (limit <= 0)
+    throw new AppError(
+      'Limit query parameter can not be less than or equal to 0',
+      400
+    );
+
+  if (limit > 50)
+    throw new AppError('Limit query parameter can not be greater than 50', 400);
+
+  return { limit, offset };
+};
+
+/**
+ * Get's urls of next page and previous page
+ * @param {Number} offset - The number of docs to skip
+ * @param {Number} limit - The docs limit of the response
+ * @param {Number} totalCount -the total number of docs
+ */
+const getNextAndPrevious = (offset, limit, totalCount) => {
+  const nextPage =
+    offset + limit <= totalCount
+      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset +
+          limit}&limit=${limit}`
+      : null;
+  const previousPage =
+    offset - limit >= 0
+      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset -
+          limit}&limit=${limit}`
+      : null;
+  return { nextPage, previousPage };
+};
+/**
+ * Gets the tracks of the specified album
+ * @param {String} albumID - The required album ID
+ * @param {Number} Limit - Limit of the response tracks'
+ * @param {Number} Offset - Number of tracks to skip
+ * @param {String} url - The URL of the request
+ */
+
+const getAlbumTracks = async (albumID, limit, offset, url, next) => {
+  const Tracks = await Album.findById(albumID)
+    .select('tracks')
+    .populate('tracks');
+  if (!Tracks) {
+    throw new AppError('No Album found with this ID', 404);
+  }
+  const totalCount = Tracks.tracks.length;
+  const limitedTracks = Tracks.tracks.slice(offset, limit + offset);
+  const { nextPage, previousPage } = getNextAndPrevious(
+    offset,
+    limit,
+    totalCount
+  );
+  if (!Tracks) {
+    throw new AppError('No album found with that ID', 404);
+  }
+  const pagingObject = {
+    href: `http://localhost:${process.env.PORT}/v1/albums${url}`,
+    items: limitedTracks,
+    limit,
+    next: nextPage,
+    offset,
+    previous: previousPage,
+    total: totalCount
+  };
+  return pagingObject;
+};
+/**
+ *
+ * @param {object} requestBody - The body of the request
+ * @param {UserObject} currentUser -The logged in user data
+ * @returns The created album object
+ */
+
+const createAlbum = async (requestBody, currentUser) => {
+  const newAlbum = requestBody;
+  newAlbum.release_date = new Date();
+  newAlbum.artists = currentUser._id;
+  await Album.create(newAlbum);
+  return newAlbum;
+};
+
+exports.getAlbum = catchAsync(async (req, res, next) => {
+  const album = await getAlbum(req.params.id);
+  res.status(200).json(album);
+});
+
+exports.getAlbumTracks = catchAsync(async (req, res, next) => {
+  const { limit, offset } = validateLimitOffset(
+    req.query.limit,
+    req.query.offset
+  );
+  const pagingObject = await getAlbumTracks(
+    req.params.id,
+    limit,
+    offset,
+    req.url,
+    next
+  );
+  res.status(200).json(pagingObject);
+});
+
+exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
+  let AlbumsIds = req.query.ids.split(',');
+  let albumList = await getSeveralAlbums(AlbumsIds);
   res.status(200).json({
     Albums: albumList
   });
 });
 
 exports.createAlbum = catchAsync(async (req, res, next) => {
-  if (req.user.type === 'user') {
-    return next(new AppError('normal users cannot create albums'), 401);
-  }
-  const newAlbum = req.body;
-  newAlbum.release_date = new Date();
-  newAlbum.artists = req.user._id;
-
-  await Album.create(newAlbum);
+  const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);
 });
-
-// exports.addSeveralTracksToAlbum = catchAsync(async (req, res, next) => {
-//   const TracksSet = [...new Set(req.query.ids.split(','))];
-//   console.log(TracksSet);
-//   const Tracks = await Track.find({ _id: { $in: TracksSet } }).select('_id');
-//   if (!Tracks) {
-//     return next(new AppError('no tracks found', 404));
-//   }
-//   const returnedAlbum = await Album.findById(req.params.id);
-//   Tracks.forEach(el => {
-//     returnedAlbum.tracks.push(el._id);
-//   });
-//   await returnedAlbum.save();
-//   res.status(200).json(Tracks);
-// });

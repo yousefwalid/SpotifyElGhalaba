@@ -28,7 +28,6 @@ const crypto = require('crypto');
 const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
 const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
-
 /*
  
   ######   ######  ##     ## ######## ##     ##    ###    
@@ -40,15 +39,12 @@ const ImageObject = require('./objects/imageObject');
   ######   ######  ##     ## ######## ##     ## ##     ## 
  
 */
-
 const followedPlaylist = new mongoose.Schema(
   {
     playlist: {
       type: mongoose.Schema.ObjectId,
-      ref: 'Playlist',
-      unique: true
-    },
-    public: Boolean
+      ref: 'Playlist'
+    }
   },
   {
     _id: false,
