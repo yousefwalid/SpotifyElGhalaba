@@ -5,10 +5,11 @@ module.exports = async (collectionName) => {
     await mongoose.connection.collections[collectionName].drop();
     console.log(`✅ ${collectionName} dropped successfully`);
   } else {
-    Object.keys(mongoose.connection.collections).forEach(async (collection) => {
-      await mongoose.connection.collections[collection].drop();
-    });
+    const collections = await mongoose.connection.db.collections();
 
+    collections.forEach(async (collection) => {
+      await collection.deleteOne();
+    });
     console.log(`✅ database dropped successfully`);
   }
 };

@@ -1,5 +1,6 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
+const disconnectDB = require('./disconnectDB');
 const dropDB = require('./dropDB');
 const categoryController = require('../controllers/categoryController');
 
@@ -27,20 +28,14 @@ describe('Testing category controller', function () {
                 categoryToCreate
             );
         });
-
-        // Object.keys(categoryToCreate).forEach(key => {
-        //     if (key === 'icons')
-        //         assert.deepStrictEqual(
-        //             JSON.stringify(categoryToCreate[key]),
-        //             JSON.stringify(Array.from(createdCategory[key]))
-        //         );
-        //     else assert.deepStrictEqual(categoryToCreate[key], createdCategory[key]);
-        // });
     });
 
-    it('get a category with id', async function () {
-        await assert.doesNotReject(async () => {
-            await categoryController.getCategoryLogic(createdCategory._id);
-        });
+    // it('get a category with id', async function () {
+    //     await assert.doesNotReject(async () => {
+    //         await categoryController.getCategoryLogic(createdCategory._id);
+    //     });
+    // });
+    this.afterAll(async () => {
+        await disconnectDB();
     });
 });

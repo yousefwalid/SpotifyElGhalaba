@@ -1,6 +1,8 @@
 const assert = require('assert');
 
 const connectDB = require('./connectDB');
+const disconnectDB = require('./disconnectDB');
+
 const dropDB = require('./dropDB');
 const createUser = require('./utils/createUser');
 const User = require('../models/userModel');
@@ -67,4 +69,8 @@ describe('Testing user controller', function () {
         });
 
     });
+
+    this.afterAll(async () => {
+        await disconnectDB();
+    })
 });
