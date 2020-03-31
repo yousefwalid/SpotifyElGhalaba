@@ -43,7 +43,9 @@ const checkOnlineStatus = (ws, id) => {
     //clear online status
     ws.isOnline = false;
     //Send ping
-    ws.ping(null);
+    setTimeout(() => ws.terminate(), 5000);
+    if (ws.readyState === 1) ws.ping(null);
+    else return ws.terminate(); //This if else statement to avoid errors of sudden changes in ws.readyState
   }, 30000);
   ws.on('close', async () => {
     clearInterval(interval);
