@@ -6,7 +6,6 @@ const createUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 const User = require('../models/userModel');
-const Track = require('../models/trackModel');
 const Album = require('../models/albumModel');
 const trackController = require('./../controllers/trackController');
 

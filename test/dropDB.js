@@ -7,9 +7,16 @@ module.exports = async (collectionName) => {
   } else {
     const collections = await mongoose.connection.db.collections();
 
-    collections.forEach(async (collection) => {
-      await collection.deleteOne();
-    });
-    console.log(`✅ database dropped successfully`);
+    try {
+      collections.forEach(async (collection) => {
+        await collection.deleteOne();
+      });
+
+      console.log(`✅ database dropped successfully`);
+    } catch (err) {
+      console.log(`❌ Error during dropping database`);
+    }
+
+
   }
 };

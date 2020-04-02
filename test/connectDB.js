@@ -14,12 +14,18 @@ const DB = process.env.DATABASE.replace(
 );
 
 const connectDB = async () => {
-    await mongoose.connect(DB, {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false
-    });
-    console.log("✅ database connected");
+    try {
+        await mongoose.connect(DB, {
+            useNewUrlParser: true,
+            useCreateIndex: true,
+            useFindAndModify: false
+        });
+        console.log("✅ database connected");
+    } catch (err) {
+        console.log("❌ fail connecting to database");
+    }
+
+
 };
 
 module.exports = connectDB;

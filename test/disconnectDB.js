@@ -2,8 +2,13 @@ const mongoose = require('mongoose');
 
 
 const disconnectDB = async () => {
-    await mongoose.disconnect();
-    console.log("❌ database disconnected");
+    try {
+        await mongoose.disconnect();
+        console.log("✅ database disconnected");
+    } catch (err) {
+        console.log("❌ Fail during disconnecting database")
+    }
+
 };
 
 module.exports = disconnectDB;

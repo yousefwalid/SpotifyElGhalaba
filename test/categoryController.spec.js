@@ -15,8 +15,6 @@ describe('Testing category controller', function () {
         }]
     };
 
-    let createdCategory;
-
     this.beforeAll(async () => {
         await connectDB();
         await dropDB();
@@ -24,7 +22,7 @@ describe('Testing category controller', function () {
 
     it('should create new category', async function () {
         await assert.doesNotReject(async () => {
-            createdCategory = await categoryController.addCategoryLogic(
+            await categoryController.addCategoryLogic(
                 categoryToCreate
             );
         });
