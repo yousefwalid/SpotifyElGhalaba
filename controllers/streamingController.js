@@ -6,7 +6,7 @@ const catchAsync = require('./../utils/catchAsync');
 const trackPerfix = 'track-';
 const trackFieldName = 'track';
 
-//AWS&MULTER CONFIGURATION
+//MULTER CONFIGURATION
 const trackKey = function(req, file, cb) {
   if (!req.body.trackId) {
     cb(new AppError('Request Body must contain trackId', 400));
@@ -22,18 +22,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const awsObj = new AwsS3Api();
-const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
-awsObj.setMulterStorage(null, null, null, trackKey);
-awsObj.setMulterUploadOptions({ fileFilter, limits });
-const upload = awsObj.getMulterUpload();
-
 /**
  *
  * @param {String} trackId Id of the track.
  * @returns {Object} Contains the filePath and the size of the track.
  */
-const getTrackInfo = async trackId => {
+const getTrackInfo = async (awsObj, trackId) => {
   const headObj = await awsObj.getHeadObject(`${trackPerfix}${trackId}`);
   const fileSize = headObj.ContentLength;
   return {
@@ -77,7 +71,7 @@ const getChunkInfo = (range, fileSize) => {
  * @param {Object} trackInfo Contains track info (fileSize & filePath)
  * @param {Object} chunkInfo Optional: Contains chunck info (chunckSize, start, end)
  */
-const streamTrack = (res, trackInfo, chunkInfo) => {
+const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   const { fileSize, filePath } = trackInfo;
 
   let readStream;
@@ -112,13 +106,15 @@ const streamTrack = (res, trackInfo, chunkInfo) => {
  * GET /tracks/:trackId
  */
 exports.downloadTrack = catchAsync(async (req, res, next) => {
-  const trackInfo = await getTrackInfo(req.params.trackId);
+  const awsObj = new AwsS3Api();
+
+  const trackInfo = await getTrackInfo(awsObj, req.params.trackId);
   const { range } = req.headers;
   if (range) {
     const chunkInfo = getChunkInfo(range, trackInfo.fileSize);
-    streamTrack(res, trackInfo, chunkInfo);
+    streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
-    streamTrack(res, trackInfo);
+    streamTrack(res, awsObj, trackInfo);
   }
 });
 
@@ -126,6 +122,12 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
  * POST /tracks
  */
 exports.uploadTrack = (req, res, next) => {
+  const awsObj = new AwsS3Api();
+  const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
+  awsObj.setMulterStorage(null, null, null, trackKey);
+  awsObj.setMulterUploadOptions({ fileFilter, limits });
+  const upload = awsObj.getMulterUpload();
+
   upload.single(trackFieldName)(req, res, err => {
     if (err) {
       return next(new AppError('Upload Request Validation Failed', 400));
