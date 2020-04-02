@@ -82,3 +82,6 @@ typings/
 .config.env
 
 docs/
+
+# Shell scripts
+./*.sh
