@@ -243,7 +243,7 @@ userSchema.pre('save', async function(next) {
 userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 12);
-    if (!this.isNew) this.passwordChangedAt = Date.now() - 1000;
+    if (!this.isNew) this.passwordChangedAt = Date.now() - 100;
   }
   next();
 });
@@ -302,11 +302,8 @@ userSchema.statics.correctPassword = async function(
 //Check if password changed after signing the jwt  token
 userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
   if (user.passwordChangedAt) {
-    const passChangedAttimeStamp = parseInt(
-      user.passwordChangedAt.getTime() / 1000,
-      10
-    );
-    return passChangedAttimeStamp > JWTTimestamp;
+    const passChangedAttimeStamp = user.passwordChangedAt.getTime();
+    return passChangedAttimeStamp > JWTTimestamp * 1000;
   }
   return false;
 };

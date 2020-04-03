@@ -1,8 +1,16 @@
 const mongoose = require('mongoose');
 const dropDB = async collectionName => {
   if (collectionName) {
-    await mongoose.connection.collections[collectionName].drop();
-    console.log(`✅ ${collectionName} dropped successfully`);
+    try {
+      try {
+        await mongoose.connection.db.dropCollection(collectionName);
+        console.log(`✅ ${collectionName} collection dropped successfully.`);
+      } catch (err) {
+        console.log(`✅ ${collectionName} collection was already empty.`);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   } else {
     const collections = await mongoose.connection.db.collections();
 

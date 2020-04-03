@@ -64,7 +64,7 @@ class APIFeatures {
    * Parses the request fields parameter in Spotify's parenthesis format, and then apply query select on those fields
    */
   limitFieldsParenthesis() {
-    if (this.queryString.fields) {
+    if (this.queryString && this.queryString.fields) {
       const fields = parseFields(this.queryString.fields);
 
       if (this.query) this.query = this.query.select(fields);
