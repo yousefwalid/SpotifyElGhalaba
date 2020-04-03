@@ -1,7 +1,8 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
-const dropDB = require('./dropDB');
+const { dropDB } = require('./dropDB');
+const generateArtist = require('./utils/insertArtistIntoDB');
 const createUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
@@ -16,6 +17,7 @@ describe('Testing library controller', function() {
   this.timeout(10000);
   let tracks = [];
   let user;
+  let artist;
   let albums = [];
   let createdAlbums = [];
   let createdTracks = [];
@@ -24,9 +26,10 @@ describe('Testing library controller', function() {
   });
   this.beforeEach(async function() {
     await dropDB();
-    user = await User.create(createUser('artist'));
+    artist = await generateArtist();
+    user = await User.create(createUser('user'));
     for (let i = 0; i < 10; i += 1) {
-      albums[i] = generateAlbum([user._id]);
+      albums[i] = generateAlbum([artist._id]);
     }
     createdAlbums = await Album.create(albums);
   });
@@ -57,7 +60,7 @@ describe('Testing library controller', function() {
   });
   it('Testing Save tracks for current user', async function() {
     for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [user._id]);
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
     let tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < tracks.length; i += 1) {
@@ -102,7 +105,7 @@ describe('Testing library controller', function() {
   it('Testing remove tracks for current user', async function() {
     let savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [user._id]);
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
     let tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < tracks.length; i += 1) {
@@ -144,7 +147,7 @@ describe('Testing library controller', function() {
   it('Testing check users saved tracks', async function() {
     let savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [user._id]);
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
     let tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
@@ -189,7 +192,7 @@ describe('Testing library controller', function() {
   it('Testing check users saved tracks with invalid ids', async function() {
     let savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [user._id]);
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
     let tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
@@ -214,7 +217,7 @@ describe('Testing library controller', function() {
   it('Testing get saved tracks', async function() {
     let savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [user._id]);
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
     let tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
@@ -282,5 +285,8 @@ describe('Testing library controller', function() {
     } catch (err) {
       assert.strictEqual(err.statusCode, 400);
     }
+  });
+  this.afterAll(async function() {
+    await disconnectDB();
   });
 });

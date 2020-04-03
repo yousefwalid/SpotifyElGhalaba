@@ -1,8 +1,8 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
-const dropDB = require('./dropDB');
-const createUser = require('./utils/createUser');
+const { dropDB } = require('./dropDB');
+const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 const User = require('../models/userModel');
@@ -19,7 +19,7 @@ describe('Testing album controller', function() {
   });
   this.beforeEach(async function() {
     await dropDB();
-    user = await User.create(createUser('artist'));
+    user = await generateArtist();
     for (let i = 0; i < 30; i += 1)
       generatedAlbums[i] = generateAlbum([user.id]);
   });
@@ -81,7 +81,7 @@ describe('Testing album controller', function() {
       generatedTracks[i] = generateTrack(createdAlbum._id, user.id);
     let createdTracks = await Track.create(generatedTracks);
     for (let i = 0; i < generatedTracks.length; i += 1) {
-      createdAlbum.tracks.push(generatedTracks[i]._id);
+      createdAlbum.tracks.push(createdTracks[i]._id);
     }
     await createdAlbum.save();
     const returnedTracks = await albumController.getAlbumTracksLogic(
@@ -121,5 +121,8 @@ describe('Testing album controller', function() {
     } catch (err) {
       assert.strictEqual(err.statusCode, 400);
     }
+  });
+  this.afterAll(async function() {
+    await disconnectDB();
   });
 });

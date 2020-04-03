@@ -89,9 +89,9 @@ const trackSchema = new mongoose.Schema(
   }
 );
 
-// trackSchema.plugin(idValidator, {
-//   message: 'Bad ID value for {PATH}'
-// });
+trackSchema.plugin(idValidator, {
+  message: 'Bad ID value for {PATH}'
+});
 trackSchema.plugin(mongooseLeanVirtuals);
 
 trackSchema.pre('save', async function(next) {

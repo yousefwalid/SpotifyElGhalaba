@@ -1,8 +1,8 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
-const dropDB = require('./dropDB');
-const createUser = require('./utils/createUser');
+const { dropDB } = require('./dropDB');
+const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 const User = require('../models/userModel');
@@ -21,7 +21,7 @@ describe('Testing track controller', function() {
   });
   this.beforeEach(async function() {
     await dropDB();
-    user = await User.create(createUser('artist'));
+    user = await generateArtist();
     album = await Album.create(generateAlbum([user._id]));
     for (let i = 0; i < 30; i += 1)
       track[i] = generateTrack(album._id, [user._id]);

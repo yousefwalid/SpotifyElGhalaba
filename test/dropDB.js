@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+// const connectDB = require('./connectDB');
+// const disconnectDB = require('./disconnectDB');
+
 const dropDB = async collectionName => {
   if (collectionName) {
     try {
@@ -12,12 +15,36 @@ const dropDB = async collectionName => {
       console.log(err);
     }
   } else {
-    const collections = await mongoose.connection.db.collections();
-
-    collections.forEach(async collection => {
-      await collection.drop();
-    });
-    console.log(`✅ database dropped successfully`);
+    try {
+      const db = await mongoose.connection.db;
+      let collections;
+      if (db) {
+        collections = await db.collections();
+        if (collections.length !== 0) {
+          collections.forEach(async collection => {
+            await collection.drop();
+            // await mongoose.connection.db.dropCollection(
+            //   collection.collectionName
+            // );
+          });
+          console.log(`✅ database dropped successfully`);
+        } else {
+          console.log(`✅ database was already empty.`);
+        }
+      } else {
+        console.log(`❌ Could NOT drop the DB due to Connection Error.`);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   }
 };
-module.exports = dropDB;
+
+// (async function() {
+//   await connectDB();
+//   await dropDB('users');
+//   await disconnectDB();
+//   process.exit(0);
+// })();
+
+exports.dropDB = dropDB;

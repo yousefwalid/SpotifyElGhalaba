@@ -4,11 +4,13 @@ const Album = require('./../models/albumModel');
 const User = require('./../models/userModel');
 const assert = require('assert');
 const audioFeaturesController = require('./../controllers/audioFeaturesController');
-const createUser = require('./utils/createUser');
+const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 const connectDB = require('./connectDB');
-const dropDB = require('./dropDB');
+const { dropDB } = require('./dropDB');
+const disconnectDB = require('./disconnectDB');
+
 describe('Testing Audio-Features controller', function() {
   let user;
   let generatedAlbum;
@@ -18,7 +20,7 @@ describe('Testing Audio-Features controller', function() {
   });
   this.beforeEach(async function() {
     await dropDB();
-    user = await User.create(createUser('artist'));
+    user = await generateArtist();
     generatedAlbum = generateAlbum(user._id);
   });
   it('Testing add audio features for a track', async function() {
@@ -155,5 +157,8 @@ describe('Testing Audio-Features controller', function() {
     returnedAudioFeatures.forEach(el => {
       assert.strictEqual(el, null);
     });
+  });
+  this.afterAll(async function() {
+    await disconnectDB();
   });
 });
