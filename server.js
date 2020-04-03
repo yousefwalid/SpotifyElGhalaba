@@ -64,3 +64,9 @@ process.on('uncaughtException', err => {
 });
 
 process.on('warning', e => console.warn(e.stack));
+
+process.on('SIGTERM', () => {
+  server.close(() => {
+    process.exit(0);
+  });
+});
