@@ -3,23 +3,24 @@ const dotenv = require('dotenv');
 
 // configuring .env
 dotenv.config({
-    path: './.test.env'
+  path: './.test.env'
 });
 
 // connecting to the db
 // remote database credentials
+console.log(process.env.DATABASE_LOCAL);
 const DB = process.env.DATABASE.replace(
-    '<PASSWORD>',
-    process.env.DATABASE_PASSWORD
+  '<PASSWORD>',
+  process.env.DATABASE_PASSWORD
 );
-
+const localDB = process.env.DATABASE_LOCAL;
 const connectDB = async () => {
-    await mongoose.connect(DB, {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false
-    });
-    console.log("✅ database connected");
+  await mongoose.connect(localDB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+  });
+  console.log('✅ database connected');
 };
 
 module.exports = connectDB;

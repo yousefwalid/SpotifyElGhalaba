@@ -80,9 +80,9 @@ const albumSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
-albumSchema.plugin(idValidator, {
-  message: 'Bad ID value for {PATH}'
-});
+// albumSchema.plugin(idValidator, {
+//   message: 'Bad ID value for {PATH}'
+// });
 albumSchema.plugin(mongooseLeanVirtuals);
 
 const URI = albumSchema.virtual('uri');
