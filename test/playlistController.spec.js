@@ -17,11 +17,10 @@ const insertArtist = require('./utils/insertArtistIntoDB');
 describe('Testing Playlist Controller', function() {
   this.beforeAll(async () => {
     await connectDB();
+    await dropDB();
   });
 
   it('Get A Playlist', async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -54,8 +53,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Get A Playlist with fields', async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -94,8 +91,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Get A Playlist returns 404', async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -117,8 +112,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Get A Playlist returns 403', async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -143,8 +136,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks with tracks", async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -189,8 +180,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks with fields", async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -240,8 +229,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks without tracks", async function() {
-    await dropDB();
-
     const tracksIds = [];
 
     const generatedUser = generateUser();
@@ -271,8 +258,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Get A Playlist returns 404', async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -294,8 +279,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks returns 403", async function() {
-    await dropDB();
-
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -323,8 +306,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Add Tracks to an empty Playlist', async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -369,8 +350,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Add Tracks to a Playlist with tracks', async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -425,8 +404,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Add Tracks to a Playlist with tracks and position at 2', async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -486,8 +463,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Add Tracks to a Playlist with tracks and position at 0', async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -547,8 +522,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it('Add tracks to Playlist returns 404', async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -591,8 +564,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks returns 403", async function() {
-    await dropDB();
-
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -638,8 +609,6 @@ describe('Testing Playlist Controller', function() {
   });
 
   it("Get A Playlist's Tracks returns 400", async function() {
-    await dropDB();
-
     const tracksIds = [];
 
     const generatedUser = generateUser();
