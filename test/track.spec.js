@@ -38,8 +38,4 @@
 //   it('testing adding a track with invalid album id ', function(done) {
 //     expect(true).toBe(true);
 //   });
-<<<<<<< HEAD
 // });
-=======
-// });
->>>>>>> 37111276ac2d1d1be205d93bd4dc234a5bd531ae

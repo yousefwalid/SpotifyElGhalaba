@@ -1,7 +1,7 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
-const dropDB = require('./dropDB');
+const { dropDB } = require('./dropDB');
 const categoryController = require('../controllers/categoryController');
 
 describe('Testing category controller', function() {

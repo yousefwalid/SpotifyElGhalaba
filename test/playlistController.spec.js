@@ -2,7 +2,7 @@
 const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
-const dropDB = require('./dropDB');
+const { dropDB } = require('./dropDB');
 const generateUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
