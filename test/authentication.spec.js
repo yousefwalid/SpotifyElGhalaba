@@ -83,7 +83,7 @@ const createUserAssertions = function(user, body) {
   });
 };
 
-describe.only('Testing Authentication Services', function() {
+describe('Testing Authentication Services', function() {
   this.beforeAll(async () => {
     await connectDB();
     await dropDB();
@@ -93,7 +93,8 @@ describe.only('Testing Authentication Services', function() {
     // console.log(userDefaultNestedObjects);
   });
 
-  let userUser, userArtist;
+  let userUser;
+  let userArtist;
 
   describe('Testing Create New User/Artist', function() {
     it('Should create a new user without error', async function() {

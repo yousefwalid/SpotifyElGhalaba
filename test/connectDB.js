@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 
 // configuring .env
 dotenv.config({
-  path: './.env.test'
+  path: './.test.env'
 });
 
 // connecting to the db
@@ -22,7 +22,7 @@ const connectDB = async () => {
     });
     console.log('✅ database connected');
   } catch (err) {
-    console.log(`Error Connecting to DB ❌     ${err.toString()}`);
+    console.log(`Fail Connecting to DB ❌     ${err.toString()}`);
     process.exit(1);
   }
 };
