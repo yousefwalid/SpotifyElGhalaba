@@ -184,8 +184,7 @@ const userSchema = new mongoose.Schema(
     following: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        unique: true
+        ref: 'User'
       }
     ],
     followedPlaylists: [followedPlaylist]

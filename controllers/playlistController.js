@@ -1,12 +1,11 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Playlist = require('./../models/playlistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const APIFeatures = require('./../utils/apiFeatures');
-var mongoose = require('mongoose');
 const filterObj = require('./../utils/filterObject');
 const parseFields = require('./../utils/parseFields');
-const multer = require('multer');
-const sharp = require('sharp');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
 
 /**
@@ -76,12 +75,13 @@ const validateLimitOffset = (limit, offset) => {
 
 /**
  * Authorizes if the user has access to the playlist
+ * and also handles bad requests and not found errors
  * @param {String} userId The id of the user making the request
  * @param {String} playlistId The id of the playlist
  */
 const authorizeUserToPlaylist = async (userId, playlistId) => {
   if (!userId || !playlistId)
-    throw new AppError('userId or PlaylistId not specified', 500);
+    throw new AppError('User id or Playlist id not specified', 400);
 
   const playlist = await Playlist.findById(playlistId);
 
@@ -92,15 +92,17 @@ const authorizeUserToPlaylist = async (userId, playlistId) => {
   if (!playlist.public) {
     // If user is not owner and not in the collaborators IF it is collaborative
     if (
-      String(playlist.owner.id) != String(userId) &&
+      String(playlist.owner.id) !== String(userId) &&
       !(
-        playlist.collaborative == true &&
+        playlist.collaborative === true &&
         playlist.collaborators.map(id => id.toString()).includes(String(userId))
       )
     ) {
       throw new AppError('You do not have access to this playlist', 403);
     }
   }
+
+  return playlist;
 };
 
 /**
@@ -113,19 +115,27 @@ const authorizeUserToPlaylist = async (userId, playlistId) => {
  */
 
 const getPlaylist = async (playlistId, userId, queryParams) => {
-  let returnObj = excludePopulationFields(
-    parseFields(queryParams.fields),
-    'owner'
-  );
-  queryParams.fields = returnObj.fieldsString;
-  const ownerPopulationFields = returnObj.trimmedString;
+  await authorizeUserToPlaylist(userId, playlistId);
 
-  returnObj = excludePopulationFields(
-    parseFields(queryParams.fields),
-    'tracks.items.track'
-  );
-  queryParams.fields = returnObj.fieldsString;
-  const trackPopulationFields = returnObj.trimmedString;
+  let returnObj;
+  let ownerPopulationFields;
+  let trackPopulationFields;
+
+  if (queryParams && queryParams.fields) {
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'owner'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    ownerPopulationFields = returnObj.trimmedString;
+
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'tracks.items.track'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    trackPopulationFields = returnObj.trimmedString;
+  }
 
   const features = new APIFeatures(
     Playlist.findById(playlistId)
@@ -142,8 +152,6 @@ const getPlaylist = async (playlistId, userId, queryParams) => {
     throw new AppError('No playlist found with that id', 404);
   }
 
-  await authorizeUserToPlaylist(userId, playlistId);
-
   return playlist;
 };
 
@@ -158,20 +166,30 @@ const getPlaylist = async (playlistId, userId, queryParams) => {
  */
 
 const getPlaylistTracks = async (playlistId, userId, queryParams) => {
+  await authorizeUserToPlaylist(userId, playlistId);
+
+  if (!queryParams) {
+    queryParams = {};
+  }
+
   const { limit, offset } = validateLimitOffset(
     queryParams.limit,
     queryParams.offset
   );
 
-  const returnObj = excludePopulationFields(
-    parseFields(queryParams.fields),
-    'items.track'
-  );
+  let returnObj;
+  let populationFields;
 
-  queryParams.fields = returnObj.fieldsString;
-  const populationFields = returnObj.trimmedString;
+  if (queryParams && queryParams.fields) {
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'items.track'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    populationFields = returnObj.trimmedString;
 
-  queryParams.fields = queryParams.fields.replace(/items/g, 'tracks.items'); // As the object in DB is tracks.items but in response it is items only
+    queryParams.fields = queryParams.fields.replace(/items/g, 'tracks.items'); // As the object in DB is tracks.items but in response it is items only
+  }
 
   const queryObject = { 'tracks.items': { $slice: [offset, limit] } }; // Apply slicing on offset and limit
 
@@ -187,14 +205,12 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
 
   const tracks = await features.query;
 
-  let pagingObject = {
-    href: 'https://api.spotify.com/v1/' + `playlists/${playlistId}/tracks`,
+  const pagingObject = {
+    href: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
     items: tracks.tracks.items,
     limit,
     offset
   };
-
-  await authorizeUserToPlaylist(userId, playlistId);
 
   return pagingObject;
 };
@@ -209,44 +225,31 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
  * @todo test errors
  */
 
-const addPlaylistTrack = async (playlistId, uris, position, userId) => {
-  if (!uris || uris.length == 0) {
-    throw new AppError('No URIs specified', 400);
+const addPlaylistTrack = async (playlistId, userId, ids, position) => {
+  if (!ids || ids.length === 0) {
+    throw new AppError('No IDs specified', 400);
   }
 
-  if (!userId) {
-    throw new AppError('A user must be passed', 500);
-  }
+  const playlist = await authorizeUserToPlaylist(userId, playlistId);
 
-  const playlist = await Playlist.findById(playlistId);
-
-  if (!playlist) {
-    throw new AppError('No playlist found with that id', 404);
-  }
-
-  await authorizeUserToPlaylist(userId, playlistId);
-
-  if (playlist.tracks.length + uris.length > 10000) {
+  if (playlist.tracks.length + ids.length > 10000) {
     throw new AppError("Playlist size can't exceed 10,000 tracks", 403);
   }
 
-  let playlistTracks = []; // Temporary array to create
+  const playlistTracks = []; // Temporary array to create
 
-  uris.forEach(uri => {
-    // Crop the track id out of the uri
-    uri = uri.slice(14);
-
+  ids.forEach(id => {
     const playlistTrack = {
       // Create a new PlaylistTrackObject
       added_at: Date.now(),
       added_by: userId,
-      track: uri
+      track: id
     };
 
     playlistTracks.push(playlistTrack); // Push the items in the playlist tracks array
   });
 
-  if (position == undefined)
+  if (position === undefined)
     playlist.tracks.items = playlist.tracks.items.concat(playlistTracks);
   else {
     const tempArray = playlist.tracks.items.splice(position);
@@ -254,7 +257,7 @@ const addPlaylistTrack = async (playlistId, uris, position, userId) => {
     playlist.tracks.items = playlist.tracks.items.concat(tempArray);
   }
 
-  playlist.save(); // Save the document
+  await playlist.save();
 };
 
 /**
@@ -298,7 +301,7 @@ const changePlaylistDetails = async (bodyParams, playlistId, userId) => {
 
   if (!playlistOwner) throw new AppError('No playlist found with that id', 404);
 
-  if (String(playlistOwner.owner) != userId) {
+  if (String(playlistOwner.owner) !== String(userId)) {
     throw new AppError('You are not authorized to edit this playlist', 403);
   }
 
@@ -331,13 +334,13 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
 
   if (!playlist) throw new AppError('No playlist found with that ID', 404);
 
-  if (String(playlist.owner) != userId)
+  if (String(playlist.owner) !== String(userId))
     throw new AppError(
       'You are not authorized to modify this playlist as you are not the owner',
       403
     );
 
-  const tracks = playlist.tracks;
+  const { tracks } = playlist;
 
   if (!tracks) throw new AppError('This playlist contains no tracks', 404);
 
@@ -358,7 +361,7 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
 
   // 2) Delete all tracks with position specified
 
-  var toBeDeletedIDsWithPos = [];
+  const toBeDeletedIDsWithPos = [];
   requestTracks.forEach(track => {
     if (track.positions) {
       track.positions.forEach(pos => {
@@ -379,7 +382,7 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
 
   // 3) Delete all tracks with no position specified
 
-  var toBeDeletedIDsWithoutPos = [];
+  const toBeDeletedIDsWithoutPos = [];
 
   requestTracks.forEach(track => {
     if (!track.positions) {
@@ -407,7 +410,7 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
  * @param {Object} requestFile The image file saved
  */
 const addPlaylistImage = async (playlistId, requestFile) => {
-  const url = './' + requestFile.destination + '/' + requestFile.filename;
+  const url = `./${requestFile.destination}/${requestFile.filename}`;
 
   await sharp(url)
     .metadata()
@@ -438,28 +441,25 @@ const addPlaylistImage = async (playlistId, requestFile) => {
 
 const reorderPlaylistTracks = async (
   playlistId,
-  range_start,
-  range_length,
-  insert_before
+  rangeStart,
+  rangeLength,
+  insertBefore
 ) => {
-  range_length = range_length * 1 || 1;
+  rangeLength = rangeLength * 1 || 1;
 
   if (
-    (!range_start && range_start !== 0) ||
-    !range_length ||
-    (!insert_before && insert_before !== 0) ||
-    range_start < 0 ||
-    range_length < 0 ||
-    insert_before < 0
+    (!rangeStart && rangeStart !== 0) ||
+    !rangeLength ||
+    (!insertBefore && insertBefore !== 0) ||
+    rangeStart < 0 ||
+    rangeLength < 0 ||
+    insertBefore < 0
   )
     throw new AppError('Please specify all parameters correctly', 500);
 
-  if (
-    insert_before >= range_start &&
-    insert_before < range_length + range_start
-  ) {
+  if (insertBefore >= rangeStart && insertBefore < rangeLength + rangeStart) {
     throw new AppError(
-      'insert_before cannot lie between range_start and range_start + range_length',
+      'insertBefore cannot lie between rangeStart and rangeStart + rangeLength',
       500
     );
   }
@@ -468,12 +468,11 @@ const reorderPlaylistTracks = async (
     'tracks'
   )).tracks.items;
 
-  const omittedArray = playlistTracksArray.splice(range_start, range_length);
+  const omittedArray = playlistTracksArray.splice(rangeStart, rangeLength);
 
-  if (insert_before >= range_start + range_length)
-    insert_before -= range_length;
+  if (insertBefore >= rangeStart + rangeLength) insertBefore -= rangeLength;
 
-  const secondHalf = playlistTracksArray.splice(insert_before);
+  const secondHalf = playlistTracksArray.splice(insertBefore);
 
   playlistTracksArray = playlistTracksArray.concat(omittedArray);
   playlistTracksArray = playlistTracksArray.concat(secondHalf);
@@ -504,15 +503,14 @@ exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
 });
 
 exports.getPlaylistImages = catchAsync(async (req, res, next) => {
-  if (!req.params.playlist_id)
-    return next(new AppError('Playlist Id not specified', 400));
+  const playlistId = req.params.playlist_id;
+  const userId = req.user._id;
 
-  const playlist = await Playlist.findById(req.params.playlist_id);
+  authorizeUserToPlaylist(userId, playlistId);
 
-  if (!playlist)
-    return next(new AppError('No playlist found with that id', 404));
+  const playlist = await Playlist.findById(playlistId).select('images');
 
-  const images = playlist.images;
+  const { images } = playlist;
 
   res.status(200).json(images);
 });
@@ -527,9 +525,9 @@ exports.createPlaylist = catchAsync(async (req, res, next) => {
 exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
   addPlaylistTrack(
     req.params.playlist_id,
+    req.user._id,
     req.body.uris,
-    req.body.position,
-    req.user._id
+    req.body.position
   );
 
   res.status(201).send();
@@ -585,3 +583,8 @@ exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
 });
 
 exports.uploadPlaylistImage = upload.single('photo');
+
+exports.getPlaylistLogic = getPlaylist;
+exports.getPlaylistTracksLogic = getPlaylistTracks;
+exports.addPlaylistTrackLogic = addPlaylistTrack;
+exports.getUserPlaylists = getUserPlaylists;
