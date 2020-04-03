@@ -13,7 +13,7 @@ before_script:
   - npm i
 
 run in local env:
-  image: node:13
+  image: node:13-alpine3.11
   stage: build
   script:
     - bash
@@ -21,7 +21,7 @@ run in local env:
     - timeout --preserve-status 60s node .
 
 run unit tests:
-  image: node:13
+  image: node:13-alpine3.11
   only:
     - master
     - 2-ci-cd-pipeline
