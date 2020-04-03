@@ -1,8 +1,8 @@
 // const dotenv = require('dotenv');
 
-// dotenv.config({
-//   path: './config.env'
-// });
+// // dotenv.config({
+// //   path: './config.env'
+// // });
 
 // describe('Testing Albums controller', function() {
 //   it('testing get Album', function(done) {

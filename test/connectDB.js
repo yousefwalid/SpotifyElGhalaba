@@ -22,7 +22,8 @@ const connectDB = async () => {
     });
     console.log('✅ database connected');
   } catch (err) {
-    console.log('❌ fail connecting to database');
+    console.log(`Fail Connecting to DB ❌     ${err.toString()}`);
+    process.exit(1);
   }
 };
 

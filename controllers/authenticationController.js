@@ -179,7 +179,7 @@ const createNewUser = async body => {
     birthdate: body.birthdate,
     type: body.type,
     product: 'free',
-    country: body.geoip.country
+    country: body.country
   });
   if (body.type === 'artist') {
     try {
@@ -195,6 +195,7 @@ const createNewUser = async body => {
   }
   return newUser;
 };
+exports.createNewUser = createNewUser;
 
 /**
  * @description Check if the given email and password correspond to a user in the data base.
@@ -220,6 +221,7 @@ const checkEmailAndPassword = async (email, password) => {
   }
   return user;
 };
+exports.checkEmailAndPassword = checkEmailAndPassword;
 
 /**
  * @description Extracts the jwt token from the request object and decodes it.
@@ -248,6 +250,7 @@ const getDecodedToken = async req => {
 
   return decoded;
 };
+exports.getDecodedToken = getDecodedToken;
 
 /**
  * @description Gets the user from database given the id in the token.
@@ -272,6 +275,7 @@ const getUserByToken = async token => {
   }
   return user;
 };
+exports.getUserByToken = getUserByToken;
 
 /**
  * @description  Creates a new jwt token.
@@ -290,6 +294,7 @@ const signToken = id => {
     }
   );
 };
+exports.signToken = signToken;
 
 /**
  *  @description Sends a mail to a certain user.
@@ -331,6 +336,7 @@ const sendResetToken = async (email, baseURL) => {
     );
   }
 };
+exports.sendResetToken = sendResetToken;
 
 /**
  * @description  Resets the user's password.
@@ -365,6 +371,7 @@ const resetPassword = async (token, password, passwordConfirm) => {
 
   return user;
 };
+exports.resetPasswordService = resetPassword;
 
 /**
  * @description Updates an authenticated user's password
@@ -386,6 +393,7 @@ const updatePassword = async (id, pass, newPass, newPassConfirm) => {
 
   return user;
 };
+exports.updatePasswordService = updatePassword;
 
 /**
  * @description Assings a token to the user and Sends the user data by the res object.
@@ -421,29 +429,41 @@ const createAndSendToken = (user, statusCode, res) => {
     }
   });
 };
+exports.createAndSendToken = createAndSendToken;
 
 /**
- * @description Checks the user type, populates his fields, filters unwanted fields and sends the result to the response object
- * @param {UserObject} user The user document.
- * @param {Object} res  The response object.
+ * Checks the user type, populates his fields, filters private fields and return the new document.
+ * @param {UserObject} user The user doument
+ * @returns {Object}  returns the populated public user/artist object.
  */
-const sendUser = async (user, res) => {
+const getPublicUser = async user => {
+  let populatedUser;
   if (user.type === 'artist') {
-    const artist = await Artist.findOne({
+    populatedUser = await Artist.findOne({
       userInfo: new ObjectId(user._id)
     }).populate({
       path: 'userInfo',
       select: User.publicUser()
     });
-
-    //No need to filter artist fields [The nested user document is already filtered in the populate function]
-    createAndSendToken(artist, 200, res);
+    populatedUser = populatedUser.toObject({ virtuals: true });
   } else {
     //Filter private fields of the user and send only the public user
-    const filteredUser = user.privateToPublic();
-    createAndSendToken(filteredUser, 200, res);
+    populatedUser = user.privateToPublic();
   }
+  return populatedUser;
 };
+exports.getPublicUser = getPublicUser;
+
+/**
+ * @description Sends the result to the response object
+ * @param {UserObject} user The user document.
+ * @param {Object} res  The response object.
+ */
+const sendUser = async (user, res) => {
+  const sentUser = await getPublicUser(user);
+  createAndSendToken(sentUser, 200, res);
+};
+exports.sendUser = sendUser;
 
 /**
  * @description Protect middleware
@@ -459,6 +479,7 @@ const protect = async req => {
   //Send the public user info to the next middleware
   req.user = user.privateToPublic();
 };
+exports.protectService = protect;
 
 /**
  * @description Closes the websocket connection.
@@ -473,6 +494,7 @@ const closeSocket = ws => {
   );
   ws.end();
 };
+exports.closeSocket = closeSocket;
 
 /*
  ########   #######  ##     ## ######## ########    ##     ##    ###    ##    ## ########  ##       ######## ########   ######  
