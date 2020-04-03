@@ -1,5 +1,5 @@
 # The Basic Image
-FROM node:13
+FROM node:13-alpine3.11
 
 # Define our working directory where the code will be
 WORKDIR  /usr/src/app

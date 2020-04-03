@@ -73,7 +73,6 @@ const getChunkInfo = (range, fileSize) => {
  */
 const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   const { fileSize, filePath } = trackInfo;
-
   let readStream;
   const head = {
     'Accept-Ranges': 'bytes',
