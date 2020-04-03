@@ -17,7 +17,7 @@ run in local env:
   stage: build
   script:
     - bash
-    - echo "$LOCAL_ENV" > .env
+    - echo "$TEST_ENV" > config.env
     - node .
 
 run unit tests:
