@@ -18,9 +18,9 @@ describe('Testing track controller', function() {
   let createdTrack;
   this.beforeAll(async () => {
     await connectDB();
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     user = await generateArtist();
     album = await Album.create(generateAlbum([user._id]));
     for (let i = 0; i < 30; i += 1)

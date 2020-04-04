@@ -17,9 +17,9 @@ describe('Testing Audio-Features controller', function() {
   let createdAlbum;
   this.beforeAll(async function() {
     await connectDB();
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     user = await generateArtist();
     generatedAlbum = generateAlbum(user._id);
   });

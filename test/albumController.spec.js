@@ -16,9 +16,9 @@ describe('Testing album controller', function() {
   let createdAlbum;
   this.beforeAll(async function() {
     await connectDB();
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     user = await generateArtist();
     for (let i = 0; i < 30; i += 1)
       generatedAlbums[i] = generateAlbum([user.id]);

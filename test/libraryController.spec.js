@@ -23,9 +23,9 @@ describe('Testing library controller', function() {
   let createdTracks = [];
   this.beforeAll(async () => {
     await connectDB();
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     artist = await generateArtist();
     user = await User.create(createUser('user'));
     for (let i = 0; i < 10; i += 1) {
