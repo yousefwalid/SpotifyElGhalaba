@@ -116,9 +116,11 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
   if (Model === Track) {
     modelName = 'track';
     savedModel = savedTrack;
-  } else {
+  } else if (Model == Album) {
     modelName = 'album';
     savedModel = savedAlbum;
+  } else {
+    throw new AppError('Invalid model', 400);
   }
   const savedDocs = await savedModel
     .find({ user: user._id })
@@ -164,13 +166,17 @@ const checkUsersSavedModel = async (IDs, Model) => {
   query[modelName] = { $in: IDs };
   const currentlySavedDocs = await savedModel.find(query);
   let boolArray = [];
-  currentlySavedDocs.forEach(el => {
-    for (let i = 0; i < IDs.length; i += 1) {
-      if (String(el[modelName]) === String(IDs[i])) {
+  IDs.forEach(el => {
+    let found = false;
+    for (let i = 0; i < currentlySavedDocs.length; i += 1) {
+      if (String(el) === String(currentlySavedDocs[i][modelName])) {
         boolArray.push(true);
-      } else {
-        boolArray.push(false);
+        found = true;
+        break;
       }
+    }
+    if (!found) {
+      boolArray.push(false);
     }
   });
   return boolArray;
@@ -274,3 +280,8 @@ exports.removeUserSavedAlbum = catchAsync(async (req, res, next) => {
   removeUserSavedModel(albumIds, req.user, Album);
   res.status(200).send();
 });
+
+exports.saveForCurrentUserLogic = saveForCurrentUser;
+exports.removeUserSavedModelLogic = removeUserSavedModel;
+exports.checkUsersSavedModelLogic = checkUsersSavedModel;
+exports.getSavedModelLogic = getSavedModel;

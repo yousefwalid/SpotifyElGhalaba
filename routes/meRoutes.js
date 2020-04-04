@@ -9,18 +9,16 @@ const router = express.Router();
 router.use(authenticationController.protect);
 
 // follow routes
-router.route("/following")
+router
+  .route('/following')
   .get(followController.getFollowedUsers)
   .put(followController.followUser)
   .delete(followController.unfollow);
 
-router.route("/following/contains")
-  .get(followController.checkFollowing);
-
+router.route('/following/contains').get(followController.checkFollowing);
 
 //playlists routes
-router.route('/playlists')
-  .get(playlistController.getMyUserPlaylists);
+router.route('/playlists').get(playlistController.getMyUserPlaylists);
 
 //albums routes
 router

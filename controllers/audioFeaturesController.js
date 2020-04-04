@@ -35,14 +35,11 @@ const getAudioFeaturesForSeveralTracks = async tracksIDs => {
   const audioFeatures = await AudioFeatures.find({
     track: { $in: tracksIDs }
   });
-  if (!audioFeatures) {
-    throw new AppError('No audioFeatures found', 404);
-  }
   let audioFeaturesList = [];
   tracksIDs.forEach(el => {
     let found = false;
     for (let i = 0; i < audioFeatures.length; i += 1) {
-      if (el == audioFeatures[i].track) {
+      if (String(el) == String(audioFeatures[i].track)) {
         audioFeaturesList.push(audioFeatures[i]);
         found = true;
         break;
@@ -86,3 +83,6 @@ exports.addAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const newAudioFeatures = await addAudioFeaturesForTrack(req.body);
   res.status(201).json(newAudioFeatures);
 });
+exports.addAudioFeaturesForTrackLogic = addAudioFeaturesForTrack;
+exports.getAudioFeaturesForSeveralTracksLogic = getAudioFeaturesForSeveralTracks;
+exports.getAudioFeaturesForTrackLogic = getAudioFeaturesForTrack;

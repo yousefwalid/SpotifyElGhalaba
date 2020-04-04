@@ -1,7 +1,9 @@
 const Track = require('./../models/trackModel');
 const Album = require('./../models/albumModel');
+const Artist = require('./../models/artistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
+const filterObj = require('./../utils/filterObject');
 /**
  * This contains all the business logic for the track controller
  * @module TrackController
@@ -32,9 +34,7 @@ const getSeveralTracks = async trackIDs => {
   }
   //Returns the avaliable tracks IDs in the DB
   const Tracks = await Track.find({ _id: { $in: trackIDs } });
-  if (Tracks.length < 1) {
-    throw new AppError('No tracks found', 404);
-  }
+
   //Iterate on the list of IDs and if not found add a null
   let trackList = [];
   trackIDs.forEach(el => {
@@ -61,8 +61,16 @@ const getSeveralTracks = async trackIDs => {
  */
 
 const createTrack = async (requestBody, currentUser) => {
-  const newTrack = requestBody;
-  newTrack.artists = currentUser._id;
+  const reqObject = filterObj(requestBody, [
+    'name',
+    'album',
+    'disc_number',
+    'duration_ms',
+    'explicit'
+  ]);
+  const newTrack = reqObject;
+  const artist = await Artist.findOne({ userInfo: currentUser._id });
+  newTrack.artists = artist._id;
   const createdTrack = await Track.create(newTrack);
   return createdTrack;
 };

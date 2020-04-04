@@ -39,7 +39,7 @@ exports.getUserLogic = getUser;
  * @returns {User}
  */
 const updateUser = async (userId, updatedInfo) => {
-    const filteredData = filterObj(updatedInfo, 'name');
+    const filteredData = filterObj(updatedInfo, 'name', 'gender', 'birthdate', 'country', 'phoneNumber');
     const updatedUser = await User.findByIdAndUpdate(userId, filteredData, {
         new: true
     });
