@@ -23,10 +23,8 @@ const dropDB = async collectionName => {
 
         if (collections.length !== 0) {
           collections.forEach(async collection => {
-            await collection.drop();
-            // await mongoose.connection.db.dropCollection(
-            //   collection.collectionName
-            // );
+            await collection.deleteMany({});
+
           });
           console.log(`✅ database dropped successfully`);
         } else {
@@ -34,11 +32,11 @@ const dropDB = async collectionName => {
         }
       } else {
         console.log(`❌ Could NOT drop the DB due to Connection Error.`);
-        // process.exit(1);
+        process.exit(1);
       }
     } catch (err) {
       console.log(err);
-      // process.exit(1);
+      process.exit(1);
     }
   }
 };
