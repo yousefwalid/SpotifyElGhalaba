@@ -20,781 +20,781 @@ describe('Testing Playlist Controller', function() {
     await dropDB();
   });
 
-  // it('Get A Playlist', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   const returnedPlaylist = await playlistController.getPlaylistLogic(
-  //     playlistId,
-  //     userId
-  //   );
-
-  //   const fieldsToCheck = [
-  //     'public',
-  //     'collaborative',
-  //     'name',
-  //     'id',
-  //     'description',
-  //     'tracks.items'
-  //   ];
-
-  //   fieldsToCheck.forEach(key => {
-  //     assert.deepStrictEqual(returnedPlaylist[key], insertedPlaylist[key]);
-  //   });
-
-  //   assert.deepStrictEqual(String(returnedPlaylist.owner.id), String(userId));
-  // });
-
-  // it('Get A Playlist with fields', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   const queryParams = {
-  //     fields: 'name, public'
-  //   };
-
-  //   const returnedPlaylist = await playlistController.getPlaylistLogic(
-  //     playlistId,
-  //     userId,
-  //     queryParams
-  //   );
-
-  //   const fieldsToCheck = [
-  //     'public',
-  //     'collaborative',
-  //     'name',
-  //     'id',
-  //     'description',
-  //     'tracks.items',
-  //     'owner'
-  //   ];
-
-  //   fieldsToCheck.forEach(key => {
-  //     if (key === 'public' || key === 'name')
-  //       assert.deepStrictEqual(returnedPlaylist[key], insertedPlaylist[key]);
-  //     else assert.ok(returnedPlaylist.key === undefined);
-  //   });
-  // });
-
-  // it('Get A Playlist returns 404', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   await Playlist.findByIdAndDelete(playlistId);
-
-  //   try {
-  //     await playlistController.getPlaylistLogic(playlistId, userId);
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 404);
-  //   }
-  // });
-
-  // it('Get A Playlist returns 403', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   generatedPlaylist.public = false;
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const insertedForbiddenUser = generateUser();
-  //   const forbiddenUser = await User.create(insertedForbiddenUser);
-  //   const forbiddenUserId = forbiddenUser._id;
+  it('Get A Playlist', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    const returnedPlaylist = await playlistController.getPlaylistLogic(
+      playlistId,
+      userId
+    );
+
+    const fieldsToCheck = [
+      'public',
+      'collaborative',
+      'name',
+      'id',
+      'description',
+      'tracks.items'
+    ];
+
+    fieldsToCheck.forEach(key => {
+      assert.deepStrictEqual(returnedPlaylist[key], insertedPlaylist[key]);
+    });
+
+    assert.deepStrictEqual(String(returnedPlaylist.owner.id), String(userId));
+  });
+
+  it('Get A Playlist with fields', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    const queryParams = {
+      fields: 'name, public'
+    };
+
+    const returnedPlaylist = await playlistController.getPlaylistLogic(
+      playlistId,
+      userId,
+      queryParams
+    );
+
+    const fieldsToCheck = [
+      'public',
+      'collaborative',
+      'name',
+      'id',
+      'description',
+      'tracks.items',
+      'owner'
+    ];
+
+    fieldsToCheck.forEach(key => {
+      if (key === 'public' || key === 'name')
+        assert.deepStrictEqual(returnedPlaylist[key], insertedPlaylist[key]);
+      else assert.ok(returnedPlaylist.key === undefined);
+    });
+  });
+
+  it('Get A Playlist returns 404', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    await Playlist.findByIdAndDelete(playlistId);
+
+    try {
+      await playlistController.getPlaylistLogic(playlistId, userId);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 404);
+    }
+  });
+
+  it('Get A Playlist returns 403', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    generatedPlaylist.public = false;
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const insertedForbiddenUser = generateUser();
+    const forbiddenUser = await User.create(insertedForbiddenUser);
+    const forbiddenUserId = forbiddenUser._id;
 
-  //   assert.ok(playlistId);
-
-  //   try {
-  //     await playlistController.getPlaylistLogic(playlistId, forbiddenUserId);
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 403);
-  //   }
-  // });
+    assert.ok(playlistId);
+
+    try {
+      await playlistController.getPlaylistLogic(playlistId, forbiddenUserId);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 403);
+    }
+  });
 
-  // it("Get A Playlist's Tracks without tracks", async function() {
-  //   const tracksIds = [];
+  it("Get A Playlist's Tracks without tracks", async function() {
+    const tracksIds = [];
 
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
 
-  //   const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
-  //     playlistId,
-  //     userId
-  //   );
-
-  //   assert.deepStrictEqual(
-  //     returnedPlaylistTracks.items.length,
-  //     insertedPlaylist.tracks.items.length
-  //   );
-
-  //   for (let i = 0; i < insertedPlaylist.tracks.items.length; i += 1) {
-  //     assert.deepStrictEqual(
-  //       insertedPlaylist.tracks.items[i]._id,
-  //       returnedPlaylistTracks.items[i]._id
-  //     );
-  //   }
-  // });
-
-  // it("Get A Playlist's Tracks with tracks", async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
+    const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
+      playlistId,
+      userId
+    );
+
+    assert.deepStrictEqual(
+      returnedPlaylistTracks.items.length,
+      insertedPlaylist.tracks.items.length
+    );
+
+    for (let i = 0; i < insertedPlaylist.tracks.items.length; i += 1) {
+      assert.deepStrictEqual(
+        insertedPlaylist.tracks.items[i]._id,
+        returnedPlaylistTracks.items[i]._id
+      );
+    }
+  });
+
+  it("Get A Playlist's Tracks with tracks", async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
 
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
-
-  //   const albumId = insertedAlbum._id;
-
-  //   const tracksIds = [];
-
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
-
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
-  //     playlistId,
-  //     userId
-  //   );
-
-  //   const returnedTracks = returnedPlaylistTracks.items.toObject();
-  //   const insertedTracks = insertedPlaylist.tracks.items.toObject();
-
-  //   assert.deepStrictEqual(returnedTracks.length, insertedTracks.length);
-
-  //   for (let i = 0; i < insertedTracks.length; i += 1) {
-  //     assert.deepStrictEqual(returnedTracks[i]._id, insertedTracks[i]._id);
-  //   }
-  // });
-
-  // it("Get A Playlist's Tracks with fields", async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
-
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
-
-  //   const albumId = insertedAlbum._id;
-
-  //   const tracksIds = [];
-
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
-
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   const queryParams = {
-  //     fields: 'items(added_at,added_by)'
-  //   };
-
-  //   const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
-  //     playlistId,
-  //     userId,
-  //     queryParams
-  //   );
-
-  //   const fieldsToCheck = ['added_at', 'added_by', 'track', 'is_local'];
-
-  //   returnedPlaylistTracks.items.forEach(el => {
-  //     fieldsToCheck.forEach(key => {
-  //       if (key === 'added_at' || key === 'added_by')
-  //         assert.ok(el[key] !== undefined);
-  //       else assert.ok(el[key] === undefined);
-  //     });
-  //   });
-  // });
-
-  // it('Get A Playlist returns 404', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   await Playlist.findByIdAndDelete(playlistId);
-
-  //   try {
-  //     await playlistController.getPlaylistTracksLogic(playlistId, userId);
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 404);
-  //   }
-  // });
-
-  // it("Get A Playlist's Tracks returns 403", async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   generatedPlaylist.public = false;
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const insertedForbiddenUser = generateUser();
-  //   const forbiddenUser = await User.create(insertedForbiddenUser);
-  //   const forbiddenUserId = forbiddenUser._id;
-
-  //   assert.ok(playlistId);
-
-  //   try {
-  //     await playlistController.getPlaylistTracksLogic(
-  //       playlistId,
-  //       forbiddenUserId
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 403);
-  //   }
-  // });
-
-  // it('Add Tracks to an empty Playlist', async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
-
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
+      playlistId,
+      userId
+    );
+
+    const returnedTracks = returnedPlaylistTracks.items.toObject();
+    const insertedTracks = insertedPlaylist.tracks.items.toObject();
+
+    assert.deepStrictEqual(returnedTracks.length, insertedTracks.length);
+
+    for (let i = 0; i < insertedTracks.length; i += 1) {
+      assert.deepStrictEqual(returnedTracks[i]._id, insertedTracks[i]._id);
+    }
+  });
+
+  it("Get A Playlist's Tracks with fields", async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    const queryParams = {
+      fields: 'items(added_at,added_by)'
+    };
+
+    const returnedPlaylistTracks = await playlistController.getPlaylistTracksLogic(
+      playlistId,
+      userId,
+      queryParams
+    );
+
+    const fieldsToCheck = ['added_at', 'added_by', 'track', 'is_local'];
+
+    returnedPlaylistTracks.items.forEach(el => {
+      fieldsToCheck.forEach(key => {
+        if (key === 'added_at' || key === 'added_by')
+          assert.ok(el[key] !== undefined);
+        else assert.ok(el[key] === undefined);
+      });
+    });
+  });
+
+  it('Get A Playlist returns 404', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    await Playlist.findByIdAndDelete(playlistId);
+
+    try {
+      await playlistController.getPlaylistTracksLogic(playlistId, userId);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 404);
+    }
+  });
+
+  it("Get A Playlist's Tracks returns 403", async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    generatedPlaylist.public = false;
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const insertedForbiddenUser = generateUser();
+    const forbiddenUser = await User.create(insertedForbiddenUser);
+    const forbiddenUserId = forbiddenUser._id;
+
+    assert.ok(playlistId);
+
+    try {
+      await playlistController.getPlaylistTracksLogic(
+        playlistId,
+        forbiddenUserId
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 403);
+    }
+  });
+
+  it('Add Tracks to an empty Playlist', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
 
-  //   const albumId = insertedAlbum._id;
+    const albumId = insertedAlbum._id;
 
-  //   const tracksIds = [];
+    const tracksIds = [];
 
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
 
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
 
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
 
-  //   let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
-
-  //   await playlistController.addPlaylistTrackLogic(
-  //     playlistId,
-  //     userId,
-  //     tracksIds
-  //   );
+    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+
+    await playlistController.addPlaylistTrackLogic(
+      playlistId,
+      userId,
+      tracksIds
+    );
 
-  //   const playlistAfterAddingTracks = await Playlist.findById(playlistId);
+    const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-  //   const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-  //     el => el.track
-  //   );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
+      el => el.track
+    );
 
-  //   oldTracksArray = oldTracksArray.concat(tracksIds);
-  //   assert.deepStrictEqual(newTracksArray, oldTracksArray);
-  // });
-
-  // it('Add Tracks to a Playlist with tracks', async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
+    oldTracksArray = oldTracksArray.concat(tracksIds);
+    assert.deepStrictEqual(newTracksArray, oldTracksArray);
+  });
+
+  it('Add Tracks to a Playlist with tracks', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
 
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
 
-  //   const albumId = insertedAlbum._id;
+    const albumId = insertedAlbum._id;
 
-  //   const tracksIds = [];
+    const tracksIds = [];
 
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
 
-  //   const toBeAddedTracksIds = [];
+    const toBeAddedTracksIds = [];
 
-  //   for (let i = 0; i < 3; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     toBeAddedTracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 3; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      toBeAddedTracksIds.push(trackId);
+    }
 
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
 
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
 
-  //   let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
 
-  //   await playlistController.addPlaylistTrackLogic(
-  //     playlistId,
-  //     userId,
-  //     toBeAddedTracksIds
-  //   );
+    await playlistController.addPlaylistTrackLogic(
+      playlistId,
+      userId,
+      toBeAddedTracksIds
+    );
 
-  //   const playlistAfterAddingTracks = await Playlist.findById(playlistId);
+    const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-  //   const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-  //     el => el.track
-  //   );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
+      el => el.track
+    );
 
-  //   oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
+    oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
 
-  //   assert.deepStrictEqual(newTracksArray, oldTracksArray);
-  // });
+    assert.deepStrictEqual(newTracksArray, oldTracksArray);
+  });
 
-  // it('Add Tracks to a Playlist with tracks and position at 2', async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
+  it('Add Tracks to a Playlist with tracks and position at 2', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
 
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
 
-  //   const albumId = insertedAlbum._id;
+    const albumId = insertedAlbum._id;
 
-  //   const tracksIds = [];
+    const tracksIds = [];
 
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
 
-  //   const toBeAddedTracksIds = [];
+    const toBeAddedTracksIds = [];
 
-  //   for (let i = 0; i < 3; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     toBeAddedTracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 3; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      toBeAddedTracksIds.push(trackId);
+    }
 
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
 
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
 
-  //   let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
 
-  //   const newPositionOfTracks = 2;
+    const newPositionOfTracks = 2;
 
-  //   await playlistController.addPlaylistTrackLogic(
-  //     playlistId,
-  //     userId,
-  //     toBeAddedTracksIds,
-  //     newPositionOfTracks
-  //   );
+    await playlistController.addPlaylistTrackLogic(
+      playlistId,
+      userId,
+      toBeAddedTracksIds,
+      newPositionOfTracks
+    );
 
-  //   const playlistAfterAddingTracks = await Playlist.findById(playlistId);
+    const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-  //   const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-  //     el => el.track
-  //   );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
+      el => el.track
+    );
 
-  //   const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
-  //   oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
-  //   oldTracksArray = oldTracksArray.concat(tempOldTracksArray);
+    const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
+    oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
+    oldTracksArray = oldTracksArray.concat(tempOldTracksArray);
 
-  //   assert.deepStrictEqual(newTracksArray, oldTracksArray);
-  // });
+    assert.deepStrictEqual(newTracksArray, oldTracksArray);
+  });
 
-  // it('Add Tracks to a Playlist with tracks and position at 0', async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
+  it('Add Tracks to a Playlist with tracks and position at 0', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
 
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
 
-  //   const albumId = insertedAlbum._id;
+    const albumId = insertedAlbum._id;
 
-  //   const tracksIds = [];
+    const tracksIds = [];
 
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
 
-  //   const toBeAddedTracksIds = [];
+    const toBeAddedTracksIds = [];
 
-  //   for (let i = 0; i < 3; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     toBeAddedTracksIds.push(trackId);
-  //   }
+    for (let i = 0; i < 3; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      toBeAddedTracksIds.push(trackId);
+    }
 
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
 
-  //   const generatedPlaylist = generatePlaylist(userId, tracksIds);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
 
-  //   let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
 
-  //   const newPositionOfTracks = 0;
+    const newPositionOfTracks = 0;
 
-  //   await playlistController.addPlaylistTrackLogic(
-  //     playlistId,
-  //     userId,
-  //     toBeAddedTracksIds,
-  //     newPositionOfTracks
-  //   );
+    await playlistController.addPlaylistTrackLogic(
+      playlistId,
+      userId,
+      toBeAddedTracksIds,
+      newPositionOfTracks
+    );
 
-  //   const playlistAfterAddingTracks = await Playlist.findById(playlistId);
+    const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-  //   const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-  //     el => el.track
-  //   );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
+      el => el.track
+    );
 
-  //   const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
-  //   oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
-  //   oldTracksArray = oldTracksArray.concat(tempOldTracksArray);
+    const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
+    oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
+    oldTracksArray = oldTracksArray.concat(tempOldTracksArray);
 
-  //   assert.deepStrictEqual(newTracksArray, oldTracksArray);
-  // });
+    assert.deepStrictEqual(newTracksArray, oldTracksArray);
+  });
 
-  // it('Add tracks to Playlist returns 404', async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
+  it('Add tracks to Playlist returns 404', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
 
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
 
-  //   const albumId = insertedAlbum._id;
+    const albumId = insertedAlbum._id;
 
-  //   const tracksIds = [];
+    const tracksIds = [];
 
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
-
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   await Playlist.findByIdAndDelete(playlistId);
-
-  //   try {
-  //     await playlistController.addPlaylistTrackLogic(
-  //       playlistId,
-  //       userId,
-  //       tracksIds
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 404);
-  //   }
-  // });
-
-  // it("Get A Playlist's Tracks returns 403", async function() {
-  //   const insertedArtist = await insertArtist();
-  //   const artistId = insertedArtist._id;
-
-  //   const generatedAlbum = generateAlbum(artistId);
-  //   const insertedAlbum = await Album.create(generatedAlbum);
-
-  //   const albumId = insertedAlbum._id;
-
-  //   const tracksIds = [];
-
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedTrack = generateTrack(albumId, artistId);
-  //     const insertedTrack = await Track.create(generatedTrack);
-  //     const trackId = insertedTrack._id;
-  //     tracksIds.push(trackId);
-  //   }
-
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   generatedPlaylist.public = false;
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const insertedForbiddenUser = generateUser();
-  //   const forbiddenUser = await User.create(insertedForbiddenUser);
-  //   const forbiddenUserId = forbiddenUser._id;
-
-  //   assert.ok(playlistId);
-
-  //   try {
-  //     await playlistController.addPlaylistTrackLogic(
-  //       playlistId,
-  //       forbiddenUserId,
-  //       tracksIds
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 403);
-  //   }
-  // });
-
-  // it("Get A Playlist's Tracks returns 400", async function() {
-  //   const tracksIds = [];
-
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   generatedPlaylist.public = false;
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const insertedForbiddenUser = generateUser();
-  //   const forbiddenUser = await User.create(insertedForbiddenUser);
-  //   const forbiddenUserId = forbiddenUser._id;
-
-  //   assert.ok(playlistId);
-
-  //   try {
-  //     await playlistController.addPlaylistTrackLogic(
-  //       playlistId,
-  //       forbiddenUserId,
-  //       tracksIds
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 400);
-  //   }
-  // });
-
-  // it('Get Playlists of User with no playlists', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const returnedPlaylists = await playlistController.getUserPlaylistsLogic(
-  //     userId
-  //   );
-
-  //   assert.deepStrictEqual(returnedPlaylists.length, 0);
-  // });
-
-  // it('Get Playlists of User with playlists', async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const playlistsIds = [];
-
-  //   for (let i = 0; i < 5; i += 1) {
-  //     const generatedPlaylist = generatePlaylist(userId);
-  //     const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //     const playlistId = insertedPlaylist._id;
-  //     playlistsIds.push(playlistId);
-  //   }
-
-  //   const returnedPlaylists = await playlistController.getUserPlaylistsLogic(
-  //     userId
-  //   );
-
-  //   const returnedPlaylistsIds = returnedPlaylists.map(el => el._id);
-
-  //   assert.deepStrictEqual(returnedPlaylistsIds, playlistsIds);
-  // });
-
-  // this.afterAll(async () => {
-  //   await disconnectDB();
-  // });
-
-  // it("Change Playlist's details with allowed fields", async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = (await Playlist.create(
-  //     generatedPlaylist
-  //   )).toObject();
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const bodyParams = {
-  //     name: 'newName',
-  //     description: 'newDescription'
-  //   };
-
-  //   await playlistController.changePlaylistDetailsLogic(
-  //     bodyParams,
-  //     playlistId,
-  //     userId
-  //   );
-
-  //   const changedPlaylist = (await Playlist.findById(playlistId)).toObject();
-
-  //   Object.keys(changedPlaylist).forEach(key => {
-  //     if (key === '__v') return;
-  //     if (key === 'name' || key === 'description')
-  //       assert.deepStrictEqual(changedPlaylist[key], bodyParams[key]);
-  //     else assert.deepStrictEqual(changedPlaylist[key], insertedPlaylist[key]);
-  //   });
-  // });
-
-  // it("Change Playlist's details with disallowed fields", async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = (await Playlist.create(
-  //     generatedPlaylist
-  //   )).toObject();
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const bodyParams = {
-  //     name: 'newName',
-  //     description: 'newDescription',
-  //     owner: 'poison',
-  //     newProperty: 'new'
-  //   };
-
-  //   await playlistController.changePlaylistDetailsLogic(
-  //     bodyParams,
-  //     playlistId,
-  //     userId
-  //   );
-
-  //   const changedPlaylist = (await Playlist.findById(playlistId)).toObject();
-
-  //   Object.keys(changedPlaylist).forEach(key => {
-  //     if (key === '__v') return;
-  //     if (key === 'name' || key === 'description')
-  //       assert.deepStrictEqual(changedPlaylist[key], bodyParams[key]);
-  //     else assert.deepStrictEqual(changedPlaylist[key], insertedPlaylist[key]);
-  //   });
-  // });
-
-  // it("Change Playlist's Details returns 404", async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   assert.ok(playlistId);
-
-  //   await Playlist.findByIdAndDelete(playlistId);
-
-  //   const bodyParams = {};
-
-  //   try {
-  //     await playlistController.changePlaylistDetailsLogic(
-  //       bodyParams,
-  //       playlistId,
-  //       userId
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 404);
-  //   }
-  // });
-
-  // it("Change Playlist's Details returns 403", async function() {
-  //   const generatedUser = generateUser();
-  //   const insertedUser = await User.create(generatedUser);
-  //   const userId = insertedUser._id;
-
-  //   const generatedPlaylist = generatePlaylist(userId);
-  //   const insertedPlaylist = await Playlist.create(generatedPlaylist);
-  //   const playlistId = insertedPlaylist._id;
-
-  //   const newGeneratedUser = generateUser();
-  //   const newInsertedUser = await User.create(newGeneratedUser);
-  //   const newUserId = newInsertedUser._id;
-
-  //   const bodyParams = {
-  //     name: 'unauthorized name'
-  //   };
-
-  //   try {
-  //     await playlistController.changePlaylistDetailsLogic(
-  //       bodyParams,
-  //       playlistId,
-  //       newUserId
-  //     );
-  //     assert.ok(false);
-  //   } catch (err) {
-  //     assert.deepStrictEqual(err.statusCode, 403);
-  //   }
-  // });
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    await Playlist.findByIdAndDelete(playlistId);
+
+    try {
+      await playlistController.addPlaylistTrackLogic(
+        playlistId,
+        userId,
+        tracksIds
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 404);
+    }
+  });
+
+  it("Get A Playlist's Tracks returns 403", async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+
+    for (let i = 0; i < 5; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    generatedPlaylist.public = false;
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const insertedForbiddenUser = generateUser();
+    const forbiddenUser = await User.create(insertedForbiddenUser);
+    const forbiddenUserId = forbiddenUser._id;
+
+    assert.ok(playlistId);
+
+    try {
+      await playlistController.addPlaylistTrackLogic(
+        playlistId,
+        forbiddenUserId,
+        tracksIds
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 403);
+    }
+  });
+
+  it("Get A Playlist's Tracks returns 400", async function() {
+    const tracksIds = [];
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    generatedPlaylist.public = false;
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const insertedForbiddenUser = generateUser();
+    const forbiddenUser = await User.create(insertedForbiddenUser);
+    const forbiddenUserId = forbiddenUser._id;
+
+    assert.ok(playlistId);
+
+    try {
+      await playlistController.addPlaylistTrackLogic(
+        playlistId,
+        forbiddenUserId,
+        tracksIds
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('Get Playlists of User with no playlists', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const returnedPlaylists = await playlistController.getUserPlaylistsLogic(
+      userId
+    );
+
+    assert.deepStrictEqual(returnedPlaylists.length, 0);
+  });
+
+  it('Get Playlists of User with playlists', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const playlistsIds = [];
+
+    for (let i = 0; i < 5; i += 1) {
+      const generatedPlaylist = generatePlaylist(userId);
+      const insertedPlaylist = await Playlist.create(generatedPlaylist);
+      const playlistId = insertedPlaylist._id;
+      playlistsIds.push(playlistId);
+    }
+
+    const returnedPlaylists = await playlistController.getUserPlaylistsLogic(
+      userId
+    );
+
+    const returnedPlaylistsIds = returnedPlaylists.map(el => el._id);
+
+    assert.deepStrictEqual(returnedPlaylistsIds, playlistsIds);
+  });
+
+  this.afterAll(async () => {
+    await disconnectDB();
+  });
+
+  it("Change Playlist's details with allowed fields", async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = (await Playlist.create(
+      generatedPlaylist
+    )).toObject();
+    const playlistId = insertedPlaylist._id;
+
+    const bodyParams = {
+      name: 'newName',
+      description: 'newDescription'
+    };
+
+    await playlistController.changePlaylistDetailsLogic(
+      bodyParams,
+      playlistId,
+      userId
+    );
+
+    const changedPlaylist = (await Playlist.findById(playlistId)).toObject();
+
+    Object.keys(changedPlaylist).forEach(key => {
+      if (key === '__v') return;
+      if (key === 'name' || key === 'description')
+        assert.deepStrictEqual(changedPlaylist[key], bodyParams[key]);
+      else assert.deepStrictEqual(changedPlaylist[key], insertedPlaylist[key]);
+    });
+  });
+
+  it("Change Playlist's details with disallowed fields", async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = (await Playlist.create(
+      generatedPlaylist
+    )).toObject();
+    const playlistId = insertedPlaylist._id;
+
+    const bodyParams = {
+      name: 'newName',
+      description: 'newDescription',
+      owner: 'poison',
+      newProperty: 'new'
+    };
+
+    await playlistController.changePlaylistDetailsLogic(
+      bodyParams,
+      playlistId,
+      userId
+    );
+
+    const changedPlaylist = (await Playlist.findById(playlistId)).toObject();
+
+    Object.keys(changedPlaylist).forEach(key => {
+      if (key === '__v') return;
+      if (key === 'name' || key === 'description')
+        assert.deepStrictEqual(changedPlaylist[key], bodyParams[key]);
+      else assert.deepStrictEqual(changedPlaylist[key], insertedPlaylist[key]);
+    });
+  });
+
+  it("Change Playlist's Details returns 404", async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    assert.ok(playlistId);
+
+    await Playlist.findByIdAndDelete(playlistId);
+
+    const bodyParams = {};
+
+    try {
+      await playlistController.changePlaylistDetailsLogic(
+        bodyParams,
+        playlistId,
+        userId
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 404);
+    }
+  });
+
+  it("Change Playlist's Details returns 403", async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const newGeneratedUser = generateUser();
+    const newInsertedUser = await User.create(newGeneratedUser);
+    const newUserId = newInsertedUser._id;
+
+    const bodyParams = {
+      name: 'unauthorized name'
+    };
+
+    try {
+      await playlistController.changePlaylistDetailsLogic(
+        bodyParams,
+        playlistId,
+        newUserId
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 403);
+    }
+  });
 
   it('Remove Tracks from Playlist with no positions', async function() {
     const insertedArtist = await insertArtist();
