@@ -268,6 +268,8 @@ const addPlaylistTrack = async (playlistId, userId, ids, position) => {
  */
 
 const getUserPlaylists = async (userId, queryParams) => {
+  if (!queryParams) queryParams = {};
+
   queryParams.limit = queryParams.limit * 1 || 20;
   queryParams.offset = queryParams.offset * 1 || 0;
 
@@ -322,13 +324,22 @@ const changePlaylistDetails = async (bodyParams, playlistId, userId) => {
  * requestTracks can have tracks with ID only or tracks with ID and positions specified
  * @param {String} playlistId The id of the playlist
  * @param {String} userId The id of the user issuing the request
- * @param {Object} requestTracks An object containing a tracks array which contains list of ids of tracks and their positions(optional)
+ * @param {Object} requestTracks A list of objects of ids of tracks and their positions(optional)
  * @returns {None}
  */
 
 const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
   if (!requestTracks || requestTracks.length === 0)
     throw new AppError('Invalid Request Body', 400);
+
+  // Check for bad requests
+
+  requestTracks.forEach(track => {
+    Object.keys(track).forEach(el => {
+      if (el !== 'id' && el !== 'positions')
+        throw new AppError('Invalid Request Body', 400);
+    });
+  });
 
   const playlist = await Playlist.findById(playlistId);
 
@@ -587,4 +598,6 @@ exports.uploadPlaylistImage = upload.single('photo');
 exports.getPlaylistLogic = getPlaylist;
 exports.getPlaylistTracksLogic = getPlaylistTracks;
 exports.addPlaylistTrackLogic = addPlaylistTrack;
-exports.getUserPlaylists = getUserPlaylists;
+exports.getUserPlaylistsLogic = getUserPlaylists;
+exports.changePlaylistDetailsLogic = changePlaylistDetails;
+exports.deletePlaylistTrackLogic = deletePlaylistTrack;

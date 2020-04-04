@@ -32,9 +32,7 @@ const getSeveralTracks = async trackIDs => {
   }
   //Returns the avaliable tracks IDs in the DB
   const Tracks = await Track.find({ _id: { $in: trackIDs } });
-  if (Tracks.length < 1) {
-    throw new AppError('No tracks found', 404);
-  }
+
   //Iterate on the list of IDs and if not found add a null
   let trackList = [];
   trackIDs.forEach(el => {

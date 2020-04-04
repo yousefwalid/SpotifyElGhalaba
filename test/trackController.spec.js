@@ -2,52 +2,81 @@ const assert = require('assert');
 const connectDB = require('./connectDB');
 const disconnectDB = require('./disconnectDB');
 const { dropDB } = require('./dropDB');
-const createUser = require('./utils/createUser');
+const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 const User = require('../models/userModel');
 const Track = require('../models/trackModel');
-const Artist = require('../models/artistModel');
 const Album = require('../models/albumModel');
 const trackController = require('./../controllers/trackController');
 
 describe('Testing track controller', function() {
   this.timeout(10000);
-  let track;
+  let track = [];
   let user;
-  let artist;
   let album;
   let createdTrack;
   this.beforeAll(async () => {
     await connectDB();
-
-    await dropDB();
-
-    user = await User.create(createUser('artist'));
-    artist = await Artist.create({ userInfo: user._id });
-
-    album = await Album.create(generateAlbum([artist._id]));
-    track = generateTrack(album._id, [artist._id]);
   });
-
+  this.beforeEach(async function() {
+    await dropDB();
+    user = await generateArtist();
+    album = await Album.create(generateAlbum([user._id]));
+    for (let i = 0; i < 30; i += 1)
+      track[i] = generateTrack(album._id, [user._id]);
+  });
   it('testing creating a track', async function() {
     await assert.doesNotReject(async () => {
-      createdTrack = await trackController.createTrackLogic(track, artist);
+      createdTrack = await trackController.createTrackLogic(track[0], user);
     });
   });
 
   it('testing getting a track', async function() {
-    const returnedTrack = await trackController.getTrackLogic(createdTrack._id);
-    Object.keys(track).forEach(key => {
-      if (key === 'artists') {
-        assert.deepStrictEqual(
-          [track.artists],
-          Array.from(returnedTrack.artists)
-        );
-      } else assert.deepStrictEqual(track[key], returnedTrack[key]);
+    createdTrack = await Track.create(track[0]);
+    let returnedTrack = await trackController.getTrackLogic(createdTrack._id);
+    returnedTrack = returnedTrack.toObject();
+    createdTrack = createdTrack.toObject();
+    assert.deepStrictEqual(returnedTrack, createdTrack);
+  });
+  it('testing getting a track with invalid ID', async function() {
+    try {
+      await trackController.getTrackLogic('5e8281b93f83d84d5ab32e51');
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
+  it('testing removing a track', async function() {
+    createdTrack = await Track.create(track[0]);
+    await assert.doesNotReject(async () => {
+      await trackController.removeTrackLogic(createdTrack._id);
     });
   });
-
+  it('testing getting several tracks', async function() {
+    let trackIDs = [];
+    const createdTracks = await Track.create(track);
+    for (let i = 0; i < 30; i += 1) {
+      trackIDs[i] = createdTracks[i].id;
+    }
+    const returnedTracks = await trackController.getSeveralTracksLogic(
+      trackIDs
+    );
+    for (let i = 0; i < 20; i += 1) {
+      Object.keys(returnedTracks).forEach(key => {
+        assert.deepStrictEqual(returnedTracks[i][key], createdTracks[i][key]);
+      });
+    }
+    assert.strictEqual(returnedTracks.length, 20);
+  });
+  it('testing getting several tracks with invalid IDs', async function() {
+    const returnedTracks = await trackController.getSeveralTracksLogic([
+      '5e8281b93f83d84d5ab32e51',
+      '5e8281b93f83d84d5ab32e51',
+      '5e8281b93f83d84d5ab32e51'
+    ]);
+    for (let i = 1; i < returnedTracks.length; i += 1)
+      assert.strictEqual(returnedTracks[i], null);
+  });
   this.afterAll(async () => {
     await disconnectDB();
   });

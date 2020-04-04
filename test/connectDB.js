@@ -8,23 +8,19 @@ dotenv.config({
 
 // connecting to the db
 // remote database credentials
+console.log(process.env.DATABASE_LOCAL);
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
 );
-
+const localDB = process.env.DATABASE_LOCAL;
 const connectDB = async () => {
-  try {
-    await mongoose.connect(DB, {
-      useNewUrlParser: true,
-      useCreateIndex: true,
-      useFindAndModify: false
-    });
-    console.log('✅ database connected');
-  } catch (err) {
-    console.log(`Fail Connecting to DB ❌     ${err.toString()}`);
-    process.exit(1);
-  }
+  await mongoose.connect(localDB, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+  });
+  console.log('✅ database connected');
 };
 
 module.exports = connectDB;

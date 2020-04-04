@@ -33,9 +33,6 @@ const getSeveralAlbums = async (AlbumsIds, next) => {
   }
   //Returns the avaliable albums IDs in the DB
   const Albums = await Album.find({ _id: { $in: AlbumsIds } });
-  if (Albums.length < 1) {
-    throw new AppError('No albums found', 404);
-  }
   //Iterate on the list of IDs and if not found add a null
   let albumList = [];
   AlbumsIds.forEach(el => {
@@ -102,7 +99,7 @@ const getNextAndPrevious = (offset, limit, totalCount) => {
  * @param {String} url - The URL of the request
  */
 
-const getAlbumTracks = async (albumID, limit, offset, url, next) => {
+const getAlbumTracks = async (albumID, limit, offset, url) => {
   const Tracks = await Album.findById(albumID)
     .select('tracks')
     .populate('tracks');
@@ -116,9 +113,7 @@ const getAlbumTracks = async (albumID, limit, offset, url, next) => {
     limit,
     totalCount
   );
-  if (!Tracks) {
-    throw new AppError('No album found with that ID', 404);
-  }
+
   const pagingObject = {
     href: `http://localhost:${process.env.PORT}/v1/albums${url}`,
     items: limitedTracks,
@@ -141,8 +136,8 @@ const createAlbum = async (requestBody, currentUser) => {
   const newAlbum = requestBody;
   newAlbum.release_date = new Date();
   newAlbum.artists = currentUser._id;
-  await Album.create(newAlbum);
-  return newAlbum;
+  const createdAlbum = await Album.create(newAlbum);
+  return createdAlbum;
 };
 
 exports.getAlbum = catchAsync(async (req, res, next) => {
@@ -177,3 +172,8 @@ exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);
 });
+exports.createAlbumLogic = createAlbum;
+exports.getSeveralAlbumsLogic = getSeveralAlbums;
+exports.getAlbumTracksLogic = getAlbumTracks;
+exports.getAlbumLogic = getAlbum;
+exports.validateLimitOffset = validateLimitOffset;
