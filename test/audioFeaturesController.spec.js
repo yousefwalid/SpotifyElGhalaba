@@ -1,29 +1,29 @@
+const assert = require('assert');
 const AudioFeatures = require('./../models/audioFeaturesModel');
 const Track = require('./../models/trackModel');
 const Album = require('./../models/albumModel');
 const User = require('./../models/userModel');
-const assert = require('assert');
 const audioFeaturesController = require('./../controllers/audioFeaturesController');
 const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
-const connectDB = require('./connectDB');
-const { dropDB } = require('./dropDB');
-const disconnectDB = require('./disconnectDB');
 
-describe('Testing Audio-Features controller', function() {
+const {
+  dropDB
+} = require('./dropDB');
+
+
+describe('Testing Audio-Features controller', function () {
   let user;
   let generatedAlbum;
   let createdAlbum;
-  this.beforeAll(async function() {
-    await connectDB();
-  });
-  this.beforeEach(async function() {
+
+  this.beforeEach(async function () {
     await dropDB();
     user = await generateArtist();
     generatedAlbum = generateAlbum(user._id);
   });
-  it('Testing add audio features for a track', async function() {
+  it('Testing add audio features for a track', async function () {
     createdAlbum = await Album.create(generatedAlbum);
     const generatedTrack = generateTrack(createdAlbum._id, user.id);
     const createdTrack = await Track.create(generatedTrack);
@@ -47,7 +47,7 @@ describe('Testing Audio-Features controller', function() {
       });
     });
   });
-  it('Testing add audio features for a track with invalid ID', async function() {
+  it('Testing add audio features for a track with invalid ID', async function () {
     try {
       await audioFeaturesController.addAudioFeaturesForTrackLogic({
         danceability: 0.735,
@@ -70,7 +70,7 @@ describe('Testing Audio-Features controller', function() {
       assert.strictEqual(err.statusCode, 404);
     }
   });
-  it('Testing get audio features for a track', async function() {
+  it('Testing get audio features for a track', async function () {
     createdAlbum = await Album.create(generatedAlbum);
     const generatedTrack = generateTrack(createdAlbum._id, user.id);
     const createdTrack = await Track.create(generatedTrack);
@@ -99,7 +99,7 @@ describe('Testing Audio-Features controller', function() {
       manualAudioFeatures.toObject()
     );
   });
-  it('Testing get audio features for a track with invalid ID', async function() {
+  it('Testing get audio features for a track with invalid ID', async function () {
     try {
       await audioFeaturesController.getAudioFeaturesForTrackLogic(
         '5e6fc15414584539a85da381'
@@ -108,10 +108,10 @@ describe('Testing Audio-Features controller', function() {
       assert.strictEqual(err.statusCode, 404);
     }
   });
-  it('Testing get audio features for several tracks', async function() {
+  it('Testing get audio features for several tracks', async function () {
     createdAlbum = await Album.create(generatedAlbum);
-    let generatedTracks = [];
-    let TracksIDs = [];
+    const generatedTracks = [];
+    const TracksIDs = [];
     for (let i = 0; i < 20; i++) {
       generatedTracks.push(generateTrack(createdAlbum._id, user.id));
     }
@@ -119,7 +119,7 @@ describe('Testing Audio-Features controller', function() {
     for (let i = 0; i < 20; i++) {
       TracksIDs.push(createdTracks[i]._id);
     }
-    let audioFeaturesObjects = [];
+    const audioFeaturesObjects = [];
     for (let i = 0; i < 20; i++) {
       audioFeaturesObjects.push({
         danceability: 0.735,
@@ -150,15 +150,12 @@ describe('Testing Audio-Features controller', function() {
     });
     assert.strictEqual(returnedAudioFeatures.length, 20);
   });
-  it('Testing get audio features for several tracks with some invalid IDs', async function() {
+  it('Testing get audio features for several tracks with some invalid IDs', async function () {
     const returnedAudioFeatures = await audioFeaturesController.getAudioFeaturesForSeveralTracksLogic(
       ['5e6fc15414584539a85da381', '5e6fc15414584539a85da381']
     );
     returnedAudioFeatures.forEach(el => {
       assert.strictEqual(el, null);
     });
-  });
-  this.afterAll(async function() {
-    await disconnectDB();
   });
 });

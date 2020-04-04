@@ -23,4 +23,9 @@ const connectDB = async () => {
   console.log('✅ database connected');
 };
 
+
+before(async () => {
+  await connectDB();
+});
+
 module.exports = connectDB;
