@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
+const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
+const filterObj = require('./../utils/filterObject');
 
 /**
  * Gets a track with a specific ID
@@ -133,9 +135,16 @@ const getAlbumTracks = async (albumID, limit, offset, url) => {
  */
 
 const createAlbum = async (requestBody, currentUser) => {
-  const newAlbum = requestBody;
+  const reqObject = filterObj(requestBody, [
+    'album_type',
+    'genres',
+    'label',
+    'name'
+  ]);
+  const newAlbum = reqObject;
   newAlbum.release_date = new Date();
-  newAlbum.artists = currentUser._id;
+  const artist = await Artist.findOne({ userInfo: currentUser._id });
+  newAlbum.artists = artist._id;
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
 };

@@ -28,7 +28,10 @@ describe('Testing track controller', function() {
   });
   it('testing creating a track', async function() {
     await assert.doesNotReject(async () => {
-      createdTrack = await trackController.createTrackLogic(track[0], user);
+      createdTrack = await trackController.createTrackLogic(
+        track[0],
+        user.userInfo._id
+      );
     });
   });
 

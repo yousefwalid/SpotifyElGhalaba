@@ -27,7 +27,7 @@ describe('Testing album controller', function() {
     await assert.doesNotReject(async () => {
       createdAlbum = await albumController.createAlbumLogic(
         generatedAlbums[0],
-        user
+        user.userInfo._id
       );
     });
   });
