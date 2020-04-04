@@ -2,9 +2,11 @@ const assert = require('assert');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const connectDB = require('./connectDB');
-const disconnectDB = require('./disconnectDB');
-const { dropDB } = require('./dropDB');
+
+
+const {
+  dropDB
+} = require('./dropDB');
 const authenticationController = require('../controllers/authenticationController');
 
 const Artist = require('./../models/artistModel');
@@ -31,7 +33,7 @@ const userDefaultNestedObjects = {
   }
 };
 
-const createUserAssertions = function(user, body) {
+const createUserAssertions = function (user, body) {
   assert.ok(user !== undefined, 'The User Document Was Not Created In DB');
   Object.keys(body).forEach(async property => {
     if (property === 'email')
@@ -83,9 +85,9 @@ const createUserAssertions = function(user, body) {
   });
 };
 
-describe('Testing Authentication Services', function() {
+describe('Testing Authentication Services', function () {
   this.beforeAll(async () => {
-    await connectDB();
+
     await dropDB();
 
     // console.log(userBody);
@@ -96,8 +98,8 @@ describe('Testing Authentication Services', function() {
   let userUser;
   let userArtist;
 
-  describe('Testing Create New User/Artist', function() {
-    it('Should create a new user without error', async function() {
+  describe('Testing Create New User/Artist', function () {
+    it('Should create a new user without error', async function () {
       userUser = await authenticationController.createNewUser(userBody);
       // user = await authenticationController.getPublicUser(user);
       // console.log(user);
@@ -105,19 +107,21 @@ describe('Testing Authentication Services', function() {
       createUserAssertions(userUser, userBody);
     });
 
-    it('Should create a new artist without error', async function() {
+    it('Should create a new artist without error', async function () {
       // console.log(artistBody);
       userArtist = await authenticationController.createNewUser(artistBody);
       createUserAssertions(userArtist, artistBody);
-      const artist = await Artist.findOne({ userInfo: userArtist._id });
+      const artist = await Artist.findOne({
+        userInfo: userArtist._id
+      });
 
       //Check that an artist is created in the db
       assert.ok(artist, 'The Artist Document Was Not Created In DB');
     });
   });
 
-  describe('Testing public user', function() {
-    it('Should return the public user info without error', async function() {
+  describe('Testing public user', function () {
+    it('Should return the public user info without error', async function () {
       const user = await userUser.privateToPublic();
 
       const publicUser = User.publicUser();
@@ -129,7 +133,7 @@ describe('Testing Authentication Services', function() {
         );
       });
     });
-    it('Should return the public user info without error', async function() {
+    it('Should return the public user info without error', async function () {
       const user = await authenticationController.getPublicUser(userUser);
       //Same as:
       //const user = await userUser.privateToPublic();
@@ -145,8 +149,8 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  describe('Testing Email and Password Check', function() {
-    it('Should check without error', async function() {
+  describe('Testing Email and Password Check', function () {
+    it('Should check without error', async function () {
       const user = await authenticationController.checkEmailAndPassword(
         userBody.email,
         userBody.password
@@ -157,13 +161,15 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  describe('Check JWT token functions', function() {
+  describe('Check JWT token functions', function () {
     let token;
     let decodedToken;
-    it('Should check that the token exists in the req header/cookie/query and return without error', async function() {
+    it('Should check that the token exists in the req header/cookie/query and return without error', async function () {
       token = authenticationController.signToken(userUser._id);
       const req = {
-        headers: { authorization: `Bearer ${token}` },
+        headers: {
+          authorization: `Bearer ${token}`
+        },
         cookies: {},
         query: {}
       };
@@ -189,7 +195,7 @@ describe('Testing Authentication Services', function() {
       );
     });
 
-    it('Should check that the user with the decodedToken in the previous step exists.', async function() {
+    it('Should check that the user with the decodedToken in the previous step exists.', async function () {
       const user = await authenticationController.getUserByToken(decodedToken);
       assert.ok(
         user._id.equals(userUser._id),
@@ -197,7 +203,7 @@ describe('Testing Authentication Services', function() {
       );
     });
 
-    it('Should check that the jwt token is invalid if the password changed after signing it', async function() {
+    it('Should check that the jwt token is invalid if the password changed after signing it', async function () {
       //Change password in userBody then assign it to the update function
       userBody.password = 'a new passworddd';
       userBody.passwordConfirm = 'a new passworddd';
@@ -220,8 +226,8 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  describe('Test User Methods', function() {
-    it('Should check if a given password match the hashed password', async function() {
+  describe('Test User Methods', function () {
+    it('Should check if a given password match the hashed password', async function () {
       const correct = await User.correctPassword(
         userBody.password,
         // '1123499999',
@@ -233,7 +239,7 @@ describe('Testing Authentication Services', function() {
       );
     });
 
-    it('Should create password reset token and return it without error', async function() {
+    it('Should create password reset token and return it without error', async function () {
       const resetToken = await userUser.createPasswordResetToken();
       const hashedToken = crypto
         .createHash('SHA256')
@@ -253,9 +259,9 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  describe(`Testing user's Update  password`, function() {
+  describe(`Testing user's Update  password`, function () {
     //Change password in userBody then assign it to the update function
-    it('Should check that the password is updated without errors.', async function() {
+    it('Should check that the password is updated without errors.', async function () {
       const oldPass = userBody.password; //The unhashed password
       userBody.password = 'a new passworddd2222';
       userBody.passwordConfirm = 'a new passworddd2222';
@@ -284,7 +290,4 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  this.afterAll(async () => {
-    await disconnectDB();
-  });
 });

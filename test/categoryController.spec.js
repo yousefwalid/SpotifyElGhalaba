@@ -1,6 +1,4 @@
 const assert = require('assert');
-
-
 const {
   dropDB
 } = require('./dropDB');
