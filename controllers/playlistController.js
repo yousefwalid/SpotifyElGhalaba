@@ -7,6 +7,7 @@ const APIFeatures = require('./../utils/apiFeatures');
 const filterObj = require('./../utils/filterObject');
 const parseFields = require('./../utils/parseFields');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
+const jsonToPrivateUser = require('../utils/jsonToPublicUser');
 
 /**
  * @module PlaylistController
@@ -106,56 +107,6 @@ const authorizeUserToPlaylist = async (userId, playlistId) => {
 };
 
 /**
- * Gets a Playlist given its id
- * @param {String} playlistId The id of the Playlist to be retrieved
- * @param {String} userId The id of the user making the request
- * @param {Object} queryParams The query parameters of the request
- * @returns {PlaylistObject}
- * @todo Handle different errors
- */
-
-const getPlaylist = async (playlistId, userId, queryParams) => {
-  await authorizeUserToPlaylist(userId, playlistId);
-
-  let returnObj;
-  let ownerPopulationFields;
-  let trackPopulationFields;
-
-  if (queryParams && queryParams.fields) {
-    returnObj = excludePopulationFields(
-      parseFields(queryParams.fields),
-      'owner'
-    );
-    queryParams.fields = returnObj.fieldsString;
-    ownerPopulationFields = returnObj.trimmedString;
-
-    returnObj = excludePopulationFields(
-      parseFields(queryParams.fields),
-      'tracks.items.track'
-    );
-    queryParams.fields = returnObj.fieldsString;
-    trackPopulationFields = returnObj.trimmedString;
-  }
-
-  const features = new APIFeatures(
-    Playlist.findById(playlistId)
-      .populate('owner', ownerPopulationFields)
-      .populate('tracks.items.track', trackPopulationFields),
-    queryParams
-  )
-    .filterOne()
-    .limitFieldsParenthesis();
-
-  const playlist = await features.query;
-
-  if (!playlist) {
-    throw new AppError('No playlist found with that id', 404);
-  }
-
-  return playlist;
-};
-
-/**
  * Gets tracks of a certain playlist given its id
  * @param {String} playlistId The id of the playlist
  * @param {String} userId The id of the user making the request
@@ -167,7 +118,6 @@ const getPlaylist = async (playlistId, userId, queryParams) => {
 
 const getPlaylistTracks = async (playlistId, userId, queryParams) => {
   await authorizeUserToPlaylist(userId, playlistId);
-
   if (!queryParams) {
     queryParams = {};
   }
@@ -179,6 +129,7 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
 
   let returnObj;
   let populationFields;
+  let albumPopulationFields;
 
   if (queryParams && queryParams.fields) {
     returnObj = excludePopulationFields(
@@ -194,10 +145,33 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
   const queryObject = { 'tracks.items': { $slice: [offset, limit] } }; // Apply slicing on offset and limit
 
   const features = new APIFeatures(
-    Playlist.findById(playlistId, queryObject).populate(
-      'tracks.items.track',
-      populationFields
-    ),
+    Playlist.findById(playlistId, queryObject)
+      //.populate('tracks.items.track', populationFields)
+      .populate([
+        {
+          path: 'tracks.items.track',
+          select: populationFields,
+          populate: [
+            {
+              path: 'album',
+              select:
+                'album_type artists id images name type uri external_urls href',
+              populate: {
+                path: 'artists',
+                select: 'external_urls href id name type uri'
+              }
+            },
+            {
+              path: 'artists',
+              select: 'external_urls href id name type uri'
+            }
+          ]
+        },
+        {
+          path: 'tracks.items.added_by',
+          select: 'name id type uri href'
+        }
+      ]),
     queryParams
   )
     .filterOne()
@@ -213,6 +187,67 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
   };
 
   return pagingObject;
+};
+
+/**
+ * Gets a Playlist given its id
+ * @param {String} playlistId The id of the Playlist to be retrieved
+ * @param {String} userId The id of the user making the request
+ * @param {Object} queryParams The query parameters of the request
+ * @returns {PlaylistObject}
+ * @todo Handle different errors
+ */
+
+const getPlaylist = async (playlistId, userId, queryParams) => {
+  await authorizeUserToPlaylist(userId, playlistId);
+
+  let returnObj;
+  let ownerPopulationFields;
+  let trackQueryFields;
+
+  if (queryParams && queryParams.fields) {
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'owner'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    ownerPopulationFields = returnObj.trimmedString;
+
+    returnObj = excludePopulationFields(
+      parseFields(queryParams.fields),
+      'tracks'
+    );
+    queryParams.fields = returnObj.fieldsString;
+    trackQueryFields = returnObj.trimmedString.split(' ').join(', ');
+  }
+
+  const tracksQueryParams = {};
+
+  tracksQueryParams.fields = trackQueryFields;
+  tracksQueryParams.limit = 100;
+  tracksQueryParams.offset = 0;
+
+  const tracks = await getPlaylistTracks(playlistId, userId, tracksQueryParams);
+
+  const features = new APIFeatures(
+    Playlist.findById(playlistId).populate('owner', ownerPopulationFields),
+    queryParams
+  )
+    .filterOne()
+    .limitFieldsParenthesis();
+
+  const playlist = await features.query;
+
+  if (!playlist) {
+    throw new AppError('No playlist found with that id', 404);
+  }
+
+  const playlistObject = playlist.toObject();
+
+  playlistObject.owner = jsonToPrivateUser(playlistObject.owner);
+  playlistObject.tracks = tracks;
+
+  return playlistObject;
 };
 
 /**
@@ -279,8 +314,28 @@ const getUserPlaylists = async (userId, queryParams) => {
   if (queryParams.offset < 0 || queryParams.offset > 100000)
     throw new AppError('Offset query parameter out of allowed range', 400);
 
+  const selectFields = [
+    'collaborative',
+    'external_urls',
+    'href',
+    'id',
+    'images',
+    'name',
+    'owner',
+    'public',
+    'type',
+    'uri',
+    'tracks.href',
+    'description'
+  ].join(' ');
+
   const features = new APIFeatures(
-    Playlist.find({ owner: userId }),
+    Playlist.find({ owner: userId }, selectFields).populate([
+      {
+        path: 'owner',
+        select: 'external_urls href id type uri'
+      }
+    ]),
     queryParams
   )
     .filter()
@@ -288,7 +343,14 @@ const getUserPlaylists = async (userId, queryParams) => {
 
   const playlists = await features.query;
 
-  return playlists;
+  const pagingObject = {
+    href: `https://api.spotify.com/v1/users/${userId}/playlists`,
+    items: playlists,
+    limit: queryParams.limit,
+    offset: queryParams.offset
+  };
+
+  return pagingObject;
 };
 
 /**
@@ -296,7 +358,7 @@ const getUserPlaylists = async (userId, queryParams) => {
  * @param {Object} bodyParams An object containing the details of the new playlist
  * @param {String} playlistId The id of the playlist to be edited
  * @param {String} userId the id of the user issuing the request
- * @return {PlaylistObject}
+ * @return {None}
  */
 const changePlaylistDetails = async (bodyParams, playlistId, userId) => {
   const playlistOwner = await Playlist.findById(playlistId);
@@ -311,12 +373,10 @@ const changePlaylistDetails = async (bodyParams, playlistId, userId) => {
 
   bodyParams = filterObj(bodyParams, allowedFields);
 
-  const playlist = await Playlist.findByIdAndUpdate(playlistId, bodyParams, {
+  await Playlist.findByIdAndUpdate(playlistId, bodyParams, {
     new: true, // To return the new document after modification
     runValidators: true // To run the validators after updating the document
   });
-
-  return playlist;
 };
 
 /**
@@ -517,9 +577,7 @@ exports.getPlaylistImages = catchAsync(async (req, res, next) => {
   const playlistId = req.params.playlist_id;
   const userId = req.user._id;
 
-  authorizeUserToPlaylist(userId, playlistId);
-
-  const playlist = await Playlist.findById(playlistId).select('images');
+  const playlist = await authorizeUserToPlaylist(userId, playlistId);
 
   const { images } = playlist;
 
@@ -534,10 +592,10 @@ exports.createPlaylist = catchAsync(async (req, res, next) => {
 });
 
 exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
-  addPlaylistTrack(
+  await addPlaylistTrack(
     req.params.playlist_id,
     req.user._id,
-    req.body.uris,
+    req.body.ids,
     req.body.position
   );
 
@@ -557,13 +615,9 @@ exports.getMyUserPlaylists = catchAsync(async (req, res, next) => {
 });
 
 exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
-  const playlist = await changePlaylistDetails(
-    req.body,
-    req.params.playlist_id,
-    req.user._id
-  );
+  await changePlaylistDetails(req.body, req.params.playlist_id, req.user._id);
 
-  res.status(200).json(playlist);
+  res.status(200).send();
 });
 
 exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
