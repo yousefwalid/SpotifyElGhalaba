@@ -96,8 +96,11 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   readStream.pipe(res);
   readStream.on('error', err => {
     let errMsg = '';
-    if (process.env.NODE_ENV === 'development') errMsg = err.toString();
-    throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
+    if (process.env.NODE_ENV === 'development') {
+      readStream.unpipe(res);
+      errMsg = err.message.toString();
+      throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
+    }
   });
 };
 
