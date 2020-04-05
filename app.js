@@ -31,6 +31,14 @@ const audioFeaturesRouter = require('./routes/audioFeaturesRoutes');
 const artistRouter = require('./routes/artistRoutes');
 const playerRouter = require('./routes/playerRoutes');
 
+const apiVersion = 1;
+const baseApiUrl = `/api/v${apiVersion}`;
+// let apiDomain;
+// if (process.env.NODE_ENV === 'development')
+//   apiDomain = `${process.env.DOMAIN_DEVELOPMENT}:${process.env.PORT}`;
+// else if (process.env.NODE_ENV === 'production')
+//   apiDomain = `${process.env.DOMAIN_PRODUCTION}:${process.env.PORT}`;
+
 // Utils
 const AppError = require('./utils/appError');
 
@@ -62,14 +70,24 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 //CORS headers
+
 const corsOptions = {
   origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
+  credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-app.use(cors(corsOptions));
+const corsOptionsDelegate = function(req, callback) {
+  if (req.url === `${baseApiUrl}/authentication/login`) {
+    corsOptions.origin = true;
+  } else {
+    corsOptions.origin = '*';
+  }
+  callback(null, corsOptions); // callback expects two parameters: error and options
+};
+app.use(cors(corsOptionsDelegate));
 
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body
@@ -130,8 +148,6 @@ app.use((req, res, next) => {
 app.use(express.static(`${__dirname}/public`));
 
 // 2) ROUTES
-const apiVersion = 1;
-const baseApiUrl = `/api/v${apiVersion}`;
 
 app.use((req, res, next) => {
   req.baseApiUrl = baseApiUrl;

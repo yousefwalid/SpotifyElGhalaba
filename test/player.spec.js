@@ -1,13 +1,9 @@
 const assert = require('assert');
 const faker = require('faker');
-const {
-  dropDB
-} = require('./dropDB');
+const { dropDB } = require('./dropDB');
 const playerController = require('../controllers/playerController');
 const authenticationController = require('../controllers/authenticationController');
-const {
-  ObjectId
-} = require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 
 const Artist = require('./../models/artistModel');
 const User = require('./../models/userModel');
@@ -19,8 +15,8 @@ const createUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 
-describe('Testing Player Services', function () {
-  this.timeout(100000000);
+describe('Testing Player Services', function() {
+  // this.timeout(100000000);
   let user;
   let artist;
   let album;
@@ -33,8 +29,11 @@ describe('Testing Player Services', function () {
     await dropDB();
 
     user = await authenticationController.createNewUser(userBody);
+    assert.ok(user, 'Could not create user in db');
     artist = await authenticationController.createNewUser(artistBody);
+    assert.ok(artist, 'Could not create artist in db');
     artist = await authenticationController.getPublicUser(artist);
+    assert.ok(artist, 'Could not get artist from in db');
 
     assert.ok(user, 'Could Not Create A User In DB');
     album = await Album.create(generateAlbum([artist._id]));
@@ -63,8 +62,8 @@ describe('Testing Player Services', function () {
     assert.ok(track, 'Could Not Create A Track In DB');
   });
 
-  describe(`Update User's currenly playing track`, function () {
-    it(`Should Assert That A Track Is Added To User's Current Playback`, async function () {
+  describe(`Update User's currenly playing track`, function() {
+    it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
       await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
 
       user = await User.findById(user._id);
@@ -75,8 +74,8 @@ describe('Testing Player Services', function () {
     });
   });
 
-  describe(`Add to User's play history`, function () {
-    it(`Should Assert That A Track Is Added To User's Play History`, async function () {
+  describe(`Add to User's play history`, function() {
+    it(`Should Assert That A Track Is Added To User's Play History`, async function() {
       const time = Date.now();
       await playerController.saveTrackToHistory(user._id, track._id, time);
 
@@ -85,13 +84,17 @@ describe('Testing Player Services', function () {
         played_at: time
       });
       assert.ok(record, `The User's Play History Is Not Updated!`);
-      await PlayHistory.findByIdAndDelete(record._id);
+      try {
+        await PlayHistory.findByIdAndDelete(record._id);
+      } catch (err) {
+        assert.ok(false, 'Could Not delete the record');
+      }
     });
   });
 
-  describe(`Get User's Recently Played Tracks`, function () {
-    it(`Should Assert That The User's X Recently Played Tracks are returned`, async function () {
-      const before = startTimestamp;
+  describe(`Get User's Recently Played Tracks`, function() {
+    it(`Should Assert That The User's X Recently Played Tracks are returned`, async function() {
+      const before = startTimestamp + 1;
       const after = null;
       //   const randomBoolean = Math.random() >= 0.5;
       //   let before;
@@ -99,7 +102,7 @@ describe('Testing Player Services', function () {
       //   if (randomBoolean) before = timestamp;
       //   else after = timestamp;
 
-      const limit = Math.floor(Math.random()) * 50 + 1;
+      const limit = Math.floor(Math.random() * 50) + 1;
 
       const recentlyPlayed = await playerController.getRecentlyPlayedService(
         user._id,
@@ -111,6 +114,7 @@ describe('Testing Player Services', function () {
         recentlyPlayed,
         `There Was An Error In Returning The User's Recently Played Track.`
       );
+
       const num = limit > numberOfPlayedTracks ? numberOfPlayedTracks : limit;
       assert.ok(
         recentlyPlayed.length === num,
@@ -118,8 +122,8 @@ describe('Testing Player Services', function () {
       );
     });
 
-    it(`Should assert that the user's recently played tracks before and after a certain timestamp works properly`, async function () {
-      const limit = Math.floor(Math.random()) * 50 + 1;
+    it(`Should assert that the user's recently played tracks before and after a certain timestamp works properly`, async function() {
+      const limit = Math.floor(Math.random() * 50) + 1;
 
       let recentlyPlayed = await playerController.getRecentlyPlayedService(
         user._id,
