@@ -306,7 +306,10 @@ exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
   )
     .populate({
       path: 'currentlyPlaying.track',
-      populate: [{ path: 'album' }, { path: 'artists' }]
+      populate: [
+        { path: 'album' },
+        { path: 'artists', populate: { path: 'userInfo' } }
+      ]
     })
     .lean({ virtuals: false });
 
