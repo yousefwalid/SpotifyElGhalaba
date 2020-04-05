@@ -28,9 +28,13 @@ const saveForCurrentUser = async (IDs, Model, User) => {
     savedModel = savedAlbum;
   }
   const ModelIDs = IDs;
+  const count = await savedModel.countDocuments({ user: User._id });
+  if (count >= 10000) {
+    throw new AppError(`Reached max number of saved ${modelName}s`, 403);
+  }
   const ModelDocs = await Model.find({ _id: { $in: ModelIDs } });
   if (ModelDocs.length < 1) {
-    throw new AppError(`No ${modelName} found`, 404);
+    throw new AppError(`No ${modelName}s found`, 404);
   }
   let filteredModelIds = [];
   ModelDocs.forEach(el => {
@@ -200,7 +204,11 @@ const removeUserSavedModel = async (IDs, user, Model) => {
   let query = {};
   query[modelName] = { $in: IDs };
   query['user'] = user._id;
-  await savedModel.deleteMany(query);
+  const deletedDocs = await savedModel.deleteMany(query);
+  console.log(deletedDocs.deletedCount);
+  if (deletedDocs.deletedCount == 0) {
+    throw new AppError(`No ${modelName}s found with the given IDs`, 404);
+  }
 };
 
 exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
@@ -253,7 +261,7 @@ exports.getSavedTracks = catchAsync(async (req, res, next) => {
 
 exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
-    return next(new AppError('Please provide album ids', 400));
+    return next(new AppError('Please provide albums ids', 400));
   }
   const albumIds = req.query.ids.split(',');
   const boolArray = await checkUsersSavedModel(albumIds, Album);
@@ -262,7 +270,7 @@ exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
 
 exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
-    return next(new AppError('Please provide album ids', 400));
+    return next(new AppError('Please provide tracks ids', 400));
   }
   const trackIds = req.query.ids.split(',');
   const boolArray = await checkUsersSavedModel(trackIds, Track);
@@ -270,14 +278,20 @@ exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
 });
 
 exports.removeUserSavedTrack = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide tracks ids', 400));
+  }
   const trackIds = req.query.ids.split(',');
-  removeUserSavedModel(trackIds, req.user, Track);
+  await removeUserSavedModel(trackIds, req.user, Track);
   res.status(200).send();
 });
 
 exports.removeUserSavedAlbum = catchAsync(async (req, res, next) => {
+  if (!req.query.ids) {
+    return next(new AppError('Please provide albums ids', 400));
+  }
   const albumIds = req.query.ids.split(',');
-  removeUserSavedModel(albumIds, req.user, Album);
+  await removeUserSavedModel(albumIds, req.user, Album);
   res.status(200).send();
 });
 

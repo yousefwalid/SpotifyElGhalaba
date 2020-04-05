@@ -150,6 +150,9 @@ const createAlbum = async (requestBody, currentUser) => {
 };
 
 exports.getAlbum = catchAsync(async (req, res, next) => {
+  if (!req.params.id) {
+    return next('Please provide album ID');
+  }
   const album = await getAlbum(req.params.id);
   res.status(200).json(album);
 });
@@ -170,6 +173,9 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
 });
 
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
+  if (req.query.ids == '') {
+    return next(new AppError('Please provide album IDs', 400));
+  }
   let AlbumsIds = req.query.ids.split(',');
   let albumList = await getSeveralAlbums(AlbumsIds);
   res.status(200).json({
