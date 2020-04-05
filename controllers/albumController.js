@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
+const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
+const filterObj = require('./../utils/filterObject');
 
 /**
  * Gets a track with a specific ID
@@ -33,9 +35,6 @@ const getSeveralAlbums = async (AlbumsIds, next) => {
   }
   //Returns the avaliable albums IDs in the DB
   const Albums = await Album.find({ _id: { $in: AlbumsIds } });
-  if (Albums.length < 1) {
-    throw new AppError('No albums found', 404);
-  }
   //Iterate on the list of IDs and if not found add a null
   let albumList = [];
   AlbumsIds.forEach(el => {
@@ -102,7 +101,7 @@ const getNextAndPrevious = (offset, limit, totalCount) => {
  * @param {String} url - The URL of the request
  */
 
-const getAlbumTracks = async (albumID, limit, offset, url, next) => {
+const getAlbumTracks = async (albumID, limit, offset, url) => {
   const Tracks = await Album.findById(albumID)
     .select('tracks')
     .populate('tracks');
@@ -116,9 +115,7 @@ const getAlbumTracks = async (albumID, limit, offset, url, next) => {
     limit,
     totalCount
   );
-  if (!Tracks) {
-    throw new AppError('No album found with that ID', 404);
-  }
+
   const pagingObject = {
     href: `http://localhost:${process.env.PORT}/v1/albums${url}`,
     items: limitedTracks,
@@ -138,11 +135,18 @@ const getAlbumTracks = async (albumID, limit, offset, url, next) => {
  */
 
 const createAlbum = async (requestBody, currentUser) => {
-  const newAlbum = requestBody;
+  const reqObject = filterObj(requestBody, [
+    'album_type',
+    'genres',
+    'label',
+    'name'
+  ]);
+  const newAlbum = reqObject;
   newAlbum.release_date = new Date();
-  newAlbum.artists = currentUser._id;
-  await Album.create(newAlbum);
-  return newAlbum;
+  const artist = await Artist.findOne({ userInfo: currentUser._id });
+  newAlbum.artists = artist._id;
+  const createdAlbum = await Album.create(newAlbum);
+  return createdAlbum;
 };
 
 exports.getAlbum = catchAsync(async (req, res, next) => {
@@ -177,3 +181,8 @@ exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);
 });
+exports.createAlbumLogic = createAlbum;
+exports.getSeveralAlbumsLogic = getSeveralAlbums;
+exports.getAlbumTracksLogic = getAlbumTracks;
+exports.getAlbumLogic = getAlbum;
+exports.validateLimitOffset = validateLimitOffset;

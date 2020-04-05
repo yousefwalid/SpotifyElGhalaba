@@ -1,4 +1,3 @@
-const { query, validationResult } = require('express-validator');
 const { ObjectId } = require('mongoose').Types;
 const AppError = require('./../utils/appError');
 const User = require('./../models/userModel');
@@ -111,6 +110,8 @@ const saveTrackToHistory = async (userId, trackId, playedAt) => {
 
   if (!record) throw new AppError('The Given Data Is Invalid', 400);
 };
+exports.saveTrackToHistory = saveTrackToHistory;
+
 /**
  * @description Updates the user's currently playing track in his playback object.
  * @param {ObjectId} userId User's Id
@@ -124,6 +125,7 @@ const updateUserCurrentPlayingTrack = async (userId, trackId) => {
     }
   }).lean({ virtuals: false });
 };
+exports.updateUserCurrentPlayingTrack = updateUserCurrentPlayingTrack;
 
 /**
  * @description Gets a group of the user's recently playing tracks before or after a certain timestamp.
@@ -139,7 +141,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     query = PlayHistory.find(
       {
         user: id,
-        played_at: { $gt: Date(after) }
+        played_at: { $gt: new Date(after) }
       },
       '-_id -__v -user'
     );
@@ -147,7 +149,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     query = PlayHistory.find(
       {
         user: id,
-        played_at: { $lt: Date(before) }
+        played_at: { $lt: new Date(before) }
       },
       '-_id -__v -user'
     );
@@ -161,6 +163,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     .query.populate('track')
     .lean({ virtuals: false });
 };
+exports.getRecentlyPlayedService = getRecentlyPlayed;
 
 /*
  
@@ -173,35 +176,78 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
   ##### ##  #######  ######## ##     ##    ##          ###    ##     ## ######## #### ########  ##     ##    ##    ####  #######  ##    ## 
  
 */
-exports.validate = validations => {
-  return async (req, res, next) => {
-    await Promise.all(validations.map(validation => validation.run(req)));
 
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
-    }
-    console.log(errors.array()[0].msg);
-    if (process.env.NODE_ENV === 'development')
-      res.status(400).json({ errors: errors.array() });
-    else if (process.env.NODE_ENV === 'production') {
-      res.status(400).json({ status: 'Fail', error: errors[0].msg });
-    }
-  };
+exports.validateSeek = (req, res, next) => {
+  if (
+    !req.query.position_ms ||
+    !/^\d+$/.test(req.query.position_ms) ||
+    parseInt(req.query.position_ms, 10) < 0
+  )
+    return next(new AppError(`Invalid query parameter 'position_ms'`, 400));
+  next();
 };
 
-exports.validateSeek = query('position_ms', 'Invalid query parameter').isInt({
-  min: 0
-});
-exports.validateRepeat = query('state', 'Invalid query parameter').isBoolean();
-exports.validateVolume = query(
-  'volume_percent',
-  'Invalid query parameter'
-).isInt({
-  min: 0,
-  max: 100
-});
-exports.validateShuffle = query('state', 'Invalid query parameter').isBoolean();
+exports.validateRepeat = (req, res, next) => {
+  if (
+    !req.query.state ||
+    (req.query.state !== 'true' && req.query.state !== 'false')
+  )
+    return next(new AppError(`Invalid query parameter 'state'`, 400));
+  next();
+};
+
+exports.validateVolume = (req, res, next) => {
+  if (
+    !req.query.volume_percent ||
+    !/^\d+$/.test(req.query.volume_percent) ||
+    parseInt(req.query.volume_percent, 10) < 0 ||
+    parseInt(req.query.volume_percent, 10) > 100
+  )
+    return next(new AppError(`Invalid query parameter 'volume_percent'`, 400));
+  next();
+};
+
+exports.validateShuffle = (req, res, next) => {
+  if (
+    !req.query.state ||
+    (req.query.state !== 'true' && req.query.state !== 'false')
+  )
+    return next(new AppError(`Invalid query parameter 'state'`, 400));
+  next();
+};
+
+exports.validateGetRecentlyPlayed = (req, res, next) => {
+  if (req.query.limit) {
+    if (
+      !/^\d+$/.test(req.query.limit) ||
+      parseInt(req.query.limit, 10) > 50 ||
+      parseInt(req.query.limit, 10) < 1
+    )
+      return next(
+        new AppError(
+          `The limit param accepts integers only in the range [1,50]`,
+          400
+        )
+      );
+  }
+  if (req.query.before && req.query.after)
+    return next(
+      new AppError(`You have to specify either before or after param.`, 400)
+    );
+  if (req.query.before || req.query.after) {
+    const timestamp =
+      // eslint-disable-next-line no-nested-ternary
+      req.query.before && /^\d+$/.test(req.query.before)
+        ? parseInt(req.query.before, 10)
+        : req.query.after && /^\d+$/.test(req.query.after)
+        ? parseInt(req.query.after, 10)
+        : 'InvalidDate';
+    const valid = new Date(timestamp).getTime() > 0;
+    if (!valid) return next(new AppError(`Invalid timestamp.`, 400));
+  }
+
+  next();
+};
 
 /*
  

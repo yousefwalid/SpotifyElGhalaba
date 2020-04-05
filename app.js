@@ -111,7 +111,7 @@ app.use((req, res, next) => {
     if (!countryObject || !countryObject.country)
       return next(new AppError('Sorry... Cannot Read The Country Code'));
     //else
-    req.body.geoip = countryObject;
+    req.body.country = countryObject.country;
   }
   next();
 });

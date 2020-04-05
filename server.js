@@ -20,7 +20,11 @@ mongoose
     useCreateIndex: true,
     useFindAndModify: false
   })
-  .then(() => console.log('DB connection successful! ✅'));
+  .then(() => console.log('DB connection successful! ✅'))
+  .catch(err => {
+    console.log(`Error Connecting to DB ❌     ${err.toString()}`);
+    process.exit(1);
+  });
 
 // Local databases
 // mongoose
