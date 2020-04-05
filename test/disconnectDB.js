@@ -9,4 +9,8 @@ const disconnectDB = async () => {
   }
 };
 
+after(async () => {
+  await disconnectDB();
+});
+
 module.exports = disconnectDB;

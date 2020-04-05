@@ -7,7 +7,7 @@
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "mocha --recursive --exit --timeout 10000|| true",
+    "test": "mocha || true",
     "doc": "jsdoc -c jsdoc.json"
   },
   "_moduleAliases": {

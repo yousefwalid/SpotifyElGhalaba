@@ -1,6 +1,5 @@
 const assert = require('assert');
-const connectDB = require('./connectDB');
-const disconnectDB = require('./disconnectDB');
+
 const { dropDB } = require('./dropDB');
 const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
@@ -12,15 +11,15 @@ const trackController = require('./../controllers/trackController');
 
 describe('Testing track controller', function() {
   this.timeout(10000);
-  let track = [];
+  const track = [];
   let user;
   let album;
   let createdTrack;
-  this.beforeAll(async () => {
-    await connectDB();
+
+  this.beforeAll(async function() {
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     user = await generateArtist();
     album = await Album.create(generateAlbum([user._id]));
     for (let i = 0; i < 30; i += 1)
@@ -56,7 +55,7 @@ describe('Testing track controller', function() {
     });
   });
   it('testing getting several tracks', async function() {
-    let trackIDs = [];
+    const trackIDs = [];
     const createdTracks = await Track.create(track);
     for (let i = 0; i < 30; i += 1) {
       trackIDs[i] = createdTracks[i].id;
@@ -79,8 +78,5 @@ describe('Testing track controller', function() {
     ]);
     for (let i = 1; i < returnedTracks.length; i += 1)
       assert.strictEqual(returnedTracks[i], null);
-  });
-  this.afterAll(async () => {
-    await disconnectDB();
   });
 });

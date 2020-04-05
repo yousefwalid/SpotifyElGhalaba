@@ -1,6 +1,5 @@
 const assert = require('assert');
-const connectDB = require('./connectDB');
-const disconnectDB = require('./disconnectDB');
+
 const { dropDB } = require('./dropDB');
 const generateArtist = require('./utils/insertArtistIntoDB');
 const createUser = require('./utils/createUser');
@@ -15,17 +14,16 @@ const libraryController = require('./../controllers/libraryController');
 
 describe('Testing library controller', function() {
   this.timeout(10000);
-  let tracks = [];
+  const tracks = [];
   let user;
   let artist;
-  let albums = [];
+  const albums = [];
   let createdAlbums = [];
   let createdTracks = [];
-  this.beforeAll(async () => {
-    await connectDB();
+  this.beforeAll(async function() {
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     artist = await generateArtist();
     user = await User.create(createUser('user'));
     for (let i = 0; i < 10; i += 1) {
@@ -34,11 +32,11 @@ describe('Testing library controller', function() {
     createdAlbums = await Album.create(albums);
   });
   it('Testing Save albums for current user', async function() {
-    let albumsIDs = [];
+    const albumsIDs = [];
     for (let i = 0; i < albums.length; i += 1) {
       albumsIDs[i] = createdAlbums[i]._id;
     }
-    let savedAlbums = await libraryController.saveForCurrentUserLogic(
+    const savedAlbums = await libraryController.saveForCurrentUserLogic(
       albumsIDs,
       Album,
       user
@@ -49,7 +47,7 @@ describe('Testing library controller', function() {
   });
   it('Testing Save albums for current user with Invalid IDs', async function() {
     try {
-      let savedAlbums = await libraryController.saveForCurrentUserLogic(
+      const savedAlbums = await libraryController.saveForCurrentUserLogic(
         ['5e869a2b5a21c7219c5d8750', '5e869a2b5a21c7219c5d8753'],
         Album,
         user
@@ -61,12 +59,12 @@ describe('Testing library controller', function() {
   it('Testing Save tracks for current user', async function() {
     for (let i = 0; i < 10; i += 1)
       tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    let tracksIDs = [];
+    const tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < tracks.length; i += 1) {
       tracksIDs[i] = createdTracks[i]._id;
     }
-    let savedTracks = await libraryController.saveForCurrentUserLogic(
+    const savedTracks = await libraryController.saveForCurrentUserLogic(
       tracksIDs,
       Track,
       user
@@ -77,7 +75,7 @@ describe('Testing library controller', function() {
   });
   it('Testing Save album for current user with Invalid IDs', async function() {
     try {
-      let savedTracks = await libraryController.saveForCurrentUserLogic(
+      const savedTracks = await libraryController.saveForCurrentUserLogic(
         ['5e869a2b5a21c7219c5d8750', '5e869a2b5a21c7219c5d8753'],
         Track,
         user
@@ -87,8 +85,8 @@ describe('Testing library controller', function() {
     }
   });
   it('Testing remove albums for current user', async function() {
-    let savedAlbumsObjects = [];
-    let albumsIDs = [];
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
     for (let i = 0; i < createdAlbums.length; i += 1) {
       savedAlbumsObjects.push({
         album: createdAlbums[i]._id,
@@ -103,10 +101,10 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing remove tracks for current user', async function() {
-    let savedTracksObjects = [];
+    const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
       tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    let tracksIDs = [];
+    const tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < tracks.length; i += 1) {
       tracksIDs[i] = createdTracks[i]._id;
@@ -125,8 +123,8 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing check users saved albums', async function() {
-    let savedAlbumsObjects = [];
-    let albumsIDs = [];
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
     for (let i = 0; i < createdAlbums.length; i += 1) {
       savedAlbumsObjects.push({
         album: createdAlbums[i]._id,
@@ -145,10 +143,10 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing check users saved tracks', async function() {
-    let savedTracksObjects = [];
+    const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
       tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    let tracksIDs = [];
+    const tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
       tracksIDs[i] = createdTracks[i]._id;
@@ -170,8 +168,8 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing check users saved albums with invalid ids', async function() {
-    let savedAlbumsObjects = [];
-    let albumsIDs = [];
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
     for (let i = 0; i < createdAlbums.length; i += 1) {
       savedAlbumsObjects.push({
         album: createdAlbums[i]._id,
@@ -190,10 +188,10 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing check users saved tracks with invalid ids', async function() {
-    let savedTracksObjects = [];
+    const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
       tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    let tracksIDs = [];
+    const tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
       tracksIDs[i] = createdTracks[i]._id;
@@ -215,10 +213,10 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing get saved tracks', async function() {
-    let savedTracksObjects = [];
+    const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
       tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    let tracksIDs = [];
+    const tracksIDs = [];
     createdTracks = await Track.create(tracks);
     for (let i = 0; i < albums.length; i += 1) {
       tracksIDs[i] = createdTracks[i]._id;
@@ -247,8 +245,8 @@ describe('Testing library controller', function() {
     });
   });
   it('Testing get saved albums', async function() {
-    let savedAlbumsObjects = [];
-    let albumsIDs = [];
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
     for (let i = 0; i < createdAlbums.length; i += 1) {
       savedAlbumsObjects.push({
         album: createdAlbums[i]._id,
@@ -285,8 +283,5 @@ describe('Testing library controller', function() {
     } catch (err) {
       assert.strictEqual(err.statusCode, 400);
     }
-  });
-  this.afterAll(async function() {
-    await disconnectDB();
   });
 });

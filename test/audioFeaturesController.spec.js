@@ -1,25 +1,24 @@
+const assert = require('assert');
 const AudioFeatures = require('./../models/audioFeaturesModel');
 const Track = require('./../models/trackModel');
 const Album = require('./../models/albumModel');
 const User = require('./../models/userModel');
-const assert = require('assert');
 const audioFeaturesController = require('./../controllers/audioFeaturesController');
 const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
-const connectDB = require('./connectDB');
+
 const { dropDB } = require('./dropDB');
-const disconnectDB = require('./disconnectDB');
 
 describe('Testing Audio-Features controller', function() {
+  this.timeout(10000);
   let user;
   let generatedAlbum;
   let createdAlbum;
   this.beforeAll(async function() {
-    await connectDB();
+    await dropDB();
   });
   this.beforeEach(async function() {
-    await dropDB();
     user = await generateArtist();
     generatedAlbum = generateAlbum(user._id);
   });
@@ -110,8 +109,8 @@ describe('Testing Audio-Features controller', function() {
   });
   it('Testing get audio features for several tracks', async function() {
     createdAlbum = await Album.create(generatedAlbum);
-    let generatedTracks = [];
-    let TracksIDs = [];
+    const generatedTracks = [];
+    const TracksIDs = [];
     for (let i = 0; i < 20; i++) {
       generatedTracks.push(generateTrack(createdAlbum._id, user.id));
     }
@@ -119,7 +118,7 @@ describe('Testing Audio-Features controller', function() {
     for (let i = 0; i < 20; i++) {
       TracksIDs.push(createdTracks[i]._id);
     }
-    let audioFeaturesObjects = [];
+    const audioFeaturesObjects = [];
     for (let i = 0; i < 20; i++) {
       audioFeaturesObjects.push({
         danceability: 0.735,
@@ -157,8 +156,5 @@ describe('Testing Audio-Features controller', function() {
     returnedAudioFeatures.forEach(el => {
       assert.strictEqual(el, null);
     });
-  });
-  this.afterAll(async function() {
-    await disconnectDB();
   });
 });

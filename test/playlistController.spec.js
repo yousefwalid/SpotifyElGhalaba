@@ -1,8 +1,9 @@
 /* eslint-disable no-await-in-loop */
 const assert = require('assert');
-const connectDB = require('./connectDB');
-const disconnectDB = require('./disconnectDB');
-const { dropDB } = require('./dropDB');
+
+const {
+  dropDB
+} = require('./dropDB');
 const generateUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
@@ -14,13 +15,12 @@ const Album = require('../models/albumModel');
 const playlistController = require('../controllers/playlistController');
 const insertArtist = require('./utils/insertArtistIntoDB');
 
-describe('Testing Playlist Controller', function() {
+describe('Testing Playlist Controller', function () {
   this.beforeAll(async () => {
-    await connectDB();
     await dropDB();
   });
 
-  it('Get A Playlist', async function() {
+  it('Get A Playlist', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -52,7 +52,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(String(returnedPlaylist.owner.id), String(userId));
   });
 
-  it('Get A Playlist with fields', async function() {
+  it('Get A Playlist with fields', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -90,7 +90,7 @@ describe('Testing Playlist Controller', function() {
     });
   });
 
-  it('Get A Playlist returns 404', async function() {
+  it('Get A Playlist returns 404', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -111,7 +111,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it('Get A Playlist returns 403', async function() {
+  it('Get A Playlist returns 403', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -135,7 +135,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks without tracks", async function() {
+  it("Get A Playlist's Tracks without tracks", async function () {
     const tracksIds = [];
 
     const generatedUser = generateUser();
@@ -164,7 +164,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks with tracks", async function() {
+  it("Get A Playlist's Tracks with tracks", async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -205,7 +205,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks with fields", async function() {
+  it("Get A Playlist's Tracks with fields", async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -254,7 +254,7 @@ describe('Testing Playlist Controller', function() {
     });
   });
 
-  it('Get A Playlist returns 404', async function() {
+  it('Get A Playlist returns 404', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -275,7 +275,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks returns 403", async function() {
+  it("Get A Playlist's Tracks returns 403", async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -302,7 +302,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it('Add Tracks to an empty Playlist', async function() {
+  it('Add Tracks to an empty Playlist', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -346,7 +346,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(newTracksArray, oldTracksArray);
   });
 
-  it('Add Tracks to a Playlist with tracks', async function() {
+  it('Add Tracks to a Playlist with tracks', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -400,7 +400,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(newTracksArray, oldTracksArray);
   });
 
-  it('Add Tracks to a Playlist with tracks and position at 2', async function() {
+  it('Add Tracks to a Playlist with tracks and position at 2', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -459,7 +459,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(newTracksArray, oldTracksArray);
   });
 
-  it('Add Tracks to a Playlist with tracks and position at 0', async function() {
+  it('Add Tracks to a Playlist with tracks and position at 0', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -518,7 +518,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(newTracksArray, oldTracksArray);
   });
 
-  it('Add tracks to Playlist returns 404', async function() {
+  it('Add tracks to Playlist returns 404', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -560,7 +560,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks returns 403", async function() {
+  it("Get A Playlist's Tracks returns 403", async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -605,7 +605,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Get A Playlist's Tracks returns 400", async function() {
+  it("Get A Playlist's Tracks returns 400", async function () {
     const tracksIds = [];
 
     const generatedUser = generateUser();
@@ -635,7 +635,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it('Get Playlists of User with no playlists', async function() {
+  it('Get Playlists of User with no playlists', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -647,7 +647,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(returnedPlaylists.length, 0);
   });
 
-  it('Get Playlists of User with playlists', async function() {
+  it('Get Playlists of User with playlists', async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -670,11 +670,7 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(returnedPlaylistsIds, playlistsIds);
   });
 
-  this.afterAll(async () => {
-    await disconnectDB();
-  });
-
-  it("Change Playlist's details with allowed fields", async function() {
+  it("Change Playlist's details with allowed fields", async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -706,7 +702,7 @@ describe('Testing Playlist Controller', function() {
     });
   });
 
-  it("Change Playlist's details with disallowed fields", async function() {
+  it("Change Playlist's details with disallowed fields", async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -740,7 +736,7 @@ describe('Testing Playlist Controller', function() {
     });
   });
 
-  it("Change Playlist's Details returns 404", async function() {
+  it("Change Playlist's Details returns 404", async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -767,7 +763,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it("Change Playlist's Details returns 403", async function() {
+  it("Change Playlist's Details returns 403", async function () {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
     const userId = insertedUser._id;
@@ -796,7 +792,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it('Remove Tracks from Playlist with no positions', async function() {
+  it('Remove Tracks from Playlist with no positions', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -826,8 +822,7 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    const requestTracks = [
-      {
+    const requestTracks = [{
         id: String(tracksIds[3])
       },
       {
@@ -843,14 +838,14 @@ describe('Testing Playlist Controller', function() {
 
     const itemsAfterDeletion = Array.from(
       (await Playlist.findById(playlistId).select('tracks')).tracks.items
-        .toObject()
-        .map(el => el.track)
+      .toObject()
+      .map(el => el.track)
     );
 
     assert.deepStrictEqual(itemsAfterDeletion, correctTracksAfterDeletion);
   });
 
-  it('Remove Tracks from Playlist with positions', async function() {
+  it('Remove Tracks from Playlist with positions', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -884,8 +879,7 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    const requestTracks = [
-      {
+    const requestTracks = [{
         id: String(tracksIds[3])
       },
       {
@@ -906,14 +900,14 @@ describe('Testing Playlist Controller', function() {
 
     const itemsAfterDeletion = Array.from(
       (await Playlist.findById(playlistId).select('tracks')).tracks.items
-        .toObject()
-        .map(el => el.track)
+      .toObject()
+      .map(el => el.track)
     );
 
     assert.deepStrictEqual(itemsAfterDeletion, correctTracksAfterDeletion);
   });
 
-  it('Remove Tracks from Playlist with incorrect positions returns 400', async function() {
+  it('Remove Tracks from Playlist with incorrect positions returns 400', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -941,8 +935,7 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    const requestTracks = [
-      {
+    const requestTracks = [{
         id: String(tracksIds[3])
       },
       {
@@ -962,7 +955,7 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  it('Remove Tracks from Playlist with invalid request body returns 400', async function() {
+  it('Remove Tracks from Playlist with invalid request body returns 400', async function () {
     const insertedArtist = await insertArtist();
     const artistId = insertedArtist._id;
 
@@ -990,8 +983,7 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    const requestTracks = [
-      {
+    const requestTracks = [{
         id: String(tracksIds[3])
       },
       {
@@ -1012,7 +1004,4 @@ describe('Testing Playlist Controller', function() {
     }
   });
 
-  this.afterAll(async () => {
-    await disconnectDB();
-  });
 });

@@ -1,8 +1,5 @@
 const assert = require('assert');
 const faker = require('faker');
-
-const connectDB = require('./connectDB');
-const disconnectDB = require('./disconnectDB');
 const { dropDB } = require('./dropDB');
 const playerController = require('../controllers/playerController');
 const authenticationController = require('../controllers/authenticationController');
@@ -29,7 +26,6 @@ describe('Testing Player Services', function() {
   const userBody = createUser('user');
   const artistBody = createUser('artist');
   this.beforeAll(async () => {
-    await connectDB();
     await dropDB();
 
     user = await authenticationController.createNewUser(userBody);
@@ -153,9 +149,5 @@ describe('Testing Player Services', function() {
         'The Returned Recently Played Tracks Must Be Zero -- (2)'
       );
     });
-  });
-
-  this.afterAll(async () => {
-    await disconnectDB();
   });
 });

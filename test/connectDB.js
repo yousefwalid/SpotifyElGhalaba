@@ -15,12 +15,24 @@ const DB = process.env.DATABASE.replace(
 );
 const localDB = process.env.DATABASE_LOCAL;
 const connectDB = async () => {
-  await mongoose.connect(localDB, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false
-  });
-  console.log('✅ database connected');
+  try {
+    await mongoose.connect(localDB, {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useFindAndModify: false
+    });
+    console.log('✅ database connected');
+  } catch (err) {
+    console.log('❌ database not connected');
+    process.exit(1);
+  }
+
 };
+
+
+before(async () => {
+
+  await connectDB();
+});
 
 module.exports = connectDB;
