@@ -2,7 +2,7 @@ const AudioFeatures = require('./../models/audioFeaturesModel');
 const Track = require('./../models/trackModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-
+const filteredObj = require('./../utils/filterObject');
 /**
  * This contains all the business logic for the audio-features controller
  * @module Audio-FeaturesController
@@ -14,6 +14,10 @@ const catchAsync = require('./../utils/catchAsync');
  * @param {String} trackID -The id of the required track
  */
 const getAudioFeaturesForTrack = async trackID => {
+  const track = await Track.findById(trackID);
+  if (!track) {
+    throw new AppError('No track found with this ID', 404);
+  }
   const trackAudioFeatures = await AudioFeatures.findOne({
     track: trackID
   });
@@ -58,7 +62,25 @@ const getAudioFeaturesForSeveralTracks = async tracksIDs => {
  * @returns the added audio-features object
  */
 const addAudioFeaturesForTrack = async body => {
-  const newAudioFeatures = body;
+  const allowedKeys = [
+    'danceability',
+    'energy',
+    'key',
+    'loudness',
+    'mode',
+    'speechiness',
+    'acousticness',
+    'instrumentalness',
+    'liveness',
+    'valence',
+    'tempo',
+    'type',
+    'track',
+    'duration_ms',
+    'time_signature'
+  ];
+  const sanitizedObj = filteredObj(body, allowedKeys);
+  const newAudioFeatures = sanitizedObj;
   const track = await Track.findById(body.track);
   if (!track) throw new AppError('No track found for this id', 404);
   await AudioFeatures.create(newAudioFeatures);
@@ -72,6 +94,9 @@ exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
 
 exports.getAudioFeaturesForSeveralTracks = catchAsync(
   async (req, res, next) => {
+    if (req.query.ids == '') {
+      return next(new AppError('Please provide track IDs', 400));
+    }
     let tracksIDs = req.query.ids.split(',');
     const audioFeaturesList = await getAudioFeaturesForSeveralTracks(tracksIDs);
     res.status(200).json({

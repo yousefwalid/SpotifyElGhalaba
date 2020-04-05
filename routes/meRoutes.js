@@ -23,39 +23,17 @@ router.route('/playlists').get(playlistController.getMyUserPlaylists);
 //albums routes
 router
   .route('/albums')
-  .get(authenticationController.protect, libraryController.getSavedAlbums)
-  .put(
-    authenticationController.protect,
-    libraryController.saveAlbumsForCurrentUser
-  )
-  .delete(
-    authenticationController.protect,
-    libraryController.removeUserSavedAlbum
-  );
+  .get(libraryController.getSavedAlbums)
+  .put(libraryController.saveAlbumsForCurrentUser)
+  .delete(libraryController.removeUserSavedAlbum);
+router.route('/albums/contains').get(libraryController.checkUserSavedAlbums);
 
 // tracks routes
 router
   .route('/tracks')
-  .get(authenticationController.protect, libraryController.getSavedTracks)
-  .put(
-    authenticationController.protect,
-    libraryController.saveTracksForCurrentUser
-  )
-  .delete(
-    authenticationController.protect,
-    libraryController.removeUserSavedTrack
-  );
-router
-  .route('/albums/contains')
-  .get(
-    authenticationController.protect,
-    libraryController.checkUserSavedAlbums
-  );
-router
-  .route('/tracks/contains')
-  .get(
-    authenticationController.protect,
-    libraryController.checkUserSavedTracks
-  );
+  .get(libraryController.getSavedTracks)
+  .put(libraryController.saveTracksForCurrentUser)
+  .delete(libraryController.removeUserSavedTrack);
+router.route('/tracks/contains').get(libraryController.checkUserSavedTracks);
 
 module.exports = router;
