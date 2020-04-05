@@ -28,16 +28,22 @@ const saveForCurrentUser = async (IDs, Model, User) => {
     savedModel = savedAlbum;
   }
   const ModelIDs = IDs;
-  const ModelDocs = await Model.find({ _id: { $in: ModelIDs } });
+  const ModelDocs = await Model.find({
+    _id: {
+      $in: ModelIDs
+    }
+  });
   if (ModelDocs.length < 1) {
     throw new AppError(`No ${modelName} found`, 404);
   }
-  let filteredModelIds = [];
+  const filteredModelIds = [];
   ModelDocs.forEach(el => {
     filteredModelIds.push(el._id);
   });
-  let query = {};
-  query[modelName] = { $in: filteredModelIds };
+  const query = {};
+  query[modelName] = {
+    $in: filteredModelIds
+  };
   const currentlySavedModel = await savedModel.find(query);
   currentlySavedModel.forEach(el => {
     for (let i = 0; i < filteredModelIds.length; i += 1) {
@@ -46,12 +52,12 @@ const saveForCurrentUser = async (IDs, Model, User) => {
       }
     }
   });
-  let savedModelDocs = [];
+  const savedModelDocs = [];
   filteredModelIds.forEach(el => {
-    let newModel = {};
+    const newModel = {};
     newModel[modelName] = el;
-    newModel['added_at'] = new Date();
-    newModel['user'] = User._id;
+    newModel.added_at = new Date();
+    newModel.user = User._id;
     savedModelDocs.push(newModel);
   });
   savedModel.create(savedModelDocs);
@@ -76,7 +82,10 @@ const validateLimitOffset = (limit, offset) => {
   if (limit > 50)
     throw new AppError('Limit query parameter can not be greater than 50', 400);
 
-  return { limit, offset };
+  return {
+    limit,
+    offset
+  };
 };
 
 /**
@@ -88,18 +97,21 @@ const validateLimitOffset = (limit, offset) => {
  */
 const getNextAndPrevious = (offset, limit, modelName, totalCount) => {
   const nextPage =
-    offset + limit <= totalCount
-      ? `http://localhost:${
+    offset + limit <= totalCount ?
+    `http://localhost:${
           process.env.PORT
-        }/api/v1/me/${modelName}s/?offset=${offset + limit}&limit=${limit}`
-      : null;
+        }/api/v1/me/${modelName}s/?offset=${offset + limit}&limit=${limit}` :
+    null;
   const previousPage =
-    offset - limit >= 0
-      ? `http://localhost:${
+    offset - limit >= 0 ?
+    `http://localhost:${
           process.env.PORT
-        }/api/v1/me/${modelName}s/?offset=${offset - limit}&limit=${limit}`
-      : null;
-  return { nextPage, previousPage };
+        }/api/v1/me/${modelName}s/?offset=${offset - limit}&limit=${limit}` :
+    null;
+  return {
+    nextPage,
+    previousPage
+  };
 };
 /**
  * Gets the saved albums/tracks of the logged in user
@@ -123,13 +135,20 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
     throw new AppError('Invalid model', 400);
   }
   const savedDocs = await savedModel
-    .find({ user: user._id })
+    .find({
+      user: user._id
+    })
     .select('-user -__v')
     .skip(offset)
     .limit(limit)
     .populate(modelName);
-  const totalCount = await savedModel.countDocuments({ user: user._id });
-  const { nextPage, previousPage } = getNextAndPrevious(
+  const totalCount = await savedModel.countDocuments({
+    user: user._id
+  });
+  const {
+    nextPage,
+    previousPage
+  } = getNextAndPrevious(
     offset,
     limit,
     modelName,
@@ -162,10 +181,12 @@ const checkUsersSavedModel = async (IDs, Model) => {
     modelName = 'album';
     savedModel = savedAlbum;
   }
-  let query = {};
-  query[modelName] = { $in: IDs };
+  const query = {};
+  query[modelName] = {
+    $in: IDs
+  };
   const currentlySavedDocs = await savedModel.find(query);
-  let boolArray = [];
+  const boolArray = [];
   IDs.forEach(el => {
     let found = false;
     for (let i = 0; i < currentlySavedDocs.length; i += 1) {
@@ -197,9 +218,11 @@ const removeUserSavedModel = async (IDs, user, Model) => {
     modelName = 'album';
     savedModel = savedAlbum;
   }
-  let query = {};
-  query[modelName] = { $in: IDs };
-  query['user'] = user._id;
+  const query = {};
+  query[modelName] = {
+    $in: IDs
+  };
+  query.user = user._id;
   await savedModel.deleteMany(query);
 };
 
@@ -222,7 +245,10 @@ exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getSavedAlbums = catchAsync(async (req, res, next) => {
-  const { limit, offset } = validateLimitOffset(
+  const {
+    limit,
+    offset
+  } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );
@@ -237,7 +263,10 @@ exports.getSavedAlbums = catchAsync(async (req, res, next) => {
 });
 
 exports.getSavedTracks = catchAsync(async (req, res, next) => {
-  const { limit, offset } = validateLimitOffset(
+  const {
+    limit,
+    offset
+  } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );

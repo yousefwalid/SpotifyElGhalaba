@@ -61,9 +61,13 @@ const sendEmail = require('./../utils/email');
 const setAllDevicesInactive = async user => {
   if (user.devices.length > 0) {
     await User.findOneAndUpdate(
-      { _id: user._id },
       {
-        $set: { 'devices.$[].isActive': false }
+        _id: user._id
+      },
+      {
+        $set: {
+          'devices.$[].isActive': false
+        }
       }
     );
   }
@@ -158,7 +162,10 @@ const replaceUserDevice = async (user, deviceId, device) => {
         }
       }
     },
-    { new: true, runValidators: true }
+    {
+      new: true,
+      runValidators: true
+    }
   );
   return user;
 };
@@ -445,7 +452,9 @@ const getPublicUser = async user => {
       path: 'userInfo',
       select: User.publicUser()
     });
-    populatedUser = populatedUser.toObject({ virtuals: true });
+    populatedUser = populatedUser.toObject({
+      virtuals: true
+    });
   } else {
     //Filter private fields of the user and send only the public user
     populatedUser = user.privateToPublic();
@@ -521,6 +530,8 @@ exports.closeSocket = closeSocket;
 
 exports.signup = catchAsync(async (req, res, next) => {
   //Creates a new user. If the type is artist, creates a referencing artist.
+  if (!req.body.password || !req.body.passwordConfirm)
+    throw new AppError('Password is required to sign up');
   const newUser = await createNewUser(req.body);
   //Send the new User in the response.
   sendUser(newUser, res);
@@ -548,6 +559,23 @@ exports.login = catchAsync(async (req, res, next) => {
 
   //Send the new User in the response.
   sendUser(user, res);
+});
+
+exports.loginWithFacebook = catchAsync(async (req, res, next) => {
+  const token = signToken(req.user._id);
+
+  // Setting a cookie:-
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
+  res.redirect('http://localhost:3000');
 });
 
 /*
