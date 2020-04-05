@@ -16,7 +16,7 @@ const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 
 describe('Testing Player Services', function() {
-  this.timeout(100000000);
+  // this.timeout(100000000);
   let user;
   let artist;
   let album;
