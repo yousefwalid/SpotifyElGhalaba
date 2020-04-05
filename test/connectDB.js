@@ -26,12 +26,10 @@ const connectDB = async () => {
     console.log('❌ database not connected');
     process.exit(1);
   }
-
 };
 
-
-before(async () => {
-
+before(async function() {
+  this.timeout(0);
   await connectDB();
 });
 
