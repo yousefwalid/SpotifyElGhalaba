@@ -3,21 +3,13 @@ const audioFeaturesController = require('./../controllers/audioFeaturesControlle
 const authenticationController = require('./../controllers/authenticationController');
 
 const router = express.Router();
-
-router
-  .route('/:id')
-  .get(
-    authenticationController.protect,
-    audioFeaturesController.getAudioFeaturesForTrack
-  );
+router.use(authenticationController.protect);
+router.route('/:id').get(audioFeaturesController.getAudioFeaturesForTrack);
 router
   .route('/')
-  .get(
-    authenticationController.protect,
-    audioFeaturesController.getAudioFeaturesForSeveralTracks
-  )
+  .get(audioFeaturesController.getAudioFeaturesForSeveralTracks)
   .post(
-    authenticationController.protect,
+    authenticationController.restrictTo('artist'),
     audioFeaturesController.addAudioFeaturesForTrack
   );
 module.exports = router;

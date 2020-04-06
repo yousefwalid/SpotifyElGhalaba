@@ -109,6 +109,9 @@ exports.createTrack = catchAsync(async (req, res, next) => {
 });
 
 exports.getSeveralTracks = catchAsync(async (req, res, next) => {
+  if (req.query.ids == '') {
+    return next(new AppError('Please provide track IDs', 400));
+  }
   let trackIDs = req.query.ids.split(',');
   const trackList = await getSeveralTracks(trackIDs);
   res.status(200).json({

@@ -51,13 +51,13 @@ app.use(helmet());
 
 //2) Limit requests
 const limiter = rateLimit({
-  //limits 100 requests for each IP in one hour.
+  //limits 1000 requests for each IP in one hour.
   //If the IP exceeds this limit then it would have to wait for an hour to pass from the first request.
-  max: 100,
+  max: 1000,
   windowMs: 60 * 60 * 1000,
   message: {
     status: 'fail',
-    message: 'Two many requests from this IP. please try again in an hour.'
+    message: 'Too many requests from this IP. please try again in an hour.'
   }
 });
 
