@@ -3,16 +3,11 @@ const dotenv = require('dotenv');
 
 // configuring .env
 dotenv.config({
-  path: './.test.env'
+  path: './config.env'
 });
 
 // connecting to the db
 // remote database credentials
-console.log(process.env.DATABASE_LOCAL);
-const DB = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD
-);
 const localDB = process.env.DATABASE_LOCAL;
 const connectDB = async () => {
   try {

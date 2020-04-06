@@ -9,7 +9,8 @@ const Track = require('./../models/trackModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
-
+const AwsS3Api = require('./../utils/awsS3Api');
+const sharp = require('sharp');
 /**
  * Gets a track with a specific ID
  * @param {String} albumID - The id of the desired track
@@ -29,7 +30,11 @@ const getAlbum = async (albumID, next) => {
  * @returns {Array<AlbumObject>} Array of the required albums
  */
 
-const getSeveralAlbums = async (AlbumsIds, next) => {
+const getSeveralAlbums = async req => {
+  if (req.query.ids == '') {
+    throw new AppError('Please provide album IDs', 400);
+  }
+  let AlbumsIds = req.query.ids.split(',');
   if (AlbumsIds.length > 20) {
     AlbumsIds = AlbumsIds.slice(0, 20);
   }
@@ -149,6 +154,74 @@ const createAlbum = async (requestBody, currentUser) => {
   return createdAlbum;
 };
 
+const imageKey = function(req, file, cb) {
+  cb(null, `photos/album-${req.params.id}.jpeg`);
+};
+
+/**
+ * An object used for filtering images for multer
+ */
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image format', 400), false);
+  }
+};
+
+exports.uploadImage = catchAsync(async (req, res, next) => {
+  if (!req.params.id) {
+    return next(new AppError('Please provide album ID', 400));
+  }
+  const album = await Album.findById(req.params.id);
+  if (!album) {
+    return next(new AppError('Album not found', 404));
+  }
+  const buf = Buffer.from(req.files.image.data, 'base64');
+  const High = await sharp(buf)
+    .resize(640, 640)
+    .toBuffer();
+  const Medium = await sharp(buf)
+    .resize(300, 300)
+    .toBuffer();
+  const Low = await sharp(buf)
+    .resize(60, 60)
+    .toBuffer();
+  const awsObj = new AwsS3Api();
+  const quality = [High, Medium, Low];
+  const dimensions = ['640', '300', '60'];
+  const names = ['High', 'Medium', 'Low'];
+  let keys = [];
+  for (let i = 0; i < 3; i++) {
+    keys.push(`photos/album-${req.params.id}-${names[i]}.jpeg`);
+  }
+
+  const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
+  for (let i = 0; i < 3; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    await awsObj.s3.putObject({
+      Body: quality[i],
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: keys[i]
+    });
+  }
+  let imgObjects = [];
+  for (let i = 0; i < 3; i++) {
+    imgObjects.push({
+      width: dimensions[i],
+      url: `${url}${keys[i]}`,
+      height: dimensions[i]
+    });
+  }
+  album.images = imgObjects;
+  await album.save();
+  res.status(201).json({
+    status: 'success',
+    message: 'Image Uploaded successfully'
+  });
+});
+
 exports.getAlbum = catchAsync(async (req, res, next) => {
   if (!req.params.id) {
     return next('Please provide album ID');
@@ -173,11 +246,7 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
 });
 
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
-  if (req.query.ids == '') {
-    return next(new AppError('Please provide album IDs', 400));
-  }
-  let AlbumsIds = req.query.ids.split(',');
-  let albumList = await getSeveralAlbums(AlbumsIds);
+  let albumList = await getSeveralAlbums(req);
   res.status(200).json({
     Albums: albumList
   });

@@ -53,21 +53,9 @@ const trackSchema = new mongoose.Schema(
     explicit: {
       type: Boolean
     },
-    //   external_ids: {
-    //     type: [ExternalIdObject]
-    //   },
     external_urls: {
       type: [ExternalUrlObject]
     },
-    //TODO: I have no idea what these properties are
-    // linked_from: {
-    //   type: mongoose.Schema.ObjectId,
-    //   ref: "TrackLink"
-    // },
-    // restrictions: {
-    //   type: mongoose.Schema.ObjectId,
-    //   ref: "Restriction"
-    // },
     // preview_url: {
     //   type: String
     // },

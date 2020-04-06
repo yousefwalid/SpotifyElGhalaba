@@ -33,6 +33,10 @@ const getAudioFeaturesForTrack = async trackID => {
  * @returns List of audio-features objects for the tracks
  */
 const getAudioFeaturesForSeveralTracks = async tracksIDs => {
+  if (req.query.ids == '') {
+    throw new AppError('Please provide track IDs', 400);
+  }
+  let tracksIDs = req.query.ids.split(',');
   if (tracksIDs.length > 20) {
     tracksIDs = tracksIDs.slice(0, 20);
   }
@@ -94,11 +98,7 @@ exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
 
 exports.getAudioFeaturesForSeveralTracks = catchAsync(
   async (req, res, next) => {
-    if (req.query.ids == '') {
-      return next(new AppError('Please provide track IDs', 400));
-    }
-    let tracksIDs = req.query.ids.split(',');
-    const audioFeaturesList = await getAudioFeaturesForSeveralTracks(tracksIDs);
+    const audioFeaturesList = await getAudioFeaturesForSeveralTracks(req);
     res.status(200).json({
       audioFeatures: audioFeaturesList
     });

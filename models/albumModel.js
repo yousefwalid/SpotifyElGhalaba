@@ -46,7 +46,6 @@ const albumSchema = new mongoose.Schema(
       default: null
     },
     external_urls: {
-      // Contains the external URLs for the playlist
       type: ExternalUrlObject
     },
     label: String,

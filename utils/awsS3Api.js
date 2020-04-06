@@ -102,7 +102,10 @@ class Aws {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key
     };
-    return this.s3.getObject(params).body;
+    this.s3.getObject(params, function(err, data) {
+      if (err) return err;
+      return data;
+    });
   }
 }
 

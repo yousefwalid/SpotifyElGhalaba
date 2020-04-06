@@ -5,9 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js",
+    "start:prod": "env NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "mocha || true",
+    "test": "nyc mocha || true",
     "doc": "jsdoc -c jsdoc.json"
   },
   "_moduleAliases": {
@@ -27,6 +27,7 @@
     "esdoc-standard-plugin": "^1.0.0",
     "express": "^4.16.4",
     "express-device": "^0.4.2",
+    "express-fileupload": "^1.1.7-alpha.2",
     "express-mongo-sanitize": "^1.3.2",
     "express-rate-limit": "^5.1.1",
     "express-validator": "^6.4.0",
@@ -46,6 +47,8 @@
     "multer-s3": "^2.9.0",
     "node-device-detector": "^1.2.1",
     "nodemailer": "^6.4.3",
+    "nyc": "^15.0.1",
+    "request": "^2.88.2",
     "sharp": "^0.25.1",
     "slugify": "^1.3.4",
     "swagger-jsdoc": "^3.5.0",

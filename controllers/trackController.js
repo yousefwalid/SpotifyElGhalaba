@@ -29,6 +29,10 @@ const getTrack = async trackID => {
  */
 
 const getSeveralTracks = async trackIDs => {
+  if (req.query.ids == '') {
+    throw new AppError('Please provide track IDs', 400);
+  }
+  let trackIDs = req.query.ids.split(',');
   if (trackIDs.length > 20) {
     trackIDs = trackIDs.slice(0, 20);
   }
@@ -70,6 +74,7 @@ const createTrack = async (requestBody, currentUser) => {
   ]);
   const newTrack = reqObject;
   const artist = await Artist.findOne({ userInfo: currentUser._id });
+  if (!artist) throw new AppError('Artist not found', 404);
   newTrack.artists = artist._id;
   const createdTrack = await Track.create(newTrack);
   return createdTrack;
@@ -109,11 +114,7 @@ exports.createTrack = catchAsync(async (req, res, next) => {
 });
 
 exports.getSeveralTracks = catchAsync(async (req, res, next) => {
-  if (req.query.ids == '') {
-    return next(new AppError('Please provide track IDs', 400));
-  }
-  let trackIDs = req.query.ids.split(',');
-  const trackList = await getSeveralTracks(trackIDs);
+  const trackList = await getSeveralTracks(req);
   res.status(200).json({
     Tracks: trackList
   });
