@@ -177,11 +177,17 @@ const followPlaylist = async (userId, playlistId, isPublic) => {
         throw new AppError('You are already following this playlist.', 400);
 
     //update the followers counter in the playlist
-    await Playlist.findByIdAndUpdate(playlistToFollow, {
+    const playlist = await Playlist.findByIdAndUpdate(playlistToFollow, {
         $inc: {
             followers: 1
         }
+    }, {
+        new: true
     });
+
+    if (!playlist) throw new AppError('No playlist with this id', 404);
+
+
 
     try {
         //adding the new playlist to the user
