@@ -30,6 +30,7 @@ const meRouter = require('./routes/meRoutes');
 const audioFeaturesRouter = require('./routes/audioFeaturesRoutes');
 const artistRouter = require('./routes/artistRoutes');
 const playerRouter = require('./routes/playerRoutes');
+const searchRouter = require('./routes/searchRoutes');
 
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
@@ -69,7 +70,6 @@ if (process.env.NODE_ENV === 'development') {
   app.enable('trust proxy');
 }
 
-console.log(process.env.NODE_ENV);
 //CORS headers
 
 const corsOptions = {
@@ -169,6 +169,7 @@ app.use(`${baseApiUrl}/me/player`, playerRouter);
 app.use(`${baseApiUrl}/me`, meRouter);
 app.use(`${baseApiUrl}/audio-features`, audioFeaturesRouter);
 app.use(`${baseApiUrl}/artists`, artistRouter);
+app.use(`${baseApiUrl}/search`, searchRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {

@@ -533,9 +533,9 @@ const reorderPlaylistTracks = async (
     );
   }
 
-  let playlistTracksArray = (await Playlist.findById(playlistId).select(
-    'tracks'
-  )).tracks.items;
+  let playlistTracksArray = (
+    await Playlist.findById(playlistId).select('tracks')
+  ).tracks.items;
 
   const omittedArray = playlistTracksArray.splice(rangeStart, rangeLength);
 
@@ -551,6 +551,7 @@ const reorderPlaylistTracks = async (
   });
 };
 
+/* istanbul ignore next */
 exports.getPlaylist = catchAsync(async (req, res, next) => {
   const playlist = await getPlaylist(
     req.params.playlist_id,
@@ -561,6 +562,7 @@ exports.getPlaylist = catchAsync(async (req, res, next) => {
   res.status(200).json(playlist);
 });
 
+/* istanbul ignore next */
 exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
   const tracks = await getPlaylistTracks(
     req.params.playlist_id,
@@ -571,6 +573,7 @@ exports.getPlaylistTracks = catchAsync(async (req, res, next) => {
   res.status(200).json(tracks);
 });
 
+/* istanbul ignore next */
 exports.getPlaylistImages = catchAsync(async (req, res, next) => {
   const playlistId = req.params.playlist_id;
   const userId = req.user._id;
@@ -582,6 +585,7 @@ exports.getPlaylistImages = catchAsync(async (req, res, next) => {
   res.status(200).json(images);
 });
 
+/* istanbul ignore next */
 exports.createPlaylist = catchAsync(async (req, res, next) => {
   req.body.owner = req.user;
   const newPlaylist = await Playlist.create(req.body);
@@ -589,6 +593,7 @@ exports.createPlaylist = catchAsync(async (req, res, next) => {
   res.status(201).json(newPlaylist);
 });
 
+/* istanbul ignore next */
 exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
   await addPlaylistTrack(
     req.params.playlist_id,
@@ -600,24 +605,28 @@ exports.addPlaylistTrack = catchAsync(async (req, res, next) => {
   res.status(201).send();
 });
 
+/* istanbul ignore next */
 exports.getUserPlaylists = catchAsync(async (req, res, next) => {
   const playlists = await getUserPlaylists(req.params.user_id, req.query);
 
   res.status(200).json(playlists);
 });
 
+/* istanbul ignore next */
 exports.getMyUserPlaylists = catchAsync(async (req, res, next) => {
   const playlists = await getUserPlaylists(req.user._id, req.query);
 
   res.status(200).json(playlists);
 });
 
+/* istanbul ignore next */
 exports.changePlaylistDetails = catchAsync(async (req, res, next) => {
   await changePlaylistDetails(req.body, req.params.playlist_id, req.user._id);
 
   res.status(200).send();
 });
 
+/* istanbul ignore next */
 exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
   await deletePlaylistTrack(
     req.params.playlist_id,
@@ -628,12 +637,14 @@ exports.deletePlaylistTrack = catchAsync(async (req, res, next) => {
   res.status(200).send();
 });
 
+/* istanbul ignore next */
 exports.addPlaylistImage = catchAsync(async (req, res, next) => {
   await addPlaylistImage(req.params.playlist_id, req.file);
 
   res.status(202).send();
 });
 
+/* istanbul ignore next */
 exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   await reorderPlaylistTracks(
     req.params.playlist_id,
