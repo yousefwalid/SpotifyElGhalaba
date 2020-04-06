@@ -14,7 +14,7 @@ It mimics the complete Spotify API behaviour.
 
 # Prerequisities
 
-## Packages
+### Packages
 
 To be able to run the project successfully you need to have the following packages:
 
@@ -25,7 +25,7 @@ To be able to run the project successfully you need to have the following packag
 You can install MongoDB Server from their official website.\
 You can install npm from the `npmjs` website, and `nodemon` globally by running the following command with npm: `npm install nodemon -g`.
 
-## Environment Variables
+### Environment Variables
 
 You need to create an environment variables file named `config.env` in the root directory, there is an example environment variables file in the root directory, namely `.env.example` . Please make sure to correctly fill the env variables to avoid runtime errors.
 
@@ -63,6 +63,8 @@ For functional documentation we use `JSDoc`, you can generate the functional doc
 
 We use `Postman` for generating the API documentation, so the documentation is hosted on a [remote webpage](https://documenter.getpostman.com/view/10979846/SzYdRvf2?version=latest) and not locally, however you can import our `Postman` collection which is stored in `./api_docs/` and generate the full documentation page by importing it into `Postman` and publishing the documentation of the collection or you can just use `Postman` for your development and use our readily made collection there.\
 _Note: please refer to the official `Postman` page if you don't know how to publish the collection's API documentation_
+
+It is prefered to use the remote webpage to stay updated with the changes in the API documentation, but if you are in a tight situation, the local postman exported collection is there for you.
 
 # For testers
 
