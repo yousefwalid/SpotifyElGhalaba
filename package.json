@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js",
+    "start:prod": "env NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
     "test": "mocha || true",
     "doc": "jsdoc -c jsdoc.json"
