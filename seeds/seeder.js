@@ -9,10 +9,10 @@ const disconnectDB = require('./../utils/disconnectDB');
 const { dropDB } = require('./../utils/dropDB');
 
 (async function() {
-  process.env.NODE_ENV = 'testing';
+  process.env.NODE_ENV = 'seeds';
   console.log(process.env.NODE_ENV);
   await connectDB();
-  await dropDB();
+  //await dropDB();
 
   // const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
