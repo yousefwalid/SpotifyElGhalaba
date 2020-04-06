@@ -30,6 +30,7 @@ const meRouter = require('./routes/meRoutes');
 const audioFeaturesRouter = require('./routes/audioFeaturesRoutes');
 const artistRouter = require('./routes/artistRoutes');
 const playerRouter = require('./routes/playerRoutes');
+const searchRouter = require('./routes/searchRoutes');
 
 const apiVersion = 1;
 const baseApiUrl = `/api/v${apiVersion}`;
@@ -51,13 +52,13 @@ app.use(helmet());
 
 //2) Limit requests
 const limiter = rateLimit({
-  //limits 100 requests for each IP in one hour.
+  //limits 1000 requests for each IP in one hour.
   //If the IP exceeds this limit then it would have to wait for an hour to pass from the first request.
-  max: 100,
+  max: 1000,
   windowMs: 60 * 60 * 1000,
   message: {
     status: 'fail',
-    message: 'Two many requests from this IP. please try again in an hour.'
+    message: 'Too many requests from this IP. please try again in an hour.'
   }
 });
 
@@ -72,22 +73,22 @@ if (process.env.NODE_ENV === 'development') {
 //CORS headers
 
 const corsOptions = {
-  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-const corsOptionsDelegate = function(req, callback) {
-  if (req.url === `${baseApiUrl}/authentication/login`) {
-    corsOptions.origin = true;
-  } else {
-    corsOptions.origin = '*';
-  }
-  callback(null, corsOptions); // callback expects two parameters: error and options
-};
-app.use(cors(corsOptionsDelegate));
+if (process.env.NODE_ENV === 'development') corsOptions.origin = `http://localhost:${process.env.FRONTEND_PORT}`
+// const corsOptionsDelegate = function (req, callback) {
+//   if (req.url === `${baseApiUrl}/authentication/login`) {
+//     corsOptions.origin = true;
+//   } else {
+//     corsOptions.origin = '*';
+//   }
+//   callback(null, corsOptions); // callback expects two parameters: error and options
+// };
+app.use(cors(corsOptions));
 
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body
@@ -168,6 +169,7 @@ app.use(`${baseApiUrl}/me/player`, playerRouter);
 app.use(`${baseApiUrl}/me`, meRouter);
 app.use(`${baseApiUrl}/audio-features`, audioFeaturesRouter);
 app.use(`${baseApiUrl}/artists`, artistRouter);
+app.use(`${baseApiUrl}/search`, searchRouter);
 
 // 404, route not found
 app.use('*', (req, res, next) => {

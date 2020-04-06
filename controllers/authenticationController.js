@@ -11,9 +11,13 @@
 */
 
 const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
+const {
+  promisify
+} = require('util');
 const crypto = require('crypto');
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -60,12 +64,13 @@ const sendEmail = require('./../utils/email');
  */
 const setAllDevicesInactive = async user => {
   if (user.devices.length > 0) {
-    await User.findOneAndUpdate(
-      { _id: user._id },
-      {
-        $set: { 'devices.$[].isActive': false }
+    await User.findOneAndUpdate({
+      _id: user._id
+    }, {
+      $set: {
+        'devices.$[].isActive': false
       }
-    );
+    });
   }
   return user;
 };
@@ -144,22 +149,21 @@ const getFirstInactiveDevice = user => {
  * @returns {UserObject}  The updated user document.
  */
 const replaceUserDevice = async (user, deviceId, device) => {
-  user = await User.findOneAndUpdate(
-    {
-      _id: user._id,
-      'devices._id': deviceId
-    },
-    {
-      $set: {
-        'devices.$': {
-          name: device.client.name,
-          type: device.device.type,
-          isActive: true
-        }
+  user = await User.findOneAndUpdate({
+    _id: user._id,
+    'devices._id': deviceId
+  }, {
+    $set: {
+      'devices.$': {
+        name: device.client.name,
+        type: device.device.type,
+        isActive: true
       }
-    },
-    { new: true, runValidators: true }
-  );
+    }
+  }, {
+    new: true,
+    runValidators: true
+  });
   return user;
 };
 
@@ -204,8 +208,7 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email: email
     },
     User.privateUser()
@@ -283,12 +286,10 @@ exports.getUserByToken = getUserByToken;
  * @returns {String}  A json web token (JWT).
  */
 const signToken = id => {
-  return jwt.sign(
-    {
+  return jwt.sign({
       id
     },
-    process.env.JWT_SECRET,
-    {
+    process.env.JWT_SECRET, {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -302,8 +303,7 @@ exports.signToken = signToken;
  * @param {String} baseURL The base url for the password reset link that is sent to the user.
  */
 const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email
     },
     User.privateUser()
@@ -351,8 +351,7 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -414,7 +413,7 @@ const createAndSendToken = (user, statusCode, res) => {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: false,
+    httpOnly: true,
     sameSite: false //Has to be 'None' [It's a bug in express (waiting for it to be solved)]
   };
 
@@ -422,6 +421,8 @@ const createAndSendToken = (user, statusCode, res) => {
   // cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
+  cookieOptions.httpOnly = false;
+  res.cookie('loggedIn', true, cookieOptions);
   // res.setHeader('Access-Control-Allow-Origin', req.);
   res.status(statusCode).json({
     status: 'success',
@@ -447,7 +448,9 @@ const getPublicUser = async user => {
       path: 'userInfo',
       select: User.publicUser()
     });
-    populatedUser = populatedUser.toObject({ virtuals: true });
+    populatedUser = populatedUser.toObject({
+      virtuals: true
+    });
   } else {
     //Filter private fields of the user and send only the public user
     populatedUser = user.privateToPublic();
@@ -490,9 +493,9 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-      'Upgrade: WebSocket\r\n' +
-      'Connection: Upgrade\r\n' +
-      '\r\n'
+    'Upgrade: WebSocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    '\r\n'
   );
   ws.end();
 };
@@ -523,6 +526,8 @@ exports.closeSocket = closeSocket;
 
 exports.signup = catchAsync(async (req, res, next) => {
   //Creates a new user. If the type is artist, creates a referencing artist.
+  if (!req.body.password || !req.body.passwordConfirm)
+    throw new AppError('Password is required to sign up');
   const newUser = await createNewUser(req.body);
   //Send the new User in the response.
   sendUser(newUser, res);
@@ -541,7 +546,10 @@ exports.signup = catchAsync(async (req, res, next) => {
 */
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    password
+  } = req.body;
   if (!email || !password)
     throw new AppError('Please provide email and password!', 400);
 
@@ -550,6 +558,44 @@ exports.login = catchAsync(async (req, res, next) => {
 
   //Send the new User in the response.
   sendUser(user, res);
+});
+
+exports.loginWithFacebook = catchAsync(async (req, res, next) => {
+  const token = signToken(req.user._id);
+
+  // Setting a cookie:-
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
+
+  cookieOptions.httpOnly = false;
+  res.cookie('loggedIn', true, cookieOptions);
+
+  if (process.env.NODE_ENV === 'development') res.redirect(`http://localhost:${process.env.FRONTEND_PORT}`);
+  else res.redirect(`/`);
+
+});
+
+exports.logout = catchAsync(async (req, res, next) => {
+  res.clearCookie('jwt');
+  res.clearCookie('loggedIn');
+  res.json(200).json('done');
+});
+
+
+exports.getToken = catchAsync(async (req, res, next) => {
+
+  const token = signToken(req.user._id);
+  res.status(200).json({
+    token
+  });
 });
 
 /*

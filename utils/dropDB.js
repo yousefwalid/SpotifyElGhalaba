@@ -1,19 +1,14 @@
 const mongoose = require('mongoose');
-// const connectDB = require('./connectDB');
-// const disconnectDB = require('./disconnectDB');
 
-const dropDB = async collectionName => {
+const dropDB = async function(collectionName) {
   if (collectionName) {
-
     try {
       await mongoose.connection.db.dropCollection(collectionName);
       console.log(`✅ ${collectionName} collection dropped successfully.`);
     } catch (err) {
       console.log(`✅ ${collectionName} collection was already empty.`);
     }
-
   } else {
-
     try {
       const db = await mongoose.connection.db;
 
@@ -24,7 +19,6 @@ const dropDB = async collectionName => {
         if (collections.length !== 0) {
           collections.forEach(async collection => {
             await collection.deleteMany({});
-
           });
           console.log(`✅ database dropped successfully`);
         } else {

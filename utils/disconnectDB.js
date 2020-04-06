@@ -9,8 +9,10 @@ const disconnectDB = async () => {
   }
 };
 
-after(async () => {
-  await disconnectDB();
-});
+if (process.env.NODE_ENV === 'testing') {
+  after(async () => {
+    await disconnectDB();
+  });
+}
 
 module.exports = disconnectDB;

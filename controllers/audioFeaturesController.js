@@ -91,6 +91,7 @@ const addAudioFeaturesForTrack = async body => {
   return newAudioFeatures;
 };
 
+/* istanbul ignore next */
 exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const trackAudioFeatures = await getAudioFeaturesForTrack(req.params.id);
   res.status(200).json(trackAudioFeatures);
@@ -104,10 +105,13 @@ exports.getAudioFeaturesForSeveralTracks = catchAsync(
     });
   }
 );
+
+/* istanbul ignore next */
 exports.addAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const newAudioFeatures = await addAudioFeaturesForTrack(req.body);
   res.status(201).json(newAudioFeatures);
 });
+
 exports.addAudioFeaturesForTrackLogic = addAudioFeaturesForTrack;
 exports.getAudioFeaturesForSeveralTracksLogic = getAudioFeaturesForSeveralTracks;
 exports.getAudioFeaturesForTrackLogic = getAudioFeaturesForTrack;
