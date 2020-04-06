@@ -8,6 +8,7 @@ const filterObj = require('./../utils/filterObject');
 const parseFields = require('./../utils/parseFields');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
 const jsonToPrivateUser = require('../utils/jsonToPublicUser');
+const AwsS3Api = require('./../utils/awsS3Api');
 
 /**
  * @module PlaylistController
@@ -19,7 +20,7 @@ const jsonToPrivateUser = require('../utils/jsonToPublicUser');
  *  An object used for disk storage configurations of multer
  */
 
-multerStorage = multer.diskStorage({
+const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'public/img/playlists');
   },
@@ -33,7 +34,7 @@ multerStorage = multer.diskStorage({
  * An object used for filtering images for multer
  */
 
-multerFilter = (req, file, cb) => {
+const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
@@ -41,14 +42,11 @@ multerFilter = (req, file, cb) => {
   }
 };
 
-/**
- *  Used to initalize the multer object with storage settings and filter
- */
-
-const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter
-});
+const awsObj = new AwsS3Api();
+const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
+awsObj.setMulterStorage(null, null, null, multerStorage);
+awsObj.setMulterUploadOptions({ multerFilter, limits });
+const upload = awsObj.getMulterUpload();
 
 /**
  * Validates the ranges of limit and offset
