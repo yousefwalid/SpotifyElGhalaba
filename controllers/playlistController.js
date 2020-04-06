@@ -20,33 +20,33 @@ const AwsS3Api = require('./../utils/awsS3Api');
  *  An object used for disk storage configurations of multer
  */
 
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/img/playlists');
-  },
-  filename: (req, file, cb) => {
-    const ext = file.mimetype.split('/')[1];
-    cb(null, `playlist-${req.params.playlist_id}-${Date.now()}.${ext}`);
-  }
-});
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/img/playlists');
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = file.mimetype.split('/')[1];
+//     cb(null, `playlist-${req.params.playlist_id}-${Date.now()}.${ext}`);
+//   }
+// });
 
-/**
- * An object used for filtering images for multer
- */
+// /**
+//  * An object used for filtering images for multer
+//  */
 
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Not an image format', 400), false);
-  }
-};
+// const multerFilter = (req, file, cb) => {
+//   if (file.mimetype.startsWith('image')) {
+//     cb(null, true);
+//   } else {
+//     cb(new AppError('Not an image format', 400), false);
+//   }
+// };
 
-const awsObj = new AwsS3Api();
-const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
-awsObj.setMulterStorage(null, null, null, multerStorage);
-awsObj.setMulterUploadOptions({ multerFilter, limits });
-const upload = awsObj.getMulterUpload();
+// const awsObj = new AwsS3Api();
+// const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
+// awsObj.setMulterStorage(null, null, null, multerStorage);
+// awsObj.setMulterUploadOptions({ multerFilter, limits });
+// const upload = awsObj.getMulterUpload();
 
 /**
  * Validates the ranges of limit and offset
@@ -645,7 +645,7 @@ exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   res.status(200).send();
 });
 
-exports.uploadPlaylistImage = upload.single('photo');
+//exports.uploadPlaylistImage = upload.single('photo');
 
 exports.getPlaylistLogic = getPlaylist;
 exports.getPlaylistTracksLogic = getPlaylistTracks;
