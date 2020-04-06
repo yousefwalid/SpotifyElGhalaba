@@ -8,7 +8,7 @@ It mimics the complete Spotify API behaviour.
 1. Node.js w/ express
 2. MongoDB
 3. Mongoose
-4. Mocca
+4. Mocha
 5. JSDoc
 6. Amazon AWS services w/ Multer
 
@@ -29,9 +29,13 @@ You can install npm from the `npmjs` website, and `nodemon` globally by running 
 
 You need to create an environment variables file named `config.env` in the root directory, there is an example environment variables file in the root directory, namely `.env.example` . Please make sure to correctly fill the env variables to avoid runtime errors.
 
+For testing you also need another environment variables file named `.test.env`, it has the same environment variables of the `.env.example`.
+
 # How to run?
 
-First of all please run your local MongoDB server and then seed the database if you would like to, as refered to in the [**Database Seeds**](#database-seeds) section
+First of all please run your local MongoDB server and then seed the database if you would like to, as refered to in the [**Database Seeds**](#database-seeds) section.
+
+Then run `npm install` in your terminal to install all the dependencies of the project.
 
 You can then very easily run the project using `npm run start`, if you want to run in a production environment please refer to the [**Development or Production**](#Development-or-Production) section.
 
@@ -45,8 +49,11 @@ There is no need to handle migrations, they are automatically handled as we use 
 
 # Unit Testing
 
-To run the unit tests simply run `npm run test`. The tests will run in your terminal specifying how long each test took and which ones failed.\
-We use `mocca` for unit testing and our unit testing files are stored in `./test/`
+To run the unit tests simply run `npm run test`. The tests will run in your terminal specifying how long each test took and which ones failed.
+
+Please make sure to have a `.test.env` file containing the environment variables for testing, and having the testing database connection string.
+
+We use `mocha` for unit testing and our unit testing files are stored in `./test/`.
 
 # Development or Production
 
@@ -57,7 +64,7 @@ The difference between the two is that in development you get full details of ru
 
 # Functional Documentation
 
-For functional documentation we use `JSDoc`, you can generate the functional documentation using `npm run doc`, the documentation will be generated in a static webpage stored in `./docs/`, you can then open the `index.html` file stored there to view the full functional documentation
+For functional documentation we use `JSDoc`, you can generate the functional documentation using `npm run doc`, the documentation will be generated in a static webpage stored in `./docs/`, you can then open the `index.html` file stored there to view the full functional documentation.
 
 # API Documentation
 

@@ -7,8 +7,8 @@
     "start": "nodemon server.js",
     "start:prod": "env NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "test": "mocha || true",
-    "doc": "jsdoc -c jsdoc.json"
+    "doc": "jsdoc -c jsdoc.json",
+    "test": "nyc --reporter=html --reporter=text mocha"
   },
   "_moduleAliases": {
     "@root": ".",
@@ -46,6 +46,7 @@
     "multer-s3": "^2.9.0",
     "node-device-detector": "^1.2.1",
     "nodemailer": "^6.4.3",
+    "nyc": "^15.0.1",
     "passport": "^0.4.1",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
