@@ -83,8 +83,10 @@ const userSchema = new mongoose.Schema({
     },
     required: [true, `You have to specify the current user's gender`]
   },
+  googleId: String,
+  facebookId: String,
   phoneNumber: {
-    type: String,
+    type: String
   },
   country: {
     type: String,
@@ -127,14 +129,12 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
     minlength: 8,
     maxlength: 64
     // select: false
   },
   passwordConfirm: {
     type: String,
-    required: [true, 'Password confirmation is not true'],
     // select: false,
     validate: {
       // this only works on SAVE and CREATE not UPDATE

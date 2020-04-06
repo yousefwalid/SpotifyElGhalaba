@@ -4,7 +4,7 @@ const idValidator = require('mongoose-id-validator');
 const PlaylistTrackObject = new mongoose.Schema(
   {
     added_at: Date,
-    added_by: mongoose.Schema.ObjectId,
+    added_by: { type: mongoose.Schema.ObjectId, ref: 'User' },
     is_local: {
       type: Boolean,
       default: false

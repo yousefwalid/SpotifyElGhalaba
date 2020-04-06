@@ -3,13 +3,16 @@ const trackController = require('./../controllers/trackController');
 const authenticationController = require('./../controllers/authenticationController');
 
 const router = express.Router();
-
+router.use(authenticationController.protect);
 router
   .route('/:id')
-  .get(authenticationController.protect, trackController.getTrack)
-  .delete(authenticationController.protect, trackController.removeTrack);
+  .get(trackController.getTrack)
+  .delete(trackController.removeTrack);
 router
   .route('/')
-  .get(authenticationController.protect, trackController.getSeveralTracks)
-  .post(authenticationController.protect, trackController.createTrack);
+  .get(trackController.getSeveralTracks)
+  .post(
+    authenticationController.restrictTo('artist'),
+    trackController.createTrack
+  );
 module.exports = router;

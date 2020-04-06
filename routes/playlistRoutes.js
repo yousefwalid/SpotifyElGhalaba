@@ -25,12 +25,10 @@ router
 
 router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
 
-router
-  .route('/:playlist_id/images')
-  .post(
-    playlistController.uploadPlaylistImage,
-    playlistController.addPlaylistImage
-  );
+router.route('/:playlist_id/images').post(
+  //playlistController.uploadPlaylistImage,
+  playlistController.addPlaylistImage
+);
 
 router
   .route('/:playlist_id/followers')
