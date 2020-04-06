@@ -18,7 +18,29 @@ exports.search = catchAsync(async (req, res, next) => {
     const example = parser.parse(req.query);
 
     const queryString = req.query.q;
-    const regex = new RegExp(`\\b${queryString.split('OR').join('|')}\\b`, 'i');
+    // const regex = new RegExp(`\\b${queryString.split('OR').join('|')}\\b`, 'i');
+    let regex;
+    //to check the exact word
+
+    if (queryString.startsWith(`"`)) {
+        regex = new RegExp(`^.*?(?:${queryString.slice(1, queryString.length-1)}).*$`, 'i')
+    }
+
+    if (queryString.includes("OR")) {
+        const queryStringFiltered = queryString.split("OR").map(word => word.trim()).join('|');
+        regex = new RegExp(`^(?!.*?${queryStringFiltered[1]}).*?${queryStringFiltered[0]}.*$`, 'i');
+    }
+
+    if (queryString.includes("NOT")) {
+        const queryStringFiltered = queryString.split("NOT").map(word => word.trim());
+        regex = new RegExp(`^(?!.*?${queryStringFiltered[1]}).*?${queryStringFiltered[0]}.*$`, 'i');
+    }
+
+
+
+
+
+
 
     const albums = await Album.find({
         name: {
