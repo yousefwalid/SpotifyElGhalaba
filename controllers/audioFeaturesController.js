@@ -32,7 +32,7 @@ const getAudioFeaturesForTrack = async trackID => {
  * @param {Array<String>} tracksIDs -Array of ids for the required tracks
  * @returns List of audio-features objects for the tracks
  */
-const getAudioFeaturesForSeveralTracks = async tracksIDs => {
+const getAudioFeaturesForSeveralTracks = async req => {
   if (req.query.ids == '') {
     throw new AppError('Please provide track IDs', 400);
   }

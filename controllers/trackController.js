@@ -28,7 +28,7 @@ const getTrack = async trackID => {
  * @returns {Array<TrackObject>} Array of the required tracks
  */
 
-const getSeveralTracks = async trackIDs => {
+const getSeveralTracks = async req => {
   if (req.query.ids == '') {
     throw new AppError('Please provide track IDs', 400);
   }
