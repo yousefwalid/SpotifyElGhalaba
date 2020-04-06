@@ -589,6 +589,15 @@ exports.logout = catchAsync(async (req, res, next) => {
   res.json(200).json('done');
 });
 
+
+exports.getToken = catchAsync(async (req, res, next) => {
+
+  const token = signToken(req.user._id);
+  res.status(200).json({
+    token
+  });
+});
+
 /*
  
  ########  ########   #######  ######## ########  ######  ######## 
