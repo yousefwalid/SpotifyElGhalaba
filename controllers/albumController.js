@@ -9,8 +9,7 @@ const Track = require('./../models/trackModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
-const AwsS3Api = require('./../utils/awsS3Api');
-const sharp = require('sharp');
+const uploadAWSImage = require('../utils/uploadAWSImage');
 /**
  * Gets a track with a specific ID
  * @param {String} albumID - The id of the desired track
@@ -162,43 +161,23 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   if (!album) {
     return next(new AppError('Album not found', 404));
   }
-  const buf = Buffer.from(req.files.image.data, 'base64');
-  const High = await sharp(buf)
-    .resize(640, 640)
-    .toBuffer();
-  const Medium = await sharp(buf)
-    .resize(300, 300)
-    .toBuffer();
-  const Low = await sharp(buf)
-    .resize(60, 60)
-    .toBuffer();
-  const awsObj = new AwsS3Api();
-  const quality = [High, Medium, Low];
-  const dimensions = ['640', '300', '60'];
-  const names = ['High', 'Medium', 'Low'];
-  let keys = [];
-  for (let i = 0; i < 3; i++) {
-    keys.push(`photos/album-${req.params.id}-${names[i]}.jpeg`);
-  }
 
-  const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
-  for (let i = 0; i < 3; i++) {
-    // eslint-disable-next-line no-await-in-loop
-    await awsObj.s3.putObject({
-      Body: quality[i],
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: keys[i]
-    });
-  }
-  let imgObjects = [];
-  for (let i = 0; i < 3; i++) {
-    imgObjects.push({
-      width: dimensions[i],
-      url: `${url}${keys[i]}`,
-      height: dimensions[i]
-    });
-  }
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+  const qualityNames = ['High', 'Medium', 'Low'];
+  const imgObjects = uploadAWSImage(
+    req.files.image.data,
+    album,
+    req.params.id,
+    dimensions,
+    qualityNames
+  );
+
   album.images = imgObjects;
+
   await album.save();
   res.status(201).json({
     status: 'success',
