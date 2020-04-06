@@ -98,6 +98,8 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
     let errMsg = '';
     if (process.env.NODE_ENV === 'development') {
       readStream.unpipe(res);
+      // readStream.destroy();
+      // readStream.abort();
       errMsg = err.message.toString();
       throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
     }
@@ -108,6 +110,7 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
  * GET /tracks/:trackId
  */
 exports.downloadTrack = catchAsync(async (req, res, next) => {
+  // console.log(req.socket);
   const awsObj = new AwsS3Api();
 
   const trackInfo = await getTrackInfo(awsObj, req.params.trackId);

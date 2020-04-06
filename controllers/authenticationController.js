@@ -414,7 +414,7 @@ const createAndSendToken = (user, statusCode, res) => {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: false,
+    httpOnly: true,
     sameSite: false //Has to be 'None' [It's a bug in express (waiting for it to be solved)]
   };
 
