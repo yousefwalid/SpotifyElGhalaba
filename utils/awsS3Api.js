@@ -10,6 +10,9 @@ class Aws {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         region: process.env.AWS_REGION
+        // httpOptions: {
+        //   timeout: 300000
+        // }
       });
   }
 
@@ -89,7 +92,15 @@ class Aws {
       Key
     };
     if (Range) params.Range = Range;
-    return this.s3.getObject(params).createReadStream();
+    this.s3Obj = this.s3.getObject(params);
+    return this.s3Obj.createReadStream();
+  }
+
+  /**
+   * @returns {Object} returns s3.getObject()
+   */
+  getS3Obj() {
+    return this.s3Obj;
   }
 
   /**
