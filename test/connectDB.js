@@ -13,10 +13,10 @@ const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
 );
-const localDB = process.env.DATABASE_LOCAL;
+const localTestDB = process.env.DATABASE_TEST;
 const connectDB = async () => {
   try {
-    await mongoose.connect(localDB, {
+    await mongoose.connect(localTestDB, {
       useNewUrlParser: true,
       useCreateIndex: true,
       useFindAndModify: false,
