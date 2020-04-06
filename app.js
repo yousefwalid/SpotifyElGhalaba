@@ -70,7 +70,6 @@ if (process.env.NODE_ENV === 'development') {
   app.enable('trust proxy');
 }
 
-console.log(process.env.NODE_ENV);
 //CORS headers
 
 const corsOptions = {
