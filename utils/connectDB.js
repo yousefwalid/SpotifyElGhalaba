@@ -1,18 +1,10 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const loadEnv = require('./loadEnv');
 
 // configuring .env
 
 const connectDB = async () => {
-  if (process.env.NODE_ENV === 'testing') {
-    dotenv.config({
-      path: './.test.env'
-    });
-  } else {
-    dotenv.config({
-      path: './config.env'
-    });
-  }
+  loadEnv();
 
   const DB = process.env.DATABASE;
 
