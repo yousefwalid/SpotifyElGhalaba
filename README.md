@@ -51,9 +51,11 @@ There is no need to handle migrations, they are automatically handled as we use 
 
 To run the unit tests simply run `npm run test`. The tests will run in your terminal specifying how long each test took and which ones failed.
 
+Coverage is reported in the terminal as well as exported to an html page inside `./coverage/`.
+
 Please make sure to have a `.test.env` file containing the environment variables for testing, and having the testing database connection string.
 
-We use `mocha` for unit testing and our unit testing files are stored in `./test/`.
+We use `mocha` for unit testing and `instanbul` for coverage reporting.
 
 # Development or Production
 
