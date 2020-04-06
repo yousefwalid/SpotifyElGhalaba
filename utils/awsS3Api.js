@@ -1,7 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
-
+/* istanbul ignore file */
 class Aws {
   constructor(s3) {
     if (s3) this.s3 = s3;

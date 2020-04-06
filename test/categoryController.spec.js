@@ -1,7 +1,7 @@
 // const assert = require('assert');
 // const {
 //   dropDB
-// } = require('./dropDB');
+// } = require('./../utils/dropDB');
 // const categoryController = require('../controllers/categoryController');
 
 // describe('Testing category controller', function () {

@@ -73,22 +73,22 @@ if (process.env.NODE_ENV === 'development') {
 //CORS headers
 
 const corsOptions = {
-  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-const corsOptionsDelegate = function(req, callback) {
-  if (req.url === `${baseApiUrl}/authentication/login`) {
-    corsOptions.origin = true;
-  } else {
-    corsOptions.origin = '*';
-  }
-  callback(null, corsOptions); // callback expects two parameters: error and options
-};
-app.use(cors(corsOptionsDelegate));
+if (process.env.NODE_ENV === 'development') corsOptions.origin = `http://localhost:${process.env.FRONTEND_PORT}`
+// const corsOptionsDelegate = function (req, callback) {
+//   if (req.url === `${baseApiUrl}/authentication/login`) {
+//     corsOptions.origin = true;
+//   } else {
+//     corsOptions.origin = '*';
+//   }
+//   callback(null, corsOptions); // callback expects two parameters: error and options
+// };
+app.use(cors(corsOptions));
 
 //4)Body parser and data sanitization
 //First: Reading data from the body of the request as json and converting it to javascript object into req.body

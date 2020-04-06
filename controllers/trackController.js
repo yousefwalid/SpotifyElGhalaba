@@ -98,11 +98,14 @@ const removeTrack = async trackID => {
   await track.remove();
   await album.save();
 };
+
+/* istanbul ignore next */
 exports.getTrack = catchAsync(async (req, res, next) => {
   const track = await getTrack(req.params.id);
   res.status(200).json(track);
 });
 
+/* istanbul ignore next */
 exports.createTrack = catchAsync(async (req, res, next) => {
   const newTrack = createTrack(req.body, req.user);
   res.status(201).json(newTrack);
@@ -119,10 +122,12 @@ exports.getSeveralTracks = catchAsync(async (req, res, next) => {
   });
 });
 
+/* istanbul ignore next */
 exports.removeTrack = catchAsync(async (req, res, next) => {
   await removeTrack(req.params.id);
   res.status(200).send();
 });
+
 exports.getTrackLogic = getTrack;
 exports.getSeveralTracksLogic = getSeveralTracks;
 exports.createTrackLogic = createTrack;
