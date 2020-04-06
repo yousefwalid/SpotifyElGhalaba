@@ -149,6 +149,7 @@ const createAlbum = async (requestBody, currentUser) => {
   return createdAlbum;
 };
 
+/* istanbul ignore next */
 exports.getAlbum = catchAsync(async (req, res, next) => {
   if (!req.params.id) {
     return next('Please provide album ID');
@@ -157,6 +158,7 @@ exports.getAlbum = catchAsync(async (req, res, next) => {
   res.status(200).json(album);
 });
 
+/* istanbul ignore next */
 exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   const { limit, offset } = validateLimitOffset(
     req.query.limit,
@@ -172,6 +174,7 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   res.status(200).json(pagingObject);
 });
 
+/* istanbul ignore next */
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
   if (req.query.ids == '') {
     return next(new AppError('Please provide album IDs', 400));
@@ -183,6 +186,7 @@ exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
   });
 });
 
+/* istanbul ignore next */
 exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);

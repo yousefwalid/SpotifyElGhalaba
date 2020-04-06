@@ -1,6 +1,4 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const authenticationController = require('./controllers/authenticationController');
 const connectDB = require('./utils/connectDB');
 
 dotenv.config({
