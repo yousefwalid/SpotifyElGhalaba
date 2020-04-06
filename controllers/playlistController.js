@@ -9,7 +9,7 @@ const parseFields = require('./../utils/parseFields');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
 const jsonToPrivateUser = require('../utils/jsonToPublicUser');
 const AwsS3Api = require('./../utils/awsS3Api');
-
+const User = require('./../models/userModel');
 /**
  * @module PlaylistController
  */
@@ -327,8 +327,17 @@ const getUserPlaylists = async (userId, queryParams) => {
     'description'
   ].join(' ');
 
+  const userFollowedPlaylists = (
+    await User.findById(userId).select('followedPlaylists')
+  ).followedPlaylists
+    .toObject()
+    .map(el => el.playlist);
+
   const features = new APIFeatures(
-    Playlist.find({ owner: userId }, selectFields).populate([
+    Playlist.find(
+      { $or: [{ owner: userId }, { _id: { $in: userFollowedPlaylists } }] },
+      selectFields
+    ).populate([
       {
         path: 'owner',
         select: 'external_urls href id type uri'
