@@ -32,7 +32,11 @@ const getAudioFeaturesForTrack = async trackID => {
  * @param {Array<String>} tracksIDs -Array of ids for the required tracks
  * @returns List of audio-features objects for the tracks
  */
-const getAudioFeaturesForSeveralTracks = async tracksIDs => {
+const getAudioFeaturesForSeveralTracks = async req => {
+  if (req.query.ids == '') {
+    throw new AppError('Please provide track IDs', 400);
+  }
+  let tracksIDs = req.query.ids.split(',');
   if (tracksIDs.length > 20) {
     tracksIDs = tracksIDs.slice(0, 20);
   }
@@ -87,6 +91,7 @@ const addAudioFeaturesForTrack = async body => {
   return newAudioFeatures;
 };
 
+/* istanbul ignore next */
 exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const trackAudioFeatures = await getAudioFeaturesForTrack(req.params.id);
   res.status(200).json(trackAudioFeatures);
@@ -94,20 +99,19 @@ exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
 
 exports.getAudioFeaturesForSeveralTracks = catchAsync(
   async (req, res, next) => {
-    if (req.query.ids == '') {
-      return next(new AppError('Please provide track IDs', 400));
-    }
-    let tracksIDs = req.query.ids.split(',');
-    const audioFeaturesList = await getAudioFeaturesForSeveralTracks(tracksIDs);
+    const audioFeaturesList = await getAudioFeaturesForSeveralTracks(req);
     res.status(200).json({
       audioFeatures: audioFeaturesList
     });
   }
 );
+
+/* istanbul ignore next */
 exports.addAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const newAudioFeatures = await addAudioFeaturesForTrack(req.body);
   res.status(201).json(newAudioFeatures);
 });
+
 exports.addAudioFeaturesForTrackLogic = addAudioFeaturesForTrack;
 exports.getAudioFeaturesForSeveralTracksLogic = getAudioFeaturesForSeveralTracks;
 exports.getAudioFeaturesForTrackLogic = getAudioFeaturesForTrack;

@@ -1,10 +1,10 @@
 const assert = require('assert');
 const faker = require('faker');
-const { dropDB } = require('./dropDB');
+
 const playerController = require('../controllers/playerController');
 const authenticationController = require('../controllers/authenticationController');
 const { ObjectId } = require('mongoose').Types;
-
+const { dropDB } = require('./../utils/dropDB');
 const Artist = require('./../models/artistModel');
 const User = require('./../models/userModel');
 const Track = require('./../models/trackModel');

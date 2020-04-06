@@ -1,7 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
-
+/* istanbul ignore file */
 class Aws {
   constructor(s3) {
     if (s3) this.s3 = s3;
@@ -102,7 +102,10 @@ class Aws {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key
     };
-    return this.s3.getObject(params).body;
+    this.s3.getObject(params, function(err, data) {
+      if (err) return err;
+      return data;
+    });
   }
 }
 

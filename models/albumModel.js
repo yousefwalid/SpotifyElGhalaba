@@ -3,6 +3,8 @@ const idValidator = require('mongoose-id-validator');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const ImageObject = require('./objects/imageObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
+const Artist = require('./artistModel');
+const AppError = require('./../utils/appError');
 /**
  *
  * @typedef {object} AlbumObject
@@ -46,7 +48,6 @@ const albumSchema = new mongoose.Schema(
       default: null
     },
     external_urls: {
-      // Contains the external URLs for the playlist
       type: ExternalUrlObject
     },
     label: String,
@@ -84,6 +85,21 @@ albumSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
 albumSchema.plugin(mongooseLeanVirtuals);
+
+albumSchema.post('save', async function(next) {
+  if (this.artists && this.artists.length > 0) {
+    const artists = await Artist.find({ _id: { $in: this.artists } });
+
+    if (!artists) next(new AppError('No artists found with these ids'));
+
+    artists.forEach(artist => {
+      artist.albums.push(this._id);
+      artist.save();
+    });
+  } else {
+    throw new AppError('No artists specified in the request', 500);
+  }
+});
 
 const URI = albumSchema.virtual('uri');
 URI.get(function() {

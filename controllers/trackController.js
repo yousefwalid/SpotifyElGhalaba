@@ -28,7 +28,11 @@ const getTrack = async trackID => {
  * @returns {Array<TrackObject>} Array of the required tracks
  */
 
-const getSeveralTracks = async trackIDs => {
+const getSeveralTracks = async req => {
+  if (req.query.ids == '') {
+    throw new AppError('Please provide track IDs', 400);
+  }
+  let trackIDs = req.query.ids.split(',');
   if (trackIDs.length > 20) {
     trackIDs = trackIDs.slice(0, 20);
   }
@@ -70,6 +74,7 @@ const createTrack = async (requestBody, currentUser) => {
   ]);
   const newTrack = reqObject;
   const artist = await Artist.findOne({ userInfo: currentUser._id });
+  if (!artist) throw new AppError('Artist not found', 404);
   newTrack.artists = artist._id;
   const createdTrack = await Track.create(newTrack);
   return createdTrack;
@@ -98,31 +103,32 @@ const removeTrack = async trackID => {
   await track.remove();
   await album.save();
 };
+
+/* istanbul ignore next */
 exports.getTrack = catchAsync(async (req, res, next) => {
   const track = await getTrack(req.params.id);
   res.status(200).json(track);
 });
 
+/* istanbul ignore next */
 exports.createTrack = catchAsync(async (req, res, next) => {
   const newTrack = createTrack(req.body, req.user);
   res.status(201).json(newTrack);
 });
 
 exports.getSeveralTracks = catchAsync(async (req, res, next) => {
-  if (req.query.ids == '') {
-    return next(new AppError('Please provide track IDs', 400));
-  }
-  let trackIDs = req.query.ids.split(',');
-  const trackList = await getSeveralTracks(trackIDs);
+  const trackList = await getSeveralTracks(req);
   res.status(200).json({
     Tracks: trackList
   });
 });
 
+/* istanbul ignore next */
 exports.removeTrack = catchAsync(async (req, res, next) => {
   await removeTrack(req.params.id);
   res.status(200).send();
 });
+
 exports.getTrackLogic = getTrack;
 exports.getSeveralTracksLogic = getSeveralTracks;
 exports.createTrackLogic = createTrack;

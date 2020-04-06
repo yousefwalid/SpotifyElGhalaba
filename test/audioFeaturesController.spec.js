@@ -8,7 +8,7 @@ const generateArtist = require('./utils/insertArtistIntoDB');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
 
-const { dropDB } = require('./dropDB');
+const { dropDB } = require('./../utils/dropDB');
 
 describe('Testing Audio-Features controller', function() {
   this.timeout(10000);

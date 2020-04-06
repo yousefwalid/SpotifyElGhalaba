@@ -413,7 +413,7 @@ const createAndSendToken = (user, statusCode, res) => {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: false,
+    httpOnly: true,
     sameSite: false //Has to be 'None' [It's a bug in express (waiting for it to be solved)]
   };
 
@@ -421,6 +421,8 @@ const createAndSendToken = (user, statusCode, res) => {
   // cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
+  cookieOptions.httpOnly = false;
+  res.cookie('loggedIn', true, cookieOptions);
   // res.setHeader('Access-Control-Allow-Origin', req.);
   res.status(statusCode).json({
     status: 'success',
@@ -573,9 +575,27 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
 
   res.cookie('jwt', token, cookieOptions);
 
+  cookieOptions.httpOnly = false;
+  res.cookie('loggedIn', true, cookieOptions);
+
   if (process.env.NODE_ENV === 'development') res.redirect(`http://localhost:${process.env.FRONTEND_PORT}`);
   else res.redirect(`/`);
 
+});
+
+exports.logout = catchAsync(async (req, res, next) => {
+  res.clearCookie('jwt');
+  res.clearCookie('loggedIn');
+  res.json(200).json('done');
+});
+
+
+exports.getToken = catchAsync(async (req, res, next) => {
+
+  const token = signToken(req.user._id);
+  res.status(200).json({
+    token
+  });
 });
 
 /*

@@ -8,11 +8,11 @@ const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 
 const filterObj = (obj, ...allowedFields) => {
-    const newObj = {};
-    Object.keys(obj).forEach(el => {
-        if (allowedFields.includes(el)) newObj[el] = obj[el];
-    });
-    return newObj;
+  const newObj = {};
+  Object.keys(obj).forEach(el => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
 };
 
 /**
@@ -23,12 +23,12 @@ const filterObj = (obj, ...allowedFields) => {
  * @returns {User}
  */
 const getUser = async (userId, fields) => {
-    let user;
-    if (!fields || !fields.trim()) user = await User.findById(userId);
-    else user = await User.findById(userId).select(fields);
+  let user;
+  if (!fields || !fields.trim()) user = await User.findById(userId);
+  else user = await User.findById(userId).select(fields);
 
-    if (!user) throw new AppError('No user found with this id', 404);
-    return user;
+  if (!user) throw new AppError('No user found with this id', 404);
+  return user;
 };
 exports.getUserLogic = getUser;
 
@@ -39,32 +39,41 @@ exports.getUserLogic = getUser;
  * @returns {User}
  */
 const updateUser = async (userId, updatedInfo) => {
-    const filteredData = filterObj(updatedInfo, 'name', 'gender', 'birthdate', 'country', 'phoneNumber');
-    const updatedUser = await User.findByIdAndUpdate(userId, filteredData, {
-        new: true
-    });
+  const filteredData = filterObj(
+    updatedInfo,
+    'name',
+    'gender',
+    'birthdate',
+    'country',
+    'phoneNumber'
+  );
+  const updatedUser = await User.findByIdAndUpdate(userId, filteredData, {
+    new: true
+  });
 
-    if (!updatedUser) throw new AppError('No user with this id', 404);
+  if (!updatedUser) throw new AppError('No user with this id', 404);
 
-    return updatedUser;
+  return updatedUser;
 };
 exports.updateUserLogic = updateUser;
 
+/* istanbul ignore next */
 exports.getMe = catchAsync(async (req, res, next) => {
-    const user = await getUser(req.user._id);
-    res.status(200).json(user);
+  const user = await getUser(req.user._id);
+  res.status(200).json(user);
 });
 
+/* istanbul ignore next */
 exports.getUser = catchAsync(async (req, res, next) => {
-    const user = await getUser(req.params.id, 'name followers images type');
-    res.status(200).json(user);
+  const user = await getUser(req.params.id, 'name followers images type');
+  res.status(200).json(user);
 });
 
 exports.updateMe = catchAsync(async (req, res, next) => {
-    if (req.body.password || req.body.passwordConfirm)
-        throw new AppError('This endpoint is not for updating passwords', 400);
+  if (req.body.password || req.body.passwordConfirm)
+    throw new AppError('This endpoint is not for updating passwords', 400);
 
-    const updatedUser = await updateUser(req.user._id, req.body);
+  const updatedUser = await updateUser(req.user._id, req.body);
 
-    res.status(200).json(updatedUser);
+  res.status(200).json(updatedUser);
 });

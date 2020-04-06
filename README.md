@@ -9,8 +9,9 @@ It mimics the complete Spotify API behaviour.
 2. MongoDB
 3. Mongoose
 4. Mocha
-5. JSDoc
-6. Amazon AWS services w/ Multer
+5. Istanbul
+6. JSDoc
+7. Amazon AWS services
 
 # Prerequisities
 
@@ -29,7 +30,7 @@ You can install npm from the `npmjs` website, and `nodemon` globally by running 
 
 You need to create an environment variables file named `config.env` in the root directory, there is an example environment variables file in the root directory, namely `.env.example` . Please make sure to correctly fill the env variables to avoid runtime errors.
 
-For testing you also need another environment variables file named `.test.env`, it has the same environment variables of the `.env.example`.
+For testing you also need another environment variables file named `.test.env`, it has the same (or less) environment variables of the `.env.example`.
 
 # How to run?
 
@@ -37,13 +38,15 @@ First of all please run your local MongoDB server and then seed the database if 
 
 Then run `npm install` in your terminal to install all the dependencies of the project.
 
-You can then very easily run the project using `npm run start`, if you want to run in a production environment please refer to the [**Development or Production**](#Development-or-Production) section.
+You can then very easily run the project in development mode using `npm run start`, if you want to run in a production environment please refer to the [**Development or Production**](#Development-or-Production) section.
 
 Please make sure to install all the prerequisities listed above in the [**Prerequisities**](#prerequisities) section.
 
 # Database Seeds
 
 To seed an empty database before running the project you should run `npm run seeds`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.
+
+**DISCLAIMER** Take care as database seeds will wipe your database clean before seeding.
 
 There is no need to handle migrations, they are automatically handled as we use `MongoDB` which is a NoSQL database.
 

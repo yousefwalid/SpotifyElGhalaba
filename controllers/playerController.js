@@ -4,7 +4,7 @@ const User = require('./../models/userModel');
 const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const authenticationController = require('./authenticationController');
-const Features = require('./../utils//apiFeatures');
+const Features = require('./../utils/apiFeatures');
 
 /*
  

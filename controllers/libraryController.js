@@ -103,17 +103,17 @@ const validateLimitOffset = (limit, offset) => {
  */
 const getNextAndPrevious = (offset, limit, modelName, totalCount) => {
   const nextPage =
-    offset + limit <= totalCount ?
-    `http://localhost:${
+    offset + limit <= totalCount
+      ? `http://localhost:${
           process.env.PORT
-        }/api/v1/me/${modelName}s/?offset=${offset + limit}&limit=${limit}` :
-    null;
+        }/api/v1/me/${modelName}s/?offset=${offset + limit}&limit=${limit}`
+      : null;
   const previousPage =
-    offset - limit >= 0 ?
-    `http://localhost:${
+    offset - limit >= 0
+      ? `http://localhost:${
           process.env.PORT
-        }/api/v1/me/${modelName}s/?offset=${offset - limit}&limit=${limit}` :
-    null;
+        }/api/v1/me/${modelName}s/?offset=${offset - limit}&limit=${limit}`
+      : null;
   return {
     nextPage,
     previousPage
@@ -151,10 +151,7 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
   const totalCount = await savedModel.countDocuments({
     user: user._id
   });
-  const {
-    nextPage,
-    previousPage
-  } = getNextAndPrevious(
+  const { nextPage, previousPage } = getNextAndPrevious(
     offset,
     limit,
     modelName,
@@ -255,10 +252,7 @@ exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getSavedAlbums = catchAsync(async (req, res, next) => {
-  const {
-    limit,
-    offset
-  } = validateLimitOffset(
+  const { limit, offset } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );
@@ -273,10 +267,7 @@ exports.getSavedAlbums = catchAsync(async (req, res, next) => {
 });
 
 exports.getSavedTracks = catchAsync(async (req, res, next) => {
-  const {
-    limit,
-    offset
-  } = validateLimitOffset(
+  const { limit, offset } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );
