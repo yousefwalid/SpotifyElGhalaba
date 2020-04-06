@@ -14,14 +14,13 @@ const User = require('./models/userModel');
 // });
 
 passport.use(
-  new GoogleStrategy(
-    {
+  new GoogleStrategy({
       //options for this strategy
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: '/api/v1/authentication/google/redirect'
     },
-    async function(accessToken, refreshToken, profile, cb) {
+    async function (accessToken, refreshToken, profile, cb) {
       const profileInfo = profile._json;
 
       await User.create({
@@ -43,8 +42,7 @@ passport.use(
 );
 
 passport.use(
-  new FacebookStrategy(
-    {
+  new FacebookStrategy({
       clientID: process.env.FACEBOOK_CLIENT_ID,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
       callbackURL: '/api/v1/authentication/facebook/redirect',
@@ -59,8 +57,10 @@ passport.use(
         'picture'
       ]
     },
-    async function(accessToken, refreshToken, profile, done) {
-      const { _json: profileInfo } = profile;
+    async function (accessToken, refreshToken, profile, done) {
+      const {
+        _json: profileInfo
+      } = profile;
 
       const newUser = {
         name: `${profileInfo.first_name} ${profileInfo.last_name}`,
