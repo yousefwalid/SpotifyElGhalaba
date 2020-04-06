@@ -12,12 +12,50 @@ const Playlist = require('./../models/playlistModel');
 const Track = require('./../models/trackModel');
 const User = require('./../models/userModel');
 
-const parser = new MongooseQueryParser();
+
+const getAlbums = async (regex) => {
+    return await Album.find({
+        name: {
+            '$regex': regex
+        }
+    })
+};
+
+const getUsers = async (regex) => {
+    return await User.find({
+        name: {
+            '$regex': regex
+        }
+    });
+};
+
+const getArtists = async (regex) => {
+    return await Artist.find({
+        name: {
+            '$regex': regex
+        }
+    });
+};
+
+const getPlaylists = async (regex) => {
+    return await Playlist.find({
+        name: {
+            '$regex': regex
+        }
+    });
+};
+
+const getTracks = async (regex) => {
+    return await Track.find({
+        name: {
+            '$regex': regex
+        }
+    });
+};
 
 exports.search = catchAsync(async (req, res, next) => {
-    const example = parser.parse(req.query);
-    const now = Date.now();
     const queryString = req.query.q;
+    const types = req.query.type ? req.query.type.split(',') : ["album", "user", "artist", "playlist", "track"];
     // const regex = new RegExp(`\\b${queryString.split('OR').join('|')}\\b`, 'i');
     let regex;
     //to check the exact word
@@ -32,32 +70,26 @@ exports.search = catchAsync(async (req, res, next) => {
         regex = new RegExp(`^(?!.*?${queryStringFiltered[1]}).*?${queryStringFiltered[0]}.*$`, 'i');
     } else {
         const filteredWords = queryString.split('').map(word => word.trim());
-
         let regexExpression = "";
-
         filteredWords.forEach(word => {
             regexExpression += `(?=.*${word})`;
         });
-
         regex = new RegExp(regexExpression, 'i');
     }
 
+    const getResultsFns = [];
+    if (types.includes('album')) getResultsFns.push(getAlbums(regex));
+    if (types.includes('user')) getResultsFns.push(getUsers(regex));
+    if (types.includes('artist')) getResultsFns.push(getArtists(regex));
+    if (types.includes('playlist')) getResultsFns.push(getPlaylists(regex));
+    if (types.includes('track')) getResultsFns.push(getTracks(regex));
 
+    const returnedDataArr = await Promise.all(getResultsFns);
 
-    const albums = await Album.find({
-        name: {
-            '$regex': regex
-        }
+    const returnedDataObj = {};
+    types.forEach((type, index) => {
+        returnedDataObj[`${type}s`] = returnedDataArr[index]
     });
 
-    const users = await User.find({
-        name: {
-            '$regex': regex
-        }
-    });
-    console.log(Date.now() - now);
-    res.status(200).json({
-        albums,
-        users
-    });
+    res.status(200).json(returnedDataObj);
 });
