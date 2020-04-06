@@ -421,6 +421,8 @@ const createAndSendToken = (user, statusCode, res) => {
   // cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
+  cookieOptions.httpOnly = false;
+  res.cookie('loggedIn', true, cookieOptions);
   // res.setHeader('Access-Control-Allow-Origin', req.);
   res.status(statusCode).json({
     status: 'success',
