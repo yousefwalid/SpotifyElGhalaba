@@ -583,6 +583,7 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
 
 exports.logout = catchAsync(async (req, res, next) => {
   res.clearCookie('jwt');
+  res.clearCookie('loggedIn');
   res.json(200).json('done');
 });
 
