@@ -12,12 +12,12 @@ cache:
 before_script:
   - npm i
 
-run in local env:
+run in prod-like env:
   image: node:13-alpine3.11
   stage: build
   script:
     - sh
-    - echo "$TEST_ENV" > config.env
+    - echo "$CI_ENV" > config.env
     - apk add coreutils
     - timeout --preserve-status 60s node .
 
@@ -29,5 +29,6 @@ run unit tests:
   stage: test
   script:
     - sh
-    - echo "$TEST_ENV" > config.env
+    - echo "$CI_ENV" > config.env
+    - echo "$CI_ENV" > .test.env
     - npm run test
