@@ -1,5 +1,0 @@
---file ./test/connectDB.js
---file ./test/disconnectDB.js
---recursive 
---exit 
---timeout 10000
