@@ -46,6 +46,7 @@
     "multer-s3": "^2.9.0",
     "node-device-detector": "^1.2.1",
     "nodemailer": "^6.4.3",
+    "nodemon": "^2.0.2",
     "nyc": "^15.0.1",
     "passport": "^0.4.1",
     "passport-facebook": "^3.0.0",

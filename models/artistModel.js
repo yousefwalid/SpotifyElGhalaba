@@ -58,8 +58,6 @@ artistSchema.plugin(idValidator, {
 });
 artistSchema.plugin(mongooseLeanVirtuals);
 
-artistSchema.pre();
-
 // artistSchema.virtual('popularity').get(function() {
 // To be implemented
 // value of the popularity of the artist
