@@ -423,6 +423,7 @@ const createAndSendToken = (user, statusCode, res) => {
   res.cookie('jwt', token, cookieOptions);
   cookieOptions.httpOnly = false;
   res.cookie('loggedIn', true, cookieOptions);
+
   // res.setHeader('Access-Control-Allow-Origin', req.);
   res.status(statusCode).json({
     status: 'success',
@@ -573,7 +574,6 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
-
   cookieOptions.httpOnly = false;
   res.cookie('loggedIn', true, cookieOptions);
 
@@ -585,7 +585,7 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
 exports.logout = catchAsync(async (req, res, next) => {
   res.clearCookie('jwt');
   res.clearCookie('loggedIn');
-  res.json(200).json('done');
+  res.status(200).json('done');
 });
 
 exports.getToken = catchAsync(async (req, res, next) => {
