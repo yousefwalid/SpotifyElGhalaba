@@ -262,20 +262,24 @@ exports.validateGetRecentlyPlayed = (req, res, next) => {
 */
 exports.status = async (ws, req) => {
   //AUTHENTICATE CONNECTION
-  await authenticationController.protectWs(req, ws);
-  //ON CONNECION
-  console.log(`${req.user.email} Connected [WebSocket]`);
-  //SET USER ONLINE STATUS
-  await User.findByIdAndUpdate(req.user._id, { online: true });
-  //CHECK ONLINE/OFFLINE LOGIC:
-  checkOnlineStatus(ws, req.user._id);
-  //CHECK IF THE USER IS PLAYING MUSIC OR NOT:
-  //------------------------------------------
-  checkStreamingStatus(ws, req.user._id);
-  //ON CLOSING CONNECTION
-  ws.on('close', async () => {
-    console.log(`${req.user.email} Disconnected  [WebSocket]`);
-  });
+  try {
+    await authenticationController.protectWs(req, ws);
+    //ON CONNECION
+    console.log(`${req.user.email} Connected [WebSocket]`);
+    //SET USER ONLINE STATUS
+    await User.findByIdAndUpdate(req.user._id, { online: true });
+    //CHECK ONLINE/OFFLINE LOGIC:
+    checkOnlineStatus(ws, req.user._id);
+    //CHECK IF THE USER IS PLAYING MUSIC OR NOT:
+    //------------------------------------------
+    checkStreamingStatus(ws, req.user._id);
+    //ON CLOSING CONNECTION
+    ws.on('close', async () => {
+      console.log(`${req.user.email} Disconnected  [WebSocket]`);
+    });
+  } catch (err) {
+    return;
+  }
 };
 
 exports.playTrack = catchAsync(async (req, res, next) => {
@@ -312,7 +316,7 @@ exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
       ]
     })
     .lean({ virtuals: false });
-
+  currentlyPlaying.track.id = currentlyPlaying.track._id;
   res.status(200).json({
     currentlyPlaying: currentlyPlaying.currentlyPlaying
   });

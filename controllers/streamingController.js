@@ -93,15 +93,22 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   }
 
   res.writeHead(statusCode, head);
-  readStream.pipe(res);
-  readStream.on('error', err => {
-    let errMsg = '';
-    if (process.env.NODE_ENV === 'development') {
-      readStream.unpipe(res);
-      errMsg = err.message.toString();
-      throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
-    }
-  });
+  try {
+    readStream.pipe(res);
+    readStream.on('error', err => {
+      let errMsg = '';
+      if (process.env.NODE_ENV === 'development') {
+        readStream.end();
+        errMsg = err.message.toString();
+        throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
+      }
+    });
+    readStream.on('close', () => {
+      readStream.end();
+    });
+  } catch {
+    if (readStream) readStream.end();
+  }
 };
 
 /**
@@ -116,7 +123,12 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
     const chunkInfo = getChunkInfo(range, trackInfo.fileSize);
     streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
-    streamTrack(res, awsObj, trackInfo);
+    try {
+      streamTrack(res, awsObj, trackInfo);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send('ERROR!');
+    }
   }
 });
 
