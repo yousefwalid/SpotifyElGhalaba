@@ -10,6 +10,7 @@ const artistSeed = require('./data/artists');
 const albumSeed = require('./data/albums');
 const trackSeed = require('./data/tracks');
 const playlistSeed = require('./data/playlist');
+const categorySeed = require('./data/categories');
 
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
@@ -17,6 +18,7 @@ const Album = require('./../models/albumModel');
 const Track = require('./../models/trackModel');
 const PlayHistory = require('./../models/playHistoryModel');
 const Playlist = require('./../models/playlistModel');
+const Category = require('./../models/categoryModel');
 
 const connectDB = require('./../utils/connectDB');
 const disconnectDB = require('./../utils/disconnectDB');
@@ -133,6 +135,9 @@ const createPlayHistories = async (userIds, trackIds) => {
   const playlistObjects = playlistSeed(usersIds, tracksIds);
   const playlists = await Playlist.insertMany(playlistObjects);
   const playlistsIds = playlists.map(el => el._id);
+
+  const categoryObjects = categorySeed.categoryObjects(playlistsIds);
+  const categories = await Category.insertMany(categoryObjects);
 
   await disconnectDB();
 })();

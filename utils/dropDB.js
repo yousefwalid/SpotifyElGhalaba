@@ -19,6 +19,7 @@ const dropDB = async function(collectionName) {
         if (collections.length !== 0) {
           collections.forEach(async collection => {
             await collection.deleteMany({});
+            await collection.dropIndexes();
           });
           console.log(`✅ database dropped successfully`);
         } else {

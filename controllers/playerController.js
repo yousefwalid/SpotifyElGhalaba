@@ -278,6 +278,7 @@ exports.status = async (ws, req) => {
       console.log(`${req.user.email} Disconnected  [WebSocket]`);
     });
   } catch (err) {
+    console.log('Error Connecting With WebSocket');
     return;
   }
 };
@@ -316,7 +317,9 @@ exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
       ]
     })
     .lean({ virtuals: false });
-  currentlyPlaying.track.id = currentlyPlaying.track._id;
+  currentlyPlaying.currentlyPlaying.track.id =
+    currentlyPlaying.currentlyPlaying.track._id;
+  currentlyPlaying.currentlyPlaying.track._id = undefined;
   res.status(200).json({
     currentlyPlaying: currentlyPlaying.currentlyPlaying
   });

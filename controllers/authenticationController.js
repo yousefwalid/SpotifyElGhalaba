@@ -243,13 +243,13 @@ const getDecodedToken = async req => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   } else if (
     req.query.Authorization &&
     req.query.Authorization.startsWith('Bearer')
   ) {
     token = req.query.Authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   } else
     throw new AppError(`You're not logged in. Please login to get access`, 401);
 

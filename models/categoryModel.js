@@ -26,8 +26,7 @@ const categoryModels = new mongoose.Schema(
     playlists: [
       {
         type: mongoose.Schema.ObjectId,
-        ref: 'Playlist',
-        unique: true
+        ref: 'Playlist'
       }
     ]
   },

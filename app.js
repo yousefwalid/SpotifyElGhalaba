@@ -79,7 +79,8 @@ const corsOptions = {
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-if (process.env.NODE_ENV === 'development') corsOptions.origin = `http://localhost:${process.env.FRONTEND_PORT}`
+if (process.env.NODE_ENV === 'development')
+  corsOptions.origin = `http://localhost:${process.env.FRONTEND_PORT}`;
 // const corsOptionsDelegate = function (req, callback) {
 //   if (req.url === `${baseApiUrl}/authentication/login`) {
 //     corsOptions.origin = true;
