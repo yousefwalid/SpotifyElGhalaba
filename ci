@@ -1,0 +1,33 @@
+image: node:13
+
+stages:
+  - build
+  - test
+
+# Cache modules in between jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm/
+
+before_script:
+  - npm ci --cache .npm --prefer-offline
+
+run in local env:
+  stage: build
+  script:
+    - bash
+    - echo "$LOCAL_ENV" > .env
+    - node .
+
+run unit tests:
+  only:
+    - master
+  stage: test
+  script:
+    - apt-get install gnupg
+    - wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+    - echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+    - echo "$LOCAL_ENV" > .env
+    - npm run test
+
