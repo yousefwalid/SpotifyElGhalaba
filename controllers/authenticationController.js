@@ -578,8 +578,8 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
   cookieOptions.httpOnly = false;
   res.cookie('loggedIn', true, cookieOptions);
 
-  if (process.env.NODE_ENV === 'development') res.redirect(`http://localhost:${process.env.FRONTEND_PORT}`);
-  else res.redirect(`/`);
+  res.redirect(process.env.FRONTEND_URL);
+
 
 });
 
