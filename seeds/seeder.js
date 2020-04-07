@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const { ObjectId } = require('mongoose').Types;
@@ -79,9 +80,31 @@ const createPlayHistories = async (userIds, trackIds) => {
 
   const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
-  const users = await User.insertMany(userObjects);
-  const artistsInfo = await User.insertMany(artistInfoObjects);
-  const admins = await User.insertMany(adminObjects);
+  const users = [];
+  const artistsInfo = [];
+  const admins = [];
+
+  for (let i = 0; i < userObjects.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const user = await User.create(userObjects[i]);
+    users.push(user);
+  }
+
+  for (let i = 0; i < artistInfoObjects.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const user = await User.create(artistInfoObjects[i]);
+    artistsInfo.push(user);
+  }
+
+  for (let i = 0; i < adminObjects.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    const user = await User.create(adminObjects[i]);
+    admins.push(user);
+  }
+
+  // const users = await User.insertMany(userObjects);
+  // const artistsInfo = await User.insertMany(artistInfoObjects);
+  // const admins = await User.insertMany(adminObjects);
 
   const usersIds = artistsInfo.map(el => el._id);
 
@@ -90,7 +113,15 @@ const createPlayHistories = async (userIds, trackIds) => {
   const artistsIds = artists.map(el => el._id);
 
   const albumObjects = albumSeed.albumObjects(artistsIds);
-  let albums = await Album.insertMany(albumObjects);
+
+  let albums = [];
+
+  for (let i = 0; i < albumObjects.length; i += 1) {
+    const album = await Album.create(albumObjects[i]);
+    albums.push(album);
+  }
+
+  //let albums = await Album.insertMany(albumObjects);
 
   const tracks = await createTracks(albums);
   const tracksIds = tracks.map(el => el._id);

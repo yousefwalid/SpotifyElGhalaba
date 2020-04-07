@@ -88,9 +88,10 @@ albumSchema.plugin(mongooseLeanVirtuals);
 
 albumSchema.pre('save', async function(next) {
   this.wasNew = this.isNew;
+  next();
 });
 
-albumSchema.post('save', async function(next) {
+albumSchema.post('save', async function(doc, next) {
   if (this.wasNew) {
     if (this.artists && this.artists.length > 0) {
       const artists = await Artist.find({ _id: { $in: this.artists } });
@@ -104,6 +105,7 @@ albumSchema.post('save', async function(next) {
       throw new AppError('No artists specified in the request', 500);
     }
   }
+  next();
 });
 
 const URI = albumSchema.virtual('uri');
