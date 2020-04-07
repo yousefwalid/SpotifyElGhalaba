@@ -179,7 +179,7 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   album.images = imgObjects;
 
   await album.save();
-  res.status(201).json({
+  res.status(202).json({
     status: 'success',
     message: 'Image Uploaded successfully'
   });
