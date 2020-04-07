@@ -78,50 +78,23 @@ const createPlayHistories = async (userIds, trackIds) => {
   await connectDB();
   await dropDB();
 
+  console.log('Running seeds, please wait...');
+
   const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
-  const users = [];
-  const artistsInfo = [];
-  const admins = [];
-
-  for (let i = 0; i < userObjects.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const user = await User.create(userObjects[i]);
-    users.push(user);
-  }
-
-  for (let i = 0; i < artistInfoObjects.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const user = await User.create(artistInfoObjects[i]);
-    artistsInfo.push(user);
-  }
-
-  for (let i = 0; i < adminObjects.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const user = await User.create(adminObjects[i]);
-    admins.push(user);
-  }
-
-  // const users = await User.insertMany(userObjects);
-  // const artistsInfo = await User.insertMany(artistInfoObjects);
-  // const admins = await User.insertMany(adminObjects);
+  const users = await User.create(userObjects);
+  const artistsInfo = await User.create(artistInfoObjects);
+  const admins = await User.create(adminObjects);
 
   const usersIds = artistsInfo.map(el => el._id);
 
   const artistObjects = artistSeed(usersIds);
-  const artists = await Artist.insertMany(artistObjects);
+  const artists = await Artist.create(artistObjects);
   const artistsIds = artists.map(el => el._id);
 
   const albumObjects = albumSeed.albumObjects(artistsIds);
 
-  let albums = [];
-
-  for (let i = 0; i < albumObjects.length; i += 1) {
-    const album = await Album.create(albumObjects[i]);
-    albums.push(album);
-  }
-
-  //let albums = await Album.insertMany(albumObjects);
+  let albums = await Album.create(albumObjects);
 
   const tracks = await createTracks(albums);
   const tracksIds = tracks.map(el => el._id);
@@ -131,8 +104,10 @@ const createPlayHistories = async (userIds, trackIds) => {
   const playHistories = await createPlayHistories(usersIds, tracksIds);
 
   const playlistObjects = playlistSeed(usersIds, tracksIds);
-  const playlists = await Playlist.insertMany(playlistObjects);
+  const playlists = await Playlist.create(playlistObjects);
   const playlistsIds = playlists.map(el => el._id);
 
   await disconnectDB();
+
+  console.log('✅ Seeds executed successfully');
 })();
