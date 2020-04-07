@@ -12,7 +12,7 @@ module.exports = async options => {
   });
 
   const mailOptions = {
-    from: 'Spotify ElGhalaba <spotifyElGhalaba@spotify.com>',
+    from: 'Spotify ElGhalaba <support@spotify-elghalaba.me>',
     to: options.email,
     subject: options.subject,
     text: options.message
