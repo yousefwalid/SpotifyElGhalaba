@@ -93,21 +93,29 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   }
 
   res.writeHead(statusCode, head);
-  readStream.pipe(res);
-  readStream.on('error', err => {
-    let errMsg = '';
-    if (process.env.NODE_ENV === 'development') {
-      readStream.unpipe(res);
-      errMsg = err.message.toString();
-      throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
-    }
-  });
+  try {
+    const resStream = readStream.pipe(res);
+    resStream.on('error', err => {
+      let errMsg = '';
+      if (process.env.NODE_ENV === 'development') {
+        resStream.end();
+        errMsg = err.message.toString();
+        throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
+      }
+    });
+    resStream.on('close', () => {
+      resStream.end();
+    });
+  } catch {
+    if (readStream) readStream.end();
+  }
 };
 
 /**
  * GET /tracks/:trackId
  */
 exports.downloadTrack = catchAsync(async (req, res, next) => {
+  // console.log(req.socket);
   const awsObj = new AwsS3Api();
 
   const trackInfo = await getTrackInfo(awsObj, req.params.trackId);
@@ -116,20 +124,23 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
     const chunkInfo = getChunkInfo(range, trackInfo.fileSize);
     streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
-    streamTrack(res, awsObj, trackInfo);
+    try {
+      streamTrack(res, awsObj, trackInfo);
+    } catch (err) {
+      res.status(500).send({ Error: 'ERROR!' });
+    }
   }
 });
 
 /**
  * POST /tracks
  */
-exports.uploadTrack = (req, res, next) => {
+exports.uploadTrack = catchAsync(async (req, res, next) => {
   const awsObj = new AwsS3Api();
   const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
   awsObj.setMulterStorage(null, null, null, trackKey);
   awsObj.setMulterUploadOptions({ fileFilter, limits });
   const upload = awsObj.getMulterUpload();
-
   upload.single(trackFieldName)(req, res, err => {
     if (err) {
       return next(new AppError('Upload Request Validation Failed', 400));
@@ -143,4 +154,4 @@ exports.uploadTrack = (req, res, next) => {
       message: 'Track Uploaded successfully'
     });
   });
-};
+});

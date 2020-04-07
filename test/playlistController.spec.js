@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 const assert = require('assert');
 
-const { dropDB } = require('./dropDB');
+const { dropDB } = require('./../utils/dropDB');
 const generateUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
 const generateAlbum = require('./utils/generateAlbum');
@@ -326,7 +326,9 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     await playlistController.addPlaylistTrackLogic(
       playlistId,
@@ -336,9 +338,9 @@ describe('Testing Playlist Controller', function() {
 
     const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-      el => el.track
-    );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     oldTracksArray = oldTracksArray.concat(tracksIds);
     assert.deepStrictEqual(newTracksArray, oldTracksArray);
@@ -379,7 +381,9 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     await playlistController.addPlaylistTrackLogic(
       playlistId,
@@ -389,9 +393,9 @@ describe('Testing Playlist Controller', function() {
 
     const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-      el => el.track
-    );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
 
@@ -433,7 +437,9 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     const newPositionOfTracks = 2;
 
@@ -446,9 +452,9 @@ describe('Testing Playlist Controller', function() {
 
     const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-      el => el.track
-    );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
     oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
@@ -492,7 +498,9 @@ describe('Testing Playlist Controller', function() {
     const insertedPlaylist = await Playlist.create(generatedPlaylist);
     const playlistId = insertedPlaylist._id;
 
-    let oldTracksArray = insertedPlaylist.tracks.items.map(el => el.track);
+    let oldTracksArray = insertedPlaylist.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     const newPositionOfTracks = 0;
 
@@ -505,9 +513,9 @@ describe('Testing Playlist Controller', function() {
 
     const playlistAfterAddingTracks = await Playlist.findById(playlistId);
 
-    const newTracksArray = playlistAfterAddingTracks.tracks.items.map(
-      el => el.track
-    );
+    const newTracksArray = playlistAfterAddingTracks.tracks.items
+      .toObject()
+      .map(el => el.track);
 
     const tempOldTracksArray = oldTracksArray.splice(newPositionOfTracks);
     oldTracksArray = oldTracksArray.concat(toBeAddedTracksIds);
@@ -659,9 +667,9 @@ describe('Testing Playlist Controller', function() {
       playlistsIds.push(playlistId);
     }
 
-    const returnedPlaylists = (await playlistController.getUserPlaylistsLogic(
-      userId
-    )).items;
+    const returnedPlaylists = (
+      await playlistController.getUserPlaylistsLogic(userId)
+    ).items;
 
     const returnedPlaylistsIds = returnedPlaylists.map(el => el._id);
 
@@ -674,9 +682,9 @@ describe('Testing Playlist Controller', function() {
     const userId = insertedUser._id;
 
     const generatedPlaylist = generatePlaylist(userId);
-    const insertedPlaylist = (await Playlist.create(
-      generatedPlaylist
-    )).toObject();
+    const insertedPlaylist = (
+      await Playlist.create(generatedPlaylist)
+    ).toObject();
     const playlistId = insertedPlaylist._id;
 
     const bodyParams = {
@@ -706,9 +714,9 @@ describe('Testing Playlist Controller', function() {
     const userId = insertedUser._id;
 
     const generatedPlaylist = generatePlaylist(userId);
-    const insertedPlaylist = (await Playlist.create(
-      generatedPlaylist
-    )).toObject();
+    const insertedPlaylist = (
+      await Playlist.create(generatedPlaylist)
+    ).toObject();
     const playlistId = insertedPlaylist._id;
 
     const bodyParams = {

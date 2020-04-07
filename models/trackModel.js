@@ -53,21 +53,9 @@ const trackSchema = new mongoose.Schema(
     explicit: {
       type: Boolean
     },
-    //   external_ids: {
-    //     type: [ExternalIdObject]
-    //   },
     external_urls: {
       type: [ExternalUrlObject]
     },
-    //TODO: I have no idea what these properties are
-    // linked_from: {
-    //   type: mongoose.Schema.ObjectId,
-    //   ref: "TrackLink"
-    // },
-    // restrictions: {
-    //   type: mongoose.Schema.ObjectId,
-    //   ref: "Restriction"
-    // },
     // preview_url: {
     //   type: String
     // },
@@ -100,11 +88,13 @@ trackSchema.pre('save', async function(next) {
     next(new AppError('No album found with this id', 404));
   }
   this.track_number = album.tracks.length + 1;
+  next();
 });
-trackSchema.post('save', async function(next) {
+trackSchema.post('save', async function(doc, next) {
   const album = await Album.findById(this.album);
   album.tracks.push(this._id);
   await album.save();
+  next();
 });
 const type = trackSchema.virtual('type');
 type.get(function() {

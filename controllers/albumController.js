@@ -3,12 +3,15 @@
  * @module AlbumController
  */
 const mongoose = require('mongoose');
+const sharp = require('sharp');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
+const AwsS3Api = require('./../utils/awsS3Api');
+const uploadAWSImage = require('../utils/uploadAWSImage');
 
 /**
  * Gets a track with a specific ID
@@ -29,7 +32,7 @@ const getAlbum = async (albumID, next) => {
  * @returns {Array<AlbumObject>} Array of the required albums
  */
 
-const getSeveralAlbums = async (AlbumsIds, next) => {
+const getSeveralAlbums = async AlbumsIds => {
   if (AlbumsIds.length > 20) {
     AlbumsIds = AlbumsIds.slice(0, 20);
   }
@@ -148,7 +151,45 @@ const createAlbum = async (requestBody, currentUser) => {
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
 };
+/**
+ * Function that uploads the given image and it's different sized to AWS bucket
+ * @param {Object} fileData -the buffer of the uploaded image
+ * @param {String} albumID -the ID of the album that the images will be uploaded to
+ */
+const uploadImage = async (fileData, albumID) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+  if (!albumID) throw new AppError('Playlist id not specified', 400);
+  const album = await Album.findById(albumID);
+  if (!album) {
+    throw new AppError('Album not found', 404);
+  }
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+  const qualityNames = ['High', 'Medium', 'Low'];
+  const imgObjects = await uploadAWSImage(
+    fileData,
+    'album',
+    albumID,
+    dimensions,
+    qualityNames
+  );
 
+  album.images = imgObjects;
+
+  await album.save();
+};
+exports.uploadImage = catchAsync(async (req, res, next) => {
+  await uploadImage(req.files.image.data, req.params.id);
+  res.status(202).json({
+    status: 'success',
+    message: 'Image Uploaded successfully'
+  });
+});
+
+/* istanbul ignore next */
 exports.getAlbum = catchAsync(async (req, res, next) => {
   if (!req.params.id) {
     return next('Please provide album ID');
@@ -157,6 +198,7 @@ exports.getAlbum = catchAsync(async (req, res, next) => {
   res.status(200).json(album);
 });
 
+/* istanbul ignore next */
 exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   const { limit, offset } = validateLimitOffset(
     req.query.limit,
@@ -172,17 +214,15 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
   res.status(200).json(pagingObject);
 });
 
+/* istanbul ignore next */
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
-  if (req.query.ids == '') {
-    return next(new AppError('Please provide album IDs', 400));
-  }
-  let AlbumsIds = req.query.ids.split(',');
-  let albumList = await getSeveralAlbums(AlbumsIds);
+  let albumList = await getSeveralAlbums(req);
   res.status(200).json({
     Albums: albumList
   });
 });
 
+/* istanbul ignore next */
 exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);
