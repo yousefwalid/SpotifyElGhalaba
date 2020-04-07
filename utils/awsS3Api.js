@@ -1,7 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
-
+/* istanbul ignore file */
 class Aws {
   constructor(s3) {
     if (s3) this.s3 = s3;
@@ -9,10 +9,10 @@ class Aws {
       this.s3 = new AWS.S3({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        region: process.env.AWS_REGION
-        // httpOptions: {
-        //   timeout: 300000
-        // }
+        region: process.env.AWS_REGION,
+        httpOptions: {
+          timeout: 900000 // 15 minutes
+        }
       });
   }
 
@@ -113,7 +113,10 @@ class Aws {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key
     };
-    return this.s3.getObject(params).body;
+    this.s3.getObject(params, function(err, data) {
+      if (err) return err;
+      return data;
+    });
   }
 }
 

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const { dropDB } = require('./dropDB');
+const { dropDB } = require('./../utils/dropDB');
 const generateArtist = require('./utils/insertArtistIntoDB');
 const createUser = require('./utils/createUser');
 const generateTrack = require('./utils/generateTrack');
