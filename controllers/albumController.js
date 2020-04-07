@@ -32,11 +32,7 @@ const getAlbum = async (albumID, next) => {
  * @returns {Array<AlbumObject>} Array of the required albums
  */
 
-const getSeveralAlbums = async req => {
-  if (req.query.ids == '') {
-    throw new AppError('Please provide album IDs', 400);
-  }
-  let AlbumsIds = req.query.ids.split(',');
+const getSeveralAlbums = async AlbumsIds => {
   if (AlbumsIds.length > 20) {
     AlbumsIds = AlbumsIds.slice(0, 20);
   }
