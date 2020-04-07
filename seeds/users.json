@@ -1,0 +1,56 @@
+[
+  {
+    "name": "adminfree",
+    "email": "admin@free.com",
+    "gender": "m",
+    "type": "admin",
+    "product": "free",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  },
+  {
+    "name": "userfree",
+    "email": "user@free.com",
+    "gender": "m",
+    "type": "user",
+    "product": "free",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  },
+  {
+    "name": "adminpremium",
+    "email": "admin@premium.com",
+    "gender": "m",
+    "type": "admin",
+    "product": "premium",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  },
+  {
+    "name": "userpremium",
+    "email": "user@premium.com",
+    "gender": "m",
+    "type": "user",
+    "product": "premium",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  },
+  {
+    "name": "artistfree",
+    "email": "artist@free.com",
+    "gender": "m",
+    "type": "artist",
+    "product": "free",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  },
+  {
+    "name": "artistpremium",
+    "email": "artist@premium.com",
+    "gender": "m",
+    "type": "artist",
+    "product": "premium",
+    "birthdate": "1-1-1970",
+    "password": "$2a$12$WNRYujWI4vCHB32cZdtIneuhNuDKgCt2doFEyHA2oQxK7Luhk7Z0a"
+  }
+]
