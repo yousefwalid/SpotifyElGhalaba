@@ -239,13 +239,13 @@ const getDecodedToken = async req => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   } else if (
     req.query.Authorization &&
     req.query.Authorization.startsWith('Bearer')
   ) {
     token = req.query.Authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   } else
     throw new AppError(`You're not logged in. Please login to get access`, 401);
 
@@ -263,12 +263,12 @@ exports.getDecodedToken = getDecodedToken;
  */
 const getUserByToken = async token => {
   const user = await User.findById(token.id, User.privateUser());
-
-  if (!user)
+  if (!user) {
     throw new AppError(
       `The user that belongs to this token no longer exists`,
       401
     );
+  }
 
   if (User.changedPasswordAfter(user, token.iat)) {
     throw new AppError(
@@ -477,7 +477,6 @@ exports.sendUser = sendUser;
 const protect = async req => {
   //Get the token from the request header or cookie or url.
   const decodedToken = await getDecodedToken(req);
-
   //Get the user by the data in the decoded token.
   const user = await getUserByToken(decodedToken);
 
@@ -497,7 +496,7 @@ const closeSocket = ws => {
     'Connection: Upgrade\r\n' +
     '\r\n'
   );
-  ws.end();
+  ws.close();
 };
 exports.closeSocket = closeSocket;
 
@@ -589,9 +588,7 @@ exports.logout = catchAsync(async (req, res, next) => {
   res.json(200).json('done');
 });
 
-
 exports.getToken = catchAsync(async (req, res, next) => {
-
   const token = signToken(req.user._id);
   res.status(200).json({
     token
@@ -727,7 +724,8 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 exports.protectWs = async (req, ws) => {
   try {
     await protect(req);
-  } catch {
+  } catch (err) {
     closeSocket(ws);
+    throw err;
   }
 };

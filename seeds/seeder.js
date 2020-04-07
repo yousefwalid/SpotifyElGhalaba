@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const { ObjectId } = require('mongoose').Types;
@@ -8,12 +9,17 @@ const userSeed = require('./data/users');
 const artistSeed = require('./data/artists');
 const albumSeed = require('./data/albums');
 const trackSeed = require('./data/tracks');
+const playlistSeed = require('./data/playlist');
+const categorySeed = require('./data/categories');
 
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const Album = require('./../models/albumModel');
 const Track = require('./../models/trackModel');
 const PlayHistory = require('./../models/playHistoryModel');
+const Playlist = require('./../models/playlistModel');
+const Category = require('./../models/categoryModel');
+
 const connectDB = require('./../utils/connectDB');
 const disconnectDB = require('./../utils/disconnectDB');
 const { dropDB } = require('./../utils/dropDB');
@@ -70,35 +76,43 @@ const createPlayHistories = async (userIds, trackIds) => {
 };
 
 (async function() {
-  process.env.NODE_ENV = 'seeds';
-  console.log(process.env.NODE_ENV);
+  process.env.NODE_ENV = 'seed';
   await connectDB();
   await dropDB();
 
-  // const { userObjects, artistInfoObjects, adminObjects } = userSeed();
+  console.log('Running seeds, please wait...');
 
-  // const users = await User.insertMany(userObjects);
-  // const artistsInfo = await User.insertMany(artistInfoObjects);
-  // const admins = await User.insertMany(adminObjects);
+  const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
-  // const userIds = artistsInfo.map(el => el._id);
+  const users = await User.create(userObjects);
+  const artistsInfo = await User.create(artistInfoObjects);
+  const admins = await User.create(adminObjects);
 
-  // const artistObjects = artistSeed(userIds);
+  const usersIds = artistsInfo.map(el => el._id);
 
-  // const artists = await Artist.insertMany(artistObjects);
+  const artistObjects = artistSeed(usersIds);
+  const artists = await Artist.create(artistObjects);
+  const artistsIds = artists.map(el => el._id);
 
-  // const artistIds = artists.map(el => el._id);
+  const albumObjects = albumSeed.albumObjects(artistsIds);
 
-  // const albumObjects = albumSeed.albumObjects(artistIds);
-  // let albums = await Album.insertMany(albumObjects);
+  let albums = await Album.create(albumObjects);
 
-  // const tracks = await createTracks(albums);
+  const tracks = await createTracks(albums);
+  const tracksIds = tracks.map(el => el._id);
 
-  // const trackIds = tracks.map(el => el._id);
+  albums = await Album.find({});
 
-  // albums = await Album.find({});
+  const playHistories = await createPlayHistories(usersIds, tracksIds);
 
-  // const playHistories = await createPlayHistories(userIds, trackIds);
-  // console.log(playHistories);
+  const playlistObjects = playlistSeed(usersIds, tracksIds);
+  const playlists = await Playlist.create(playlistObjects);
+  const playlistsIds = playlists.map(el => el._id);
+
+  const categoryObjects = categorySeed.categoryObjects(playlistsIds);
+  const categories = await Category.insertMany(categoryObjects);
+
   await disconnectDB();
+
+  console.log('✅ Seeds executed successfully');
 })();

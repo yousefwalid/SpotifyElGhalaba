@@ -1,8 +1,12 @@
 const sharp = require('sharp');
 const AwsS3Api = require('./awsS3Api');
 const AppError = require('./appError');
+
 /**
- *  @module utilsModule
+ * @module Utility Module
+ */
+
+/**
  *  Responsible for uploading images to AWS Bucket, please take care that each dimension has its corresponding qualityNames
  *  @param {Buffer} imageData The image data sent in the request,
  *  @param {String} modelName The string of the model this image is for, eg: album, artist
@@ -11,6 +15,8 @@ const AppError = require('./appError');
  *  @param {Array<String>} qualityNames An array containing the names of the qualities of each dimensions of photos, etc. High, Medium, Low.
  *  @returns {Array<imageObject>} An array containing the imageObjects of the images stored in AWS
  */
+
+/* istanbul ignore file */
 module.exports = async (
   imageData,
   modelName,
@@ -38,11 +44,16 @@ module.exports = async (
     const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
 
     // eslint-disable-next-line no-await-in-loop
-    await awsObj.s3.putObject({
-      Body: img,
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key
-    });
+    awsObj.s3.putObject(
+      {
+        Body: img,
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: key
+      },
+      err => {
+        if (err) throw new AppError('Upload validation failed', 500);
+      }
+    );
 
     imgObjects.push({
       width: dimension[0],

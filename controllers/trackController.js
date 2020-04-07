@@ -28,11 +28,7 @@ const getTrack = async trackID => {
  * @returns {Array<TrackObject>} Array of the required tracks
  */
 
-const getSeveralTracks = async req => {
-  if (req.query.ids == '') {
-    throw new AppError('Please provide track IDs', 400);
-  }
-  let trackIDs = req.query.ids.split(',');
+const getSeveralTracks = async trackIDs => {
   if (trackIDs.length > 20) {
     trackIDs = trackIDs.slice(0, 20);
   }
@@ -117,7 +113,11 @@ exports.createTrack = catchAsync(async (req, res, next) => {
 });
 
 exports.getSeveralTracks = catchAsync(async (req, res, next) => {
-  const trackList = await getSeveralTracks(req);
+  if (req.query.ids == '') {
+    return next(new AppError('Please provide track IDs', 400));
+  }
+  let trackIDs = req.query.ids.split(',');
+  const trackList = await getSeveralTracks(trackIDs);
   res.status(200).json({
     Tracks: trackList
   });

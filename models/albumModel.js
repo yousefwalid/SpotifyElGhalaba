@@ -86,19 +86,26 @@ albumSchema.plugin(idValidator, {
 });
 albumSchema.plugin(mongooseLeanVirtuals);
 
-albumSchema.post('save', async function(next) {
-  if (this.artists && this.artists.length > 0) {
-    const artists = await Artist.find({ _id: { $in: this.artists } });
+albumSchema.pre('save', async function(next) {
+  this.wasNew = this.isNew;
+  next();
+});
 
-    if (!artists) next(new AppError('No artists found with these ids'));
+albumSchema.post('save', async function(doc, next) {
+  if (this.wasNew) {
+    if (this.artists && this.artists.length > 0) {
+      const artists = await Artist.find({ _id: { $in: this.artists } });
 
-    artists.forEach(artist => {
-      artist.albums.push(this._id);
-      artist.save();
-    });
-  } else {
-    throw new AppError('No artists specified in the request', 500);
+      if (!artists) next(new AppError('No artists found with these ids'));
+      artists.forEach(artist => {
+        if (!artist.albums.includes(this._id)) artist.albums.push(this._id);
+        artist.save();
+      });
+    } else {
+      throw new AppError('No artists specified in the request', 500);
+    }
   }
+  next();
 });
 
 const URI = albumSchema.virtual('uri');
