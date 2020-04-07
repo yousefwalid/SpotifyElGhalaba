@@ -83,30 +83,25 @@ const createPlayHistories = async (userIds, trackIds) => {
   const artistsInfo = await User.insertMany(artistInfoObjects);
   const admins = await User.insertMany(adminObjects);
 
-  const userIds = artistsInfo.map(el => el._id);
+  const usersIds = artistsInfo.map(el => el._id);
 
-  const artistObjects = artistSeed(userIds);
-
+  const artistObjects = artistSeed(usersIds);
   const artists = await Artist.insertMany(artistObjects);
+  const artistsIds = artists.map(el => el._id);
 
-  const artistIds = artists.map(el => el._id);
-
-  const albumObjects = albumSeed.albumObjects(artistIds);
+  const albumObjects = albumSeed.albumObjects(artistsIds);
   let albums = await Album.insertMany(albumObjects);
 
   const tracks = await createTracks(albums);
-
-  const trackIds = tracks.map(el => el._id);
+  const tracksIds = tracks.map(el => el._id);
 
   albums = await Album.find({});
 
-  const playHistories = await createPlayHistories(userIds, trackIds);
+  const playHistories = await createPlayHistories(usersIds, tracksIds);
 
-  const playlistObjects = playlistSeed(userIds, trackIds);
-
-  //console.log(playlistObjects.map(el => el.tracks));
-
+  const playlistObjects = playlistSeed(usersIds, tracksIds);
   const playlists = await Playlist.insertMany(playlistObjects);
+  const playlistsIds = playlists.map(el => el._id);
 
   await disconnectDB();
 })();
