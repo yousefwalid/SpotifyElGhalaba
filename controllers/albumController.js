@@ -168,9 +168,9 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
     [60, 60]
   ];
   const qualityNames = ['High', 'Medium', 'Low'];
-  const imgObjects = uploadAWSImage(
+  const imgObjects = await uploadAWSImage(
     req.files.image.data,
-    album,
+    'album',
     req.params.id,
     dimensions,
     qualityNames

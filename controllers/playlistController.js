@@ -8,45 +8,12 @@ const filterObj = require('./../utils/filterObject');
 const parseFields = require('./../utils/parseFields');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
 const jsonToPrivateUser = require('../utils/jsonToPublicUser');
-const AwsS3Api = require('./../utils/awsS3Api');
+const uploadAWSImage = require('./../utils/uploadAWSImage');
 const User = require('./../models/userModel');
+
 /**
  * @module PlaylistController
  */
-
-/* Image uploading */
-
-/**
- *  An object used for disk storage configurations of multer
- */
-
-// const multerStorage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'public/img/playlists');
-//   },
-//   filename: (req, file, cb) => {
-//     const ext = file.mimetype.split('/')[1];
-//     cb(null, `playlist-${req.params.playlist_id}-${Date.now()}.${ext}`);
-//   }
-// });
-
-// /**
-//  * An object used for filtering images for multer
-//  */
-
-// const multerFilter = (req, file, cb) => {
-//   if (file.mimetype.startsWith('image')) {
-//     cb(null, true);
-//   } else {
-//     cb(new AppError('Not an image format', 400), false);
-//   }
-// };
-
-// const awsObj = new AwsS3Api();
-// const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
-// awsObj.setMulterStorage(null, null, null, multerStorage);
-// awsObj.setMulterUploadOptions({ multerFilter, limits });
-// const upload = awsObj.getMulterUpload();
 
 /**
  * Validates the ranges of limit and offset
@@ -560,6 +527,36 @@ const reorderPlaylistTracks = async (
   });
 };
 
+const uploadImage = async (fileData, playlistId, userId) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+  if (!playlistId) throw new AppError('Playlist id not specified', 400);
+  if (!userId) throw new AppError('User id not specified', 400);
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) throw new AppError('Playlist not found', 404);
+
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+
+  const qualityNames = ['High', 'Medium', 'Low'];
+
+  const imgObjects = await uploadAWSImage(
+    fileData,
+    'playlist',
+    playlistId,
+    dimensions,
+    qualityNames
+  );
+
+  playlist.images = imgObjects;
+
+  await playlist.save();
+};
+
 /* istanbul ignore next */
 exports.getPlaylist = catchAsync(async (req, res, next) => {
   const playlist = await getPlaylist(
@@ -665,7 +662,11 @@ exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   res.status(200).send();
 });
 
-//exports.uploadPlaylistImage = upload.single('photo');
+exports.uploadImage = catchAsync(async (req, res, next) => {
+  await uploadImage(req.files.image.data, req.params.playlist_id, req.user._id);
+
+  res.status(202).send();
+});
 
 exports.getPlaylistLogic = getPlaylist;
 exports.getPlaylistTracksLogic = getPlaylistTracks;
