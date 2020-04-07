@@ -11,13 +11,9 @@
 */
 
 const jwt = require('jsonwebtoken');
-const {
-  promisify
-} = require('util');
+const { promisify } = require('util');
 const crypto = require('crypto');
-const {
-  ObjectId
-} = require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -64,13 +60,16 @@ const sendEmail = require('./../utils/email');
  */
 const setAllDevicesInactive = async user => {
   if (user.devices.length > 0) {
-    await User.findOneAndUpdate({
-      _id: user._id
-    }, {
-      $set: {
-        'devices.$[].isActive': false
+    await User.findOneAndUpdate(
+      {
+        _id: user._id
+      },
+      {
+        $set: {
+          'devices.$[].isActive': false
+        }
       }
-    });
+    );
   }
   return user;
 };
@@ -149,21 +148,25 @@ const getFirstInactiveDevice = user => {
  * @returns {UserObject}  The updated user document.
  */
 const replaceUserDevice = async (user, deviceId, device) => {
-  user = await User.findOneAndUpdate({
-    _id: user._id,
-    'devices._id': deviceId
-  }, {
-    $set: {
-      'devices.$': {
-        name: device.client.name,
-        type: device.device.type,
-        isActive: true
+  user = await User.findOneAndUpdate(
+    {
+      _id: user._id,
+      'devices._id': deviceId
+    },
+    {
+      $set: {
+        'devices.$': {
+          name: device.client.name,
+          type: device.device.type,
+          isActive: true
+        }
       }
+    },
+    {
+      new: true,
+      runValidators: true
     }
-  }, {
-    new: true,
-    runValidators: true
-  });
+  );
   return user;
 };
 
@@ -208,7 +211,8 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       email: email
     },
     User.privateUser()
@@ -286,10 +290,12 @@ exports.getUserByToken = getUserByToken;
  * @returns {String}  A json web token (JWT).
  */
 const signToken = id => {
-  return jwt.sign({
+  return jwt.sign(
+    {
       id
     },
-    process.env.JWT_SECRET, {
+    process.env.JWT_SECRET,
+    {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -303,7 +309,8 @@ exports.signToken = signToken;
  * @param {String} baseURL The base url for the password reset link that is sent to the user.
  */
 const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       email
     },
     User.privateUser()
@@ -351,7 +358,8 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -493,9 +501,9 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-    'Upgrade: WebSocket\r\n' +
-    'Connection: Upgrade\r\n' +
-    '\r\n'
+      'Upgrade: WebSocket\r\n' +
+      'Connection: Upgrade\r\n' +
+      '\r\n'
   );
   ws.close();
 };
@@ -546,10 +554,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 */
 
 exports.login = catchAsync(async (req, res, next) => {
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
   if (!email || !password)
     throw new AppError('Please provide email and password!', 400);
 
@@ -578,8 +583,6 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
   res.cookie('loggedIn', true, cookieOptions);
 
   res.redirect(process.env.FRONTEND_URL);
-
-
 });
 
 exports.logout = catchAsync(async (req, res, next) => {
