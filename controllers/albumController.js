@@ -152,16 +152,18 @@ const createAlbum = async (requestBody, currentUser) => {
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
 };
-
-exports.uploadImage = catchAsync(async (req, res, next) => {
-  if (!req.params.id) {
-    return next(new AppError('Please provide album ID', 400));
-  }
-  const album = await Album.findById(req.params.id);
+/**
+ * Function that uploads the given image and it's different sized to AWS bucket
+ * @param {Object} fileData -the buffer of the uploaded image
+ * @param {String} albumID -the ID of the album that the images will be uploaded to
+ */
+const uploadImage = async (fileData, albumID) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+  if (!albumID) throw new AppError('Playlist id not specified', 400);
+  const album = await Album.findById(albumID);
   if (!album) {
-    return next(new AppError('Album not found', 404));
+    throw new AppError('Album not found', 404);
   }
-
   const dimensions = [
     [640, 640],
     [300, 300],
@@ -169,9 +171,9 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   ];
   const qualityNames = ['High', 'Medium', 'Low'];
   const imgObjects = await uploadAWSImage(
-    req.files.image.data,
+    fileData,
     'album',
-    req.params.id,
+    albumID,
     dimensions,
     qualityNames
   );
@@ -179,6 +181,9 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   album.images = imgObjects;
 
   await album.save();
+};
+exports.uploadImage = catchAsync(async (req, res, next) => {
+  await uploadImage(req.files.image.data, req.params.id);
   res.status(202).json({
     status: 'success',
     message: 'Image Uploaded successfully'
