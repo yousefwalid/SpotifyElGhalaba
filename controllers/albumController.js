@@ -3,13 +3,16 @@
  * @module AlbumController
  */
 const mongoose = require('mongoose');
+const sharp = require('sharp');
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
+const AwsS3Api = require('./../utils/awsS3Api');
 const uploadAWSImage = require('../utils/uploadAWSImage');
+
 /**
  * Gets a track with a specific ID
  * @param {String} albumID - The id of the desired track
