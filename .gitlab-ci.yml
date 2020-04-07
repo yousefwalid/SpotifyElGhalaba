@@ -10,7 +10,7 @@ cache:
     - .npm/
 
 before_script:
-  - npm i
+  - npm ci --only=production --cache .npm --prefer-offline
 
 run in prod-like env:
   image: node:13-alpine3.11
