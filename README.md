@@ -21,10 +21,9 @@ To be able to run the project successfully you need to have the following packag
 
 1. MongoDB server
 2. `npm` globally installed
-3. `nodemon` globally installed (for development)
 
 You can install MongoDB Server from their official website.\
-You can install npm from the `npmjs` website, and `nodemon` globally by running the following command with npm: `npm install nodemon -g`.
+You can install npm from the `npmjs` website.
 
 ### Environment Variables
 
