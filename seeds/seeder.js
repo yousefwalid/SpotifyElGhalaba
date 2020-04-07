@@ -8,12 +8,15 @@ const userSeed = require('./data/users');
 const artistSeed = require('./data/artists');
 const albumSeed = require('./data/albums');
 const trackSeed = require('./data/tracks');
+const playlistSeed = require('./data/playlist');
 
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const Album = require('./../models/albumModel');
 const Track = require('./../models/trackModel');
 const PlayHistory = require('./../models/playHistoryModel');
+const Playlist = require('./../models/playlistModel');
+
 const connectDB = require('./../utils/connectDB');
 const disconnectDB = require('./../utils/disconnectDB');
 const { dropDB } = require('./../utils/dropDB');
@@ -70,35 +73,40 @@ const createPlayHistories = async (userIds, trackIds) => {
 };
 
 (async function() {
-  process.env.NODE_ENV = 'seeds';
-  console.log(process.env.NODE_ENV);
+  process.env.NODE_ENV = 'seed';
   await connectDB();
   await dropDB();
 
-  // const { userObjects, artistInfoObjects, adminObjects } = userSeed();
+  const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
-  // const users = await User.insertMany(userObjects);
-  // const artistsInfo = await User.insertMany(artistInfoObjects);
-  // const admins = await User.insertMany(adminObjects);
+  const users = await User.insertMany(userObjects);
+  const artistsInfo = await User.insertMany(artistInfoObjects);
+  const admins = await User.insertMany(adminObjects);
 
-  // const userIds = artistsInfo.map(el => el._id);
+  const userIds = artistsInfo.map(el => el._id);
 
-  // const artistObjects = artistSeed(userIds);
+  const artistObjects = artistSeed(userIds);
 
-  // const artists = await Artist.insertMany(artistObjects);
+  const artists = await Artist.insertMany(artistObjects);
 
-  // const artistIds = artists.map(el => el._id);
+  const artistIds = artists.map(el => el._id);
 
-  // const albumObjects = albumSeed.albumObjects(artistIds);
-  // let albums = await Album.insertMany(albumObjects);
+  const albumObjects = albumSeed.albumObjects(artistIds);
+  let albums = await Album.insertMany(albumObjects);
 
-  // const tracks = await createTracks(albums);
+  const tracks = await createTracks(albums);
 
-  // const trackIds = tracks.map(el => el._id);
+  const trackIds = tracks.map(el => el._id);
 
-  // albums = await Album.find({});
+  albums = await Album.find({});
 
-  // const playHistories = await createPlayHistories(userIds, trackIds);
-  // console.log(playHistories);
+  const playHistories = await createPlayHistories(userIds, trackIds);
+
+  const playlistObjects = playlistSeed(userIds, trackIds);
+
+  //console.log(playlistObjects.map(el => el.tracks));
+
+  const playlists = await Playlist.insertMany(playlistObjects);
+
   await disconnectDB();
 })();
