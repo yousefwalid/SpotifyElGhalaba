@@ -26,8 +26,10 @@ module.exports = async (
 
   const imgObjects = [];
 
-  dimensions.forEach(async (dimension, i) => {
+  for (let i = 0; i < dimensions.length; i += 1) {
+    const dimension = dimensions[i];
     const name = qualityNames[i];
+    // eslint-disable-next-line no-await-in-loop
     const img = await sharp(buf)
       .resize(dimension[0], dimension[1])
       .toBuffer();
@@ -35,18 +37,24 @@ module.exports = async (
     const key = `photos/${modelName}-${modelId}-${name}.jpeg`;
     const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
 
-    await awsObj.s3.putObject({
-      Body: img,
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key
-    });
+    // eslint-disable-next-line no-await-in-loop
+    awsObj.s3.putObject(
+      {
+        Body: img,
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: key
+      },
+      err => {
+        if (err) throw new AppError('Upload validation failed', 500);
+      }
+    );
 
     imgObjects.push({
       width: dimension[0],
       height: dimension[1],
       url: `${url}${key}`
     });
-  });
+  }
 
   return imgObjects;
 };

@@ -44,7 +44,7 @@ Please make sure to install all the prerequisities listed above in the [**Prereq
 
 # Database Seeds
 
-To seed an empty database before running the project you should run `npm run seeds`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.
+To seed an empty database before running the project you should run `npm run seed`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.
 
 **DISCLAIMER** Take care as database seeds will wipe your database clean before seeding.
 

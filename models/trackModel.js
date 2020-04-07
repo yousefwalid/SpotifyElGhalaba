@@ -88,11 +88,13 @@ trackSchema.pre('save', async function(next) {
     next(new AppError('No album found with this id', 404));
   }
   this.track_number = album.tracks.length + 1;
+  next();
 });
-trackSchema.post('save', async function(next) {
+trackSchema.post('save', async function(doc, next) {
   const album = await Album.findById(this.album);
   album.tracks.push(this._id);
   await album.save();
+  next();
 });
 const type = trackSchema.virtual('type');
 type.get(function() {

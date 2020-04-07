@@ -1,4 +1,5 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const playlistController = require('./../controllers/playlistController');
 const authController = require('./../controllers/authenticationController');
 const followController = require('./../controllers/followController');
@@ -25,10 +26,9 @@ router
 
 router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
 
-router.route('/:playlist_id/images').post(
-  //playlistController.uploadPlaylistImage,
-  playlistController.addPlaylistImage
-);
+router
+  .route('/:playlist_id/images')
+  .post(fileUpload(), playlistController.uploadImage);
 
 router
   .route('/:playlist_id/followers')
