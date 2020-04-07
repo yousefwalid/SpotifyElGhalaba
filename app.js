@@ -73,7 +73,7 @@ if (process.env.NODE_ENV === 'development') {
 //CORS headers
 
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type,Authorization',
   credentials: true,
