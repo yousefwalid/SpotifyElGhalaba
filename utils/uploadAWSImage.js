@@ -44,8 +44,6 @@ module.exports = async (
       Key: key
     });
 
-    console.log({ Body: img, Bucket: process.env.AWS_BUCKET_NAME, Key: key });
-
     imgObjects.push({
       width: dimension[0],
       height: dimension[1],
