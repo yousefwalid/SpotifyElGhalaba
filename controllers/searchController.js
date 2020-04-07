@@ -1,4 +1,6 @@
-const { MongooseQueryParser } = require('mongoose-query-parser');
+const {
+  MongooseQueryParser
+} = require('mongoose-query-parser');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const ApiFeatures = require('./../utils/apiFeatures');
@@ -22,15 +24,17 @@ const getUsers = async regex => {
   return await User.find({
     name: {
       $regex: regex
-    }
+    },
+    type: "user"
   });
 };
 
 const getArtists = async regex => {
-  return await Artist.find({
+  return await User.find({
     name: {
       $regex: regex
-    }
+    },
+    type: "artist"
   });
 };
 
@@ -52,9 +56,8 @@ const getTracks = async regex => {
 
 exports.search = catchAsync(async (req, res, next) => {
   const queryString = req.query.q;
-  const types = req.query.type
-    ? req.query.type.split(',')
-    : ['album', 'user', 'artist', 'playlist', 'track'];
+  const types = req.query.type ?
+    req.query.type.split(',') : ['album', 'user', 'artist', 'playlist', 'track'];
   // const regex = new RegExp(`\\b${queryString.split('OR').join('|')}\\b`, 'i');
   let regex;
   //to check the exact word
