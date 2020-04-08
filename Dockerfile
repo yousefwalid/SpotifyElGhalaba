@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 80
 
 # Initial command
-CMD ["node" , "."]
+CMD npm i; node .
