@@ -42,9 +42,10 @@ const checkOnlineStatus = (ws, id) => {
     //clear online status
     ws.isOnline = false;
     //Send ping
-    setTimeout(() => ws.terminate(), 5000);
     if (ws.readyState === 1) ws.ping(null);
-    else return ws.terminate(); //This if else statement to avoid errors of sudden changes in ws.readyState
+    else {
+      return ws.terminate(); //This if else statement to avoid errors of sudden changes in ws.readyState
+    }
   }, 30000);
   ws.on('close', async () => {
     clearInterval(interval);
@@ -274,7 +275,7 @@ exports.status = async (ws, req) => {
     //------------------------------------------
     checkStreamingStatus(ws, req.user._id);
     //ON CLOSING CONNECTION
-    ws.on('close', async () => {
+    ws.on('close', () => {
       console.log(`${req.user.email} Disconnected  [WebSocket]`);
     });
   } catch (err) {
