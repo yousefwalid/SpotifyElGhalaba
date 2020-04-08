@@ -85,5 +85,3 @@ docs/
 
 coverage/
 
-# Shell scripts
-./*.sh
