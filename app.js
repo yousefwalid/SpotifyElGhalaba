@@ -75,7 +75,7 @@ if (process.env.NODE_ENV === 'development') {
 const corsOptions = {
   origin: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type,Authorization',
+  allowedHeaders: 'Content-Type,Authorization,X-Forwarded-For',
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
