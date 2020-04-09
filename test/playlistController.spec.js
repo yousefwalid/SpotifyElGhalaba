@@ -14,7 +14,7 @@ const playlistController = require('../controllers/playlistController');
 const insertArtist = require('./utils/insertArtistIntoDB');
 
 describe('Testing Playlist Controller', function() {
-  this.beforeAll(async () => {
+  this.beforeAll('Playlist', async () => {
     await dropDB();
   });
 

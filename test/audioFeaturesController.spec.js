@@ -15,7 +15,7 @@ describe('Testing Audio-Features controller', function() {
   let user;
   let generatedAlbum;
   let createdAlbum;
-  this.beforeAll(async function() {
+  this.beforeAll('Audio Features', async function() {
     await dropDB();
   });
   this.beforeEach(async function() {

@@ -7,7 +7,7 @@ const connectDB = async () => {
   loadEnv();
 
   const DB = process.env.DATABASE;
-
+  console.log(DB);
   try {
     await mongoose.connect(DB, {
       useNewUrlParser: true,

@@ -8,7 +8,7 @@ describe('Testing user controller', function() {
   const userToCreate = createUser();
   userToCreate.email = userToCreate.email.toLowerCase();
   let createdUser;
-  this.beforeAll(async () => {
+  this.beforeAll('User', async () => {
     await dropDB();
   });
 

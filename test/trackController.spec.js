@@ -16,7 +16,7 @@ describe('Testing track controller', function() {
   let album;
   let createdTrack;
 
-  this.beforeAll(async function() {
+  this.beforeAll('Track', async function() {
     await dropDB();
   });
   this.beforeEach(async function() {

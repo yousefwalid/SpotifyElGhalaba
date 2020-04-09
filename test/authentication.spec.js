@@ -1,6 +1,7 @@
 const assert = require('assert');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const faker = require('faker');
 
 const { dropDB } = require('./../utils/dropDB');
 const authenticationController = require('../controllers/authenticationController');
@@ -82,7 +83,7 @@ const createUserAssertions = function(user, body) {
 };
 
 describe('Testing Authentication Services', function() {
-  this.beforeAll(async () => {
+  this.beforeAll('Authentication', async () => {
     await dropDB();
 
     // console.log(userBody);
@@ -281,6 +282,31 @@ describe('Testing Authentication Services', function() {
       assert.ok(
         correct,
         `The entered password does not match the updated password`
+      );
+    });
+
+    it(`Should reset user's password given a previously embedded resetToken in the user Correctly without errors.`, async function() {
+      //First create a reset token and set it in the user
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      userUser.passwordResetToken = crypto
+        .createHash('SHA256')
+        .update(resetToken)
+        .digest('hex');
+      userUser.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+      await userUser.save({
+        //To avoid the passwordConfirm field validation
+        validateBeforeSave: false
+      });
+      const password = '123abcxyzT';
+      const returnedUser = await authenticationController.resetPasswordService(
+        resetToken,
+        password,
+        password
+      );
+      userUser = await User.findById(userUser._id, User.privateUser());
+      assert.ok(
+        await bcrypt.compare(password, userUser.password),
+        'The resetPassword Service Does Not Work Properly'
       );
     });
   });

@@ -20,7 +20,7 @@ describe('Testing library controller', function() {
   const albums = [];
   let createdAlbums = [];
   let createdTracks = [];
-  this.beforeAll(async function() {
+  this.beforeAll('Library', async function() {
     await dropDB();
   });
   this.beforeEach(async function() {

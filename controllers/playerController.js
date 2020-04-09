@@ -22,6 +22,8 @@ const Features = require('./../utils/apiFeatures');
  * @param {Object} ws WebSocket Object.
  * @param {ObjectId} id User's Id.
  */
+//Uses webSocket module [TEST E2E only] - No need for unittesting
+/* istanbul ignore next */
 const checkOnlineStatus = (ws, id) => {
   //set online status variable.
   ws.isOnline = true;
@@ -62,6 +64,8 @@ const checkOnlineStatus = (ws, id) => {
  * @param {Object} ws WebSocket Object.
  * @param {ObjectId} id User's Id.
  */
+//Uses WebSocket module [TEST E2E only] - No need for unittesting
+/* istanbul ignore next */
 const checkStreamingStatus = (ws, id) => {
   ws.lastTime = 0;
   ws.isPlaying = false;
@@ -261,6 +265,8 @@ exports.validateGetRecentlyPlayed = (req, res, next) => {
  ##     ## ########  ##### ##  #######  ########  ######     ##       ##     ## ##     ## ##    ## ########  ######## ######## ##     ##  ######  
  
 */
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.status = async (ws, req) => {
   //AUTHENTICATE CONNECTION
   try {
@@ -283,7 +289,8 @@ exports.status = async (ws, req) => {
     return;
   }
 };
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.playTrack = catchAsync(async (req, res, next) => {
   const playedAt = req.body.played_at ? req.body.played_at : Date.now();
   const userId = new ObjectId(req.user._id);
@@ -295,7 +302,8 @@ exports.playTrack = catchAsync(async (req, res, next) => {
 
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.getAvailableDevices = catchAsync(async (req, res, next) => {
   const devices = await User.findById(req.user._id, 'devices -_id').lean({
     virtuals: false
@@ -304,7 +312,8 @@ exports.getAvailableDevices = catchAsync(async (req, res, next) => {
     devices
   });
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
   const currentlyPlaying = await User.findById(
     req.user._id,
@@ -325,7 +334,8 @@ exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
     currentlyPlaying: currentlyPlaying.currentlyPlaying
   });
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.getRecentlyPlayed = catchAsync(async (req, res, next) => {
   if (!req.query.before && !req.query.after) {
     req.query.before = Date.now();
@@ -345,7 +355,8 @@ exports.getRecentlyPlayed = catchAsync(async (req, res, next) => {
     items
   });
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.getCurrentlyPlayingTrack = catchAsync(async (req, res, next) => {
   const currentlyPlayingTrack = await User.findById(
     req.user._id,
@@ -360,7 +371,8 @@ exports.getCurrentlyPlayingTrack = catchAsync(async (req, res, next) => {
     currentlyPlayingTrack: currentlyPlayingTrack.currentlyPlaying.track
   });
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.pause = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
     $set: { 'currentlyPlaying.is_playing': false }
@@ -374,7 +386,8 @@ exports.play = catchAsync(async (req, res, next) => {
   }).lean({ virtuals: false });
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.seekToPosition = catchAsync(async (req, res, next) => {
   if (!req.query.position_ms) {
     return next(
@@ -386,7 +399,8 @@ exports.seekToPosition = catchAsync(async (req, res, next) => {
   }).lean({ virtuals: false });
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.setRepeatMode = catchAsync(async (req, res, next) => {
   if (!req.query.state) {
     return next(
@@ -400,7 +414,8 @@ exports.setRepeatMode = catchAsync(async (req, res, next) => {
   }).lean({ virtuals: false });
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.setVolume = catchAsync(async (req, res, next) => {
   if (!req.query.volume_percent) {
     return next(
@@ -414,7 +429,8 @@ exports.setVolume = catchAsync(async (req, res, next) => {
   }).lean({ virtuals: false });
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.shuffle = catchAsync(async (req, res, next) => {
   if (!req.query.state) {
     return next(
@@ -428,15 +444,18 @@ exports.shuffle = catchAsync(async (req, res, next) => {
   }).lean({ virtuals: false });
   res.status(204).json({});
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 // exports.skipToNext = catchAsync(async (req, res, next) => {
 //   res.status().json({});
 // });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 // exports.skipToPrevious = catchAsync(async (req, res, next) => {
 //   res.status().json({});
 // });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 // exports.transferPlayback = catchAsync(async (req, res, next) => {
 //   res.status().json({});
 // });
