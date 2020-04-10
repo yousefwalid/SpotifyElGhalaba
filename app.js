@@ -73,13 +73,13 @@ if (process.env.NODE_ENV === 'development') {
 //CORS headers
 
 const corsOptions = {
+  origin: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type,Authorization',
+  allowedHeaders: 'Content-Type,Authorization,X-Forwarded-For',
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-if (process.env.NODE_ENV === 'development') corsOptions.origin = `http://localhost:${process.env.FRONTEND_PORT}`
 // const corsOptionsDelegate = function (req, callback) {
 //   if (req.url === `${baseApiUrl}/authentication/login`) {
 //     corsOptions.origin = true;

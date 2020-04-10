@@ -11,13 +11,9 @@
 */
 
 const jwt = require('jsonwebtoken');
-const {
-  promisify
-} = require('util');
+const { promisify } = require('util');
 const crypto = require('crypto');
-const {
-  ObjectId
-} = require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -64,13 +60,16 @@ const sendEmail = require('./../utils/email');
  */
 const setAllDevicesInactive = async user => {
   if (user.devices.length > 0) {
-    await User.findOneAndUpdate({
-      _id: user._id
-    }, {
-      $set: {
-        'devices.$[].isActive': false
+    await User.findOneAndUpdate(
+      {
+        _id: user._id
+      },
+      {
+        $set: {
+          'devices.$[].isActive': false
+        }
       }
-    });
+    );
   }
   return user;
 };
@@ -149,21 +148,25 @@ const getFirstInactiveDevice = user => {
  * @returns {UserObject}  The updated user document.
  */
 const replaceUserDevice = async (user, deviceId, device) => {
-  user = await User.findOneAndUpdate({
-    _id: user._id,
-    'devices._id': deviceId
-  }, {
-    $set: {
-      'devices.$': {
-        name: device.client.name,
-        type: device.device.type,
-        isActive: true
+  user = await User.findOneAndUpdate(
+    {
+      _id: user._id,
+      'devices._id': deviceId
+    },
+    {
+      $set: {
+        'devices.$': {
+          name: device.client.name,
+          type: device.device.type,
+          isActive: true
+        }
       }
+    },
+    {
+      new: true,
+      runValidators: true
     }
-  }, {
-    new: true,
-    runValidators: true
-  });
+  );
   return user;
 };
 
@@ -208,7 +211,8 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       email: email
     },
     User.privateUser()
@@ -239,13 +243,13 @@ const getDecodedToken = async req => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   } else if (
     req.query.Authorization &&
     req.query.Authorization.startsWith('Bearer')
   ) {
     token = req.query.Authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   } else
     throw new AppError(`You're not logged in. Please login to get access`, 401);
 
@@ -263,12 +267,12 @@ exports.getDecodedToken = getDecodedToken;
  */
 const getUserByToken = async token => {
   const user = await User.findById(token.id, User.privateUser());
-
-  if (!user)
+  if (!user) {
     throw new AppError(
       `The user that belongs to this token no longer exists`,
       401
     );
+  }
 
   if (User.changedPasswordAfter(user, token.iat)) {
     throw new AppError(
@@ -286,10 +290,12 @@ exports.getUserByToken = getUserByToken;
  * @returns {String}  A json web token (JWT).
  */
 const signToken = id => {
-  return jwt.sign({
+  return jwt.sign(
+    {
       id
     },
-    process.env.JWT_SECRET, {
+    process.env.JWT_SECRET,
+    {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -303,7 +309,8 @@ exports.signToken = signToken;
  * @param {String} baseURL The base url for the password reset link that is sent to the user.
  */
 const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       email
     },
     User.privateUser()
@@ -351,7 +358,8 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -423,6 +431,7 @@ const createAndSendToken = (user, statusCode, res) => {
   res.cookie('jwt', token, cookieOptions);
   cookieOptions.httpOnly = false;
   res.cookie('loggedIn', true, cookieOptions);
+
   // res.setHeader('Access-Control-Allow-Origin', req.);
   res.status(statusCode).json({
     status: 'success',
@@ -477,7 +486,6 @@ exports.sendUser = sendUser;
 const protect = async req => {
   //Get the token from the request header or cookie or url.
   const decodedToken = await getDecodedToken(req);
-
   //Get the user by the data in the decoded token.
   const user = await getUserByToken(decodedToken);
 
@@ -493,11 +501,11 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-    'Upgrade: WebSocket\r\n' +
-    'Connection: Upgrade\r\n' +
-    '\r\n'
+      'Upgrade: WebSocket\r\n' +
+      'Connection: Upgrade\r\n' +
+      '\r\n'
   );
-  ws.end();
+  ws.close();
 };
 exports.closeSocket = closeSocket;
 
@@ -546,10 +554,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 */
 
 exports.login = catchAsync(async (req, res, next) => {
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
   if (!email || !password)
     throw new AppError('Please provide email and password!', 400);
 
@@ -574,24 +579,19 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
-
   cookieOptions.httpOnly = false;
   res.cookie('loggedIn', true, cookieOptions);
 
-  if (process.env.NODE_ENV === 'development') res.redirect(`http://localhost:${process.env.FRONTEND_PORT}`);
-  else res.redirect(`/`);
-
+  res.redirect(process.env.FRONTEND_URL);
 });
 
 exports.logout = catchAsync(async (req, res, next) => {
   res.clearCookie('jwt');
   res.clearCookie('loggedIn');
-  res.json(200).json('done');
+  res.status(200).json('done');
 });
 
-
 exports.getToken = catchAsync(async (req, res, next) => {
-
   const token = signToken(req.user._id);
   res.status(200).json({
     token
@@ -727,7 +727,8 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 exports.protectWs = async (req, ws) => {
   try {
     await protect(req);
-  } catch {
+  } catch (err) {
     closeSocket(ws);
+    throw err;
   }
 };
