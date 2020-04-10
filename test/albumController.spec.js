@@ -119,5 +119,43 @@ describe('Testing album controller', function() {
     } catch (err) {
       assert.strictEqual(err.statusCode, 400);
     }
+    try {
+      limit = albumController.validateLimitOffset(60, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+  });
+  it('Testing upload Image', async function() {
+    const createdAlbum = await Album.create(generateAlbum(user.id));
+    try {
+      await albumController.uploadImageLogic(null, createdAlbum._id);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      await albumController.uploadImageLogic('data', null);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      await albumController.uploadImageLogic(
+        'data',
+        '5e8281b93f83d84d5ab32e51'
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
+  it('Testing getNextAndPrevious', function() {
+    let { nextPage, previousPage } = albumController.getNextAndPrevious(
+      1,
+      1,
+      1
+    );
+    assert.strictEqual(nextPage, null);
+    assert.notStrictEqual(previousPage, null);
+    let page = albumController.getNextAndPrevious(-1, 1, 1);
+    assert.notStrictEqual(page.nextPage, null);
+    assert.strictEqual(page.previousPage, null);
   });
 });

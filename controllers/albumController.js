@@ -158,17 +158,20 @@ const createAlbum = async (requestBody, currentUser) => {
  */
 const uploadImage = async (fileData, albumID) => {
   if (!fileData) throw new AppError('Invalid file uploaded', 400);
-  if (!albumID) throw new AppError('Playlist id not specified', 400);
+  if (!albumID) throw new AppError('album id not specified', 400);
   const album = await Album.findById(albumID);
   if (!album) {
     throw new AppError('Album not found', 404);
   }
+  /*istanbul ignore next*/
   const dimensions = [
     [640, 640],
     [300, 300],
     [60, 60]
   ];
+  /*istanbul ignore next*/
   const qualityNames = ['High', 'Medium', 'Low'];
+  /*istanbul ignore next*/
   const imgObjects = await uploadAWSImage(
     fileData,
     'album',
@@ -177,10 +180,12 @@ const uploadImage = async (fileData, albumID) => {
     qualityNames
   );
 
+  /*istanbul ignore next*/
   album.images = imgObjects;
-
+  /*istanbul ignore next*/
   await album.save();
 };
+/*istanbul ignore next*/
 exports.uploadImage = catchAsync(async (req, res, next) => {
   await uploadImage(req.files.image.data, req.params.id);
   res.status(202).json({
@@ -232,3 +237,5 @@ exports.getSeveralAlbumsLogic = getSeveralAlbums;
 exports.getAlbumTracksLogic = getAlbumTracks;
 exports.getAlbumLogic = getAlbum;
 exports.validateLimitOffset = validateLimitOffset;
+exports.uploadImageLogic = uploadImage;
+exports.getNextAndPrevious = getNextAndPrevious;

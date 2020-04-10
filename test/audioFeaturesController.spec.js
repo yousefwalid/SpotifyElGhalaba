@@ -98,6 +98,18 @@ describe('Testing Audio-Features controller', function() {
       manualAudioFeatures.toObject()
     );
   });
+  it('Testing get audio features for a track with no audio features inserted', async function() {
+    createdAlbum = await Album.create(generatedAlbum);
+    const generatedTrack = generateTrack(createdAlbum._id, user.id);
+    const createdTrack = await Track.create(generatedTrack);
+    try {
+      await audioFeaturesController.getAudioFeaturesForTrackLogic(
+        createdTrack._id
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
   it('Testing get audio features for a track with invalid ID', async function() {
     try {
       await audioFeaturesController.getAudioFeaturesForTrackLogic(
@@ -111,15 +123,15 @@ describe('Testing Audio-Features controller', function() {
     createdAlbum = await Album.create(generatedAlbum);
     const generatedTracks = [];
     const TracksIDs = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
       generatedTracks.push(generateTrack(createdAlbum._id, user.id));
     }
     const createdTracks = await Track.create(generatedTracks);
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
       TracksIDs.push(createdTracks[i]._id);
     }
     const audioFeaturesObjects = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 25; i++) {
       audioFeaturesObjects.push({
         danceability: 0.735,
         energy: 0.578,
