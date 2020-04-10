@@ -50,6 +50,7 @@ const saveForCurrentUser = async (IDs, Model, User) => {
   query[modelName] = {
     $in: filteredModelIds
   };
+  query['user'] = User._id;
   const currentlySavedModel = await savedModel.find(query);
   currentlySavedModel.forEach(el => {
     for (let i = 0; i < filteredModelIds.length; i += 1) {
