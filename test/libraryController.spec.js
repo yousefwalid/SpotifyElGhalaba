@@ -100,6 +100,41 @@ describe('Testing library controller', function() {
       await libraryController.removeUserSavedModelLogic(albumsIDs, user, Album);
     });
   });
+  it('Testing remove albums for current user', async function() {
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
+    for (let i = 0; i < createdAlbums.length; i += 1) {
+      albumsIDs.push(createdAlbums[i]._id);
+    }
+    try {
+      await libraryController.removeUserSavedModelLogic(
+        albumsIDs[0],
+        user,
+        Album
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
+  it('Testing remove track for current user with non existing saved track', async function() {
+    const savedTracksObjects = [];
+    for (let i = 0; i < 10; i += 1)
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
+    const tracksIDs = [];
+    createdTracks = await Track.create(tracks);
+    for (let i = 0; i < tracks.length; i += 1) {
+      tracksIDs[i] = createdTracks[i]._id;
+    }
+    try {
+      await libraryController.removeUserSavedModelLogic(
+        tracksIDs[0],
+        user,
+        Track
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
   it('Testing remove tracks for current user', async function() {
     const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)

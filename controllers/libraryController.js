@@ -175,7 +175,7 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
  * @param {Model} Model - The Model to work on {Album,Track}
  * @return Boolean array
  */
-const checkUsersSavedModel = async (IDs, Model) => {
+const checkUsersSavedModel = async (IDs, Model, User) => {
   let modelName;
   let savedModel;
   if (Model === Track) {
@@ -189,6 +189,7 @@ const checkUsersSavedModel = async (IDs, Model) => {
   query[modelName] = {
     $in: IDs
   };
+  query['user'] = User._id;
   const currentlySavedDocs = await savedModel.find(query);
   const boolArray = [];
   IDs.forEach(el => {
@@ -228,7 +229,6 @@ const removeUserSavedModel = async (IDs, user, Model) => {
   };
   query.user = user._id;
   const deletedDocs = await savedModel.deleteMany(query);
-  console.log(deletedDocs.deletedCount);
   if (deletedDocs.deletedCount == 0) {
     throw new AppError(`No ${modelName}s found with the given IDs`, 404);
   }
@@ -287,7 +287,7 @@ exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide albums ids', 400));
   }
   const albumIds = req.query.ids.split(',');
-  const boolArray = await checkUsersSavedModel(albumIds, Album);
+  const boolArray = await checkUsersSavedModel(albumIds, Album, req.user);
   res.status(200).json(boolArray);
 });
 
@@ -296,7 +296,7 @@ exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
     return next(new AppError('Please provide tracks ids', 400));
   }
   const trackIds = req.query.ids.split(',');
-  const boolArray = await checkUsersSavedModel(trackIds, Track);
+  const boolArray = await checkUsersSavedModel(trackIds, Track, req.user);
   res.status(200).json(boolArray);
 });
 
