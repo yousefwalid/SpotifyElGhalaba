@@ -7,6 +7,8 @@ const Category = require('./../models/categoryModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const ApiFeatures = require('./../utils/apiFeatures');
+const uploadAWSImage = require('../utils/uploadAWSImage');
+
 
 /**
  * A method that thakes the id of the category and returns a category object
@@ -31,7 +33,7 @@ const getAllCategories = async queryParams => {
   const categories = await features.query.populate('playlists');
   return categories;
 };
-
+exports.getAllCategoriesLogic = getAllCategories;
 /**
  * Takes a category object {@link Category}, add it and return the newly added category
  * @param {Category} newCategory  - The new catrgory to be added. See {@link Category}
@@ -59,6 +61,7 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
   } = await features.query.populate('playlists');
   return playlists;
 };
+exports.getCategoryPlaylistsLogic = getCategoryPlaylists;
 
 exports.getCategory = catchAsync(async (req, res, next) => {
   const category = await getCategory(req.params.id);
@@ -83,3 +86,41 @@ exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
   );
   res.status(200).json(playlists);
 });
+
+
+// exports.addIcons = catchAsync(async (req, res, next) => {
+//   if (!req.params.id)
+//     throw new AppError('Please provide category ID', 400);
+
+
+//   const category = await Category.findById(req.params.id);
+
+//   if (!category)
+//     throw new AppError('Album not found', 404);
+
+
+//   const dimensions = [
+//     [640, 640],
+//     [300, 300],
+//     [60, 60]
+//   ];
+
+//   const qualityNames = ['High', 'Medium', 'Low'];
+
+//   const imgObjects = await uploadAWSImage(
+//     req.files.icons.data,
+//     'category',
+//     req.params.id,
+//     dimensions,
+//     qualityNames
+//   );
+
+//   category.icons = imgObjects;
+
+//   await category.save();
+
+//   res.status(201).json({
+//     status: 'success',
+//     message: 'Icons Uploaded successfully'
+//   });
+// });
