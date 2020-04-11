@@ -11,9 +11,13 @@
 */
 
 const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
+const {
+  promisify
+} = require('util');
 const crypto = require('crypto');
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -35,6 +39,134 @@ const sendEmail = require('./../utils/email');
  ####### ####### ####### ####### ####### ####### ####### ####### #######
  ####### ####### ####### ####### ####### ####### ####### ####### #######
 */
+
+// const setActiveDevice = async (user, deviceId) => {
+//   if (user.devices.length > 0) {
+//     await User.findOneAndUpdate(
+//       { _id: user._id },
+//       {
+//         $set: { 'devices.$[].isActive': false }
+//       }
+//     );
+//     user = await User.findOneAndUpdate(
+//       { _id: user._id, 'devices._id': deviceId },
+//       { $set: { 'devices.$.isActive': true } },
+//       { new: true, runValidators: true }
+//     );
+//   }
+//   return user;
+// };
+
+/**
+ * @description Sets all user devices active status to false
+ * @param {Object} user The user document
+ * @returns {UserObject}
+ */
+const setAllDevicesInactive = async user => {
+  if (user.devices.length > 0) {
+    await User.findOneAndUpdate({
+      _id: user._id
+    }, {
+      $set: {
+        'devices.$[].isActive': false
+      }
+    });
+  }
+  return user;
+};
+
+/**
+ * @description Adds a device to users' devices
+ * @param {Object} user The user document
+ * @param {device} device The device object
+ * @returns {UserObject}  The updated user object
+ * @todo make the logic of adding devices for different users (user/artist)
+ */
+const addDevice = async (user, device) => {
+  // if (user.devices.length < 3) {
+  //   user = await User.findByIdAndUpdate(
+  //     user._id,
+  //     {
+  //       $push: {
+  //         devices: {
+  //           name: device.client.name,
+  //           type: device.device.type,
+  //           isActive: true
+  //         }
+  //       }
+  //     },
+  //     { new: true, runValidators: true }
+  //   );
+  // } else {
+  //   let deviceId;
+  //   for (let i = 0; i < 3; i += 1) {
+  //     if (!user.devices[i].isActive) {
+  //       deviceId = user.devices[i]._id;
+  //       break;
+  //     }
+  //   }
+  //   user = await User.findOneAndUpdate(
+  //     {
+  //       _id: user._id,
+  //       'devices._id': deviceId
+  //     },
+  //     {
+  //       $set: {
+  //         'devices.$': {
+  //           name: device.client.name,
+  //           type: device.device.type,
+  //           isActive: true
+  //         }
+  //       }
+  //     },
+  //     { new: true, runValidators: true }
+  //   );
+  // }
+  // return user;
+};
+/**
+ * @description Gets the id of the first inactive device from the users' devices.
+ * @param {Object} user The user document
+ * @returns {deviceId}  The device id
+ */
+const getFirstInactiveDevice = user => {
+  let deviceId;
+
+  for (let i = 0; i < 3; i += 1) {
+    if (!user.devices[i].isActive) {
+      deviceId = user.devices[i]._id;
+      break;
+    }
+  }
+  return deviceId;
+};
+
+/**
+ * @description Replaces a user device by another device.
+ * @param {UserObject} user The user document.
+ * @param {ObjectId} deviceId The id of the device to be replaced.
+ * @param {Object} device The new device object.
+ * @returns {UserObject}  The updated user document.
+ */
+const replaceUserDevice = async (user, deviceId, device) => {
+  user = await User.findOneAndUpdate({
+    _id: user._id,
+    'devices._id': deviceId
+  }, {
+    $set: {
+      'devices.$': {
+        name: device.client.name,
+        type: device.device.type,
+        isActive: true
+      }
+    }
+  }, {
+    new: true,
+    runValidators: true
+  });
+  return user;
+};
+
 /**
  * @description Creates a new user given his data.
  * @description Creates a corresponding artist to the user if the type is artist.
@@ -76,8 +208,7 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email: email
     },
     User.privateUser()
@@ -157,12 +288,10 @@ exports.getUserByToken = getUserByToken;
 //Uses jwt package function - No need for unittesting
 /* istanbul ignore next */
 const signToken = id => {
-  return jwt.sign(
-    {
+  return jwt.sign({
       id
     },
-    process.env.JWT_SECRET,
-    {
+    process.env.JWT_SECRET, {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -178,8 +307,7 @@ exports.signToken = signToken;
 //Uses createPasswirdResetToken in user model which is tested. Uses sendEmail service (Nodemailer is an imported) - No need for unittesting
 /* istanbul ignore next */
 const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email
     },
     User.privateUser()
@@ -226,8 +354,7 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -375,9 +502,9 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-      'Upgrade: WebSocket\r\n' +
-      'Connection: Upgrade\r\n' +
-      '\r\n'
+    'Upgrade: WebSocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    '\r\n'
   );
   ws.close();
 };
@@ -406,7 +533,8 @@ exports.closeSocket = closeSocket;
   ######  ####  ######   ##    ##  #######  ##        
 */
 //request handler - No need for unittesting
-/* istanbul ignore next */ exports.signup = catchAsync(
+/* istanbul ignore next */
+exports.signup = catchAsync(
   async (req, res, next) => {
     //Creates a new user. If the type is artist, creates a referencing artist.
     if (!req.body.password || !req.body.passwordConfirm)
@@ -431,7 +559,10 @@ exports.closeSocket = closeSocket;
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    password
+  } = req.body;
   if (!email || !password)
     throw new AppError('Please provide email and password!', 400);
 
