@@ -380,6 +380,8 @@ exports.pause = catchAsync(async (req, res, next) => {
   res.status(204).json({});
 });
 
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.play = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user._id, {
     $set: { 'currentlyPlaying.is_playing': true }

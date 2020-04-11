@@ -147,7 +147,10 @@ describe('Testing Player Services', function() {
   });
   describe('Test Query Paramters Validation Functions', function() {
     const wrongPosition1 = (Math.random() + 10).toString();
-    const wrongPosition2 = (-1 * Math.floor(Math.random() * 10)).toString();
+    const wrongPosition2 = (
+      -1 *
+      (Math.floor(Math.random() * 100) + 1)
+    ).toString();
     const wrongRepeat1 = 'a';
     const wrongRepeat2 = '1';
     const wrongRepeat3 = '0';

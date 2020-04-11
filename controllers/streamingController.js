@@ -53,18 +53,23 @@ const getChunkInfo = (range, fileSize) => {
   // eslint-disable-next-line no-restricted-globals
   if (isNaN(start) || !/^\d+$/.test(parts[0]))
     throw new AppError('Could Not Parse The Range.');
-  if (start < 0 || start >= fileSize) throw new AppError('Invalid range start');
+  if (start >= fileSize) {
+    throw new AppError('Invalid range start');
+  }
 
   let end;
   if (!parts[1]) {
-    end = ((16 * 10 ** 5) % fileSize) + start;
+    // end = ((16 * 10 ** 5) % fileSize) + start;
+    end = 16 * 10 ** 5 + start;
     if (end >= fileSize) end = fileSize - 1;
   } else {
     end = parseInt(parts[1], 10);
     // eslint-disable-next-line no-restricted-globals
     if (isNaN(end) || !/^\d+$/.test(parts[1]))
       throw new AppError('Could Not Parse The Range.');
-    if (start > end || end > fileSize) throw new AppError('Invalid range end');
+    if (start > end || end > fileSize) {
+      throw new AppError('Invalid range end');
+    }
   }
 
   const chunkSize = end - start + 1;
