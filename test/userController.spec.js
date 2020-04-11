@@ -78,9 +78,9 @@ describe('Testing user controller', function() {
     userBody.email = userBody.email.toLowerCase();
     const user = await User.create(userBody);
 
-    const userId = `${user.id.substring(0, user.id.length - 1)}${
-      user.id[user.id.length] === 1 ? '2' : '1'
-    }`;
+    const userId = user._id;
+
+    await User.findByIdAndDelete(userId);
 
     await assert.rejects(async () => {
       await userController.updateUserLogic(userId, {
