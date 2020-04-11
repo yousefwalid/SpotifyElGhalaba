@@ -145,7 +145,7 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
   const tracks = await features.query;
 
   const pagingObject = {
-    href: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+    href: `https://spotify-elghalaba.me/api/v1/playlists/${playlistId}/tracks`,
     items: tracks.tracks.items,
     limit,
     offset
@@ -324,7 +324,7 @@ const getUserPlaylists = async (userId, queryParams) => {
   const playlists = await features.query;
 
   const pagingObject = {
-    href: `https://api.spotify.com/v1/users/${userId}/playlists`,
+    href: `https://spotify-elghalaba.me/api/v1/users/${userId}/playlists`,
     items: playlists,
     limit: queryParams.limit,
     offset: queryParams.offset
