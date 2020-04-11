@@ -294,11 +294,17 @@ const getUserPlaylists = async (userId, queryParams) => {
     'description'
   ].join(' ');
 
-  const userFollowedPlaylists = (
-    await User.findById(userId).select('followedPlaylists')
-  ).followedPlaylists
-    .toObject()
-    .map(el => el.playlist);
+  let userFollowedPlaylists = [];
+
+  const followedPlaylists = await User.findById(userId).select(
+    'followedPlaylists'
+  );
+
+  if (followedPlaylists) {
+    userFollowedPlaylists = followedPlaylists.followedPlaylists
+      .toObject()
+      .map(el => el.playlist);
+  }
 
   const features = new APIFeatures(
     Playlist.find(
