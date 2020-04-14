@@ -141,14 +141,67 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
   } else {
     throw new AppError('Invalid model', 400);
   }
-  const savedDocs = await savedModel
-    .find({
-      user: user._id
-    })
-    .select('-user -__v')
-    .skip(offset)
-    .limit(limit)
-    .populate(modelName);
+  let savedDocs;
+  if (modelName == 'track') {
+    savedDocs = await savedModel
+      .find({
+        user: user._id
+      })
+      .select('-user -__v')
+      .skip(offset)
+      .limit(limit)
+      .populate([
+        {
+          path: modelName,
+          populate: [
+            {
+              path: 'album',
+              select: 'name'
+            },
+            {
+              path: 'artists',
+              select: 'userInfo',
+              populate: [
+                {
+                  path: 'userInfo',
+                  select: 'name'
+                }
+              ]
+            }
+          ]
+        }
+      ]);
+  } else {
+    savedDocs = await savedModel
+      .find({
+        user: user._id
+      })
+      .select('-user -__v')
+      .skip(offset)
+      .limit(limit)
+      .populate([
+        {
+          path: modelName,
+          select: 'artists name',
+          populate: [
+            {
+              path: 'album',
+              select: 'name'
+            },
+            {
+              path: 'artists',
+              select: 'userInfo',
+              populate: [
+                {
+                  path: 'userInfo',
+                  select: 'name'
+                }
+              ]
+            }
+          ]
+        }
+      ]);
+  }
   const totalCount = await savedModel.countDocuments({
     user: user._id
   });
