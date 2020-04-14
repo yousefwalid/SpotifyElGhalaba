@@ -7,13 +7,16 @@ const trackPerfix = 'track-';
 const trackFieldName = 'track';
 
 //MULTER CONFIGURATION
+//A function parameter for AWS S3-multer - No need for unittesting
+/* istanbul ignore next */
 const trackKey = function(req, file, cb) {
   if (!req.body.trackId) {
     cb(new AppError('Request Body must contain trackId', 400));
   }
   cb(null, `${trackPerfix}${req.body.trackId}`);
 };
-
+//A function parameter for AWS S3-multer - No need for unittesting
+/* istanbul ignore next */
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('audio')) {
     cb(null, true);
@@ -27,6 +30,8 @@ const fileFilter = (req, file, cb) => {
  * @param {String} trackId Id of the track.
  * @returns {Object} Contains the filePath and the size of the track.
  */
+//Uses aws-sdk module function - No need for unittesting
+/* istanbul ignore next */
 const getTrackInfo = async (awsObj, trackId) => {
   const headObj = await awsObj.getHeadObject(`${trackPerfix}${trackId}`);
   const fileSize = headObj.ContentLength;
@@ -46,24 +51,32 @@ const getChunkInfo = (range, fileSize) => {
   const parts = range.replace(/bytes=/, '').split('-');
   const start = parseInt(parts[0], 10);
   // eslint-disable-next-line no-restricted-globals
-  if (isNaN(start)) throw new AppError('Could Not Parse The Range.');
-  if (start < 0 || start >= fileSize) throw new AppError('Invalid range start');
+  if (isNaN(start) || !/^\d+$/.test(parts[0]))
+    throw new AppError('Could Not Parse The Range.');
+  if (start >= fileSize) {
+    throw new AppError('Invalid range start');
+  }
 
   let end;
   if (!parts[1]) {
-    end = ((16 * 10 ** 5) % fileSize) + start;
+    // end = ((16 * 10 ** 5) % fileSize) + start;
+    end = 16 * 10 ** 5 + start;
     if (end >= fileSize) end = fileSize - 1;
   } else {
     end = parseInt(parts[1], 10);
     // eslint-disable-next-line no-restricted-globals
-    if (isNaN(end)) throw new AppError('Could Not Parse The Range.');
-    if (end > fileSize) throw new AppError('Invalid range end');
+    if (isNaN(end) || !/^\d+$/.test(parts[1]))
+      throw new AppError('Could Not Parse The Range.');
+    if (start > end || end > fileSize) {
+      throw new AppError('Invalid range end');
+    }
   }
 
   const chunkSize = end - start + 1;
 
   return { chunkSize, start, end };
 };
+exports.getChunkInfo = getChunkInfo;
 /**
  * Makes a readStream and pipes the stream to the response.
  * If you want to send a chunck of the track you must specify the chunckInfo parameter
@@ -71,6 +84,8 @@ const getChunkInfo = (range, fileSize) => {
  * @param {Object} trackInfo Contains track info (fileSize & filePath)
  * @param {Object} chunkInfo Optional: Contains chunck info (chunckSize, start, end)
  */
+//Uses nodejs stream module functions - No need for unittesting
+/* istanbul ignore next */
 const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
   const { fileSize, filePath } = trackInfo;
   let readStream;
@@ -97,11 +112,11 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
     const resStream = readStream.pipe(res);
     resStream.on('error', err => {
       let errMsg = '';
+      resStream.end();
       if (process.env.NODE_ENV === 'development') {
-        resStream.end();
         errMsg = err.message.toString();
-        throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
       }
+      throw new AppError(`An error occured during streaming: ${errMsg}`, 500);
     });
     resStream.on('close', () => {
       resStream.end();
@@ -114,6 +129,8 @@ const streamTrack = (res, awsObj, trackInfo, chunkInfo) => {
 /**
  * GET /tracks/:trackId
  */
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.downloadTrack = catchAsync(async (req, res, next) => {
   // console.log(req.socket);
   const awsObj = new AwsS3Api();
@@ -135,7 +152,10 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
 /**
  * POST /tracks
  */
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.uploadTrack = catchAsync(async (req, res, next) => {
+  //Setting up aws and multer.
   const awsObj = new AwsS3Api();
   const limits = { fields: 1, fileSize: 10e9, files: 1, parts: 2 };
   awsObj.setMulterStorage(null, null, null, trackKey);

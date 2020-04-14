@@ -79,6 +79,8 @@ const createTrack = async (requestBody, currentUser) => {
  * Removes a track with a given ID
  * @param {String} trackID -The track ID to be deleted
  */
+//Not used yet
+/* istanbul ignore next */
 const removeTrack = async trackID => {
   const track = await Track.findById(trackID);
   const album = await Album.findById(track.album);
@@ -111,7 +113,7 @@ exports.createTrack = catchAsync(async (req, res, next) => {
   const newTrack = createTrack(req.body, req.user);
   res.status(201).json(newTrack);
 });
-
+/* istanbul ignore next */
 exports.getSeveralTracks = catchAsync(async (req, res, next) => {
   if (req.query.ids == '') {
     return next(new AppError('Please provide track IDs', 400));

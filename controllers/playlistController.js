@@ -27,13 +27,13 @@ const validateLimitOffset = (limit, offset) => {
   if (limit <= 0)
     throw new AppError(
       'Limit query parameter can not be less than or equal to 0',
-      500
+      400
     );
 
   if (limit > 100)
     throw new AppError(
       'Limit query parameter can not be greater than 100',
-      500
+      400
     );
 
   return { limit, offset };
@@ -203,9 +203,9 @@ const getPlaylist = async (playlistId, userId, queryParams) => {
 
   const playlist = await features.query;
 
-  if (!playlist) {
-    throw new AppError('No playlist found with that id', 404);
-  }
+  // if (!playlist) {
+  //   throw new AppError('No playlist found with that id', 404);
+  // }
 
   const playlistObject = playlist.toObject();
 
@@ -231,8 +231,7 @@ const addPlaylistTrack = async (playlistId, userId, ids, position) => {
   }
 
   const playlist = await authorizeUserToPlaylist(userId, playlistId);
-
-  if (playlist.tracks.length + ids.length > 10000) {
+  if ((playlist.tracks.length || 0) + ids.length > 10000) {
     throw new AppError("Playlist size can't exceed 10,000 tracks", 403);
   }
 
@@ -294,11 +293,14 @@ const getUserPlaylists = async (userId, queryParams) => {
     'description'
   ].join(' ');
 
-  const userFollowedPlaylists = (
-    await User.findById(userId).select('followedPlaylists')
-  ).followedPlaylists
-    .toObject()
-    .map(el => el.playlist);
+  let userFollowedPlaylists = await User.findById(userId).select(
+    'followedPlaylists'
+  );
+  if (userFollowedPlaylists) {
+    userFollowedPlaylists = userFollowedPlaylists.followedPlaylists
+      .toObject()
+      .map(el => el.playlist);
+  } else userFollowedPlaylists = [];
 
   const features = new APIFeatures(
     Playlist.find(
@@ -387,7 +389,8 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
 
   const { tracks } = playlist;
 
-  if (!tracks) throw new AppError('This playlist contains no tracks', 404);
+  if (!tracks || !tracks.items || tracks.items.length === 0)
+    throw new AppError('This playlist contains no tracks', 400);
 
   // 1) For each track in the request, verify that the position specified actually contains that track
 
@@ -454,6 +457,8 @@ const deletePlaylistTrack = async (playlistId, userId, requestTracks) => {
  * @param {String} playlistId The id of the playlist
  * @param {Object} requestFile The image file saved
  */
+
+/* istanbul ignore next */
 const addPlaylistImage = async (playlistId, requestFile) => {
   const url = `./${requestFile.destination}/${requestFile.filename}`;
 
@@ -486,11 +491,20 @@ const addPlaylistImage = async (playlistId, requestFile) => {
 
 const reorderPlaylistTracks = async (
   playlistId,
+  userId,
   rangeStart,
   rangeLength,
   insertBefore
 ) => {
   rangeLength = rangeLength * 1 || 1;
+
+  const playlistOwner = await Playlist.findById(playlistId);
+
+  if (!playlistOwner) throw new AppError('No playlist found with that id', 404);
+
+  if (String(playlistOwner.owner) !== String(userId)) {
+    throw new AppError('You are not authorized to edit this playlist', 403);
+  }
 
   if (
     (!rangeStart && rangeStart !== 0) ||
@@ -500,12 +514,12 @@ const reorderPlaylistTracks = async (
     rangeLength < 0 ||
     insertBefore < 0
   )
-    throw new AppError('Please specify all parameters correctly', 500);
+    throw new AppError('Please specify all parameters correctly', 400);
 
   if (insertBefore >= rangeStart && insertBefore < rangeLength + rangeStart) {
     throw new AppError(
       'insertBefore cannot lie between rangeStart and rangeStart + rangeLength',
-      500
+      400
     );
   }
 
@@ -527,12 +541,13 @@ const reorderPlaylistTracks = async (
   });
 };
 
+/* istanbul ignore next */
 const uploadImage = async (fileData, playlistId, userId) => {
   if (!fileData) throw new AppError('Invalid file uploaded', 400);
   if (!playlistId) throw new AppError('Playlist id not specified', 400);
   if (!userId) throw new AppError('User id not specified', 400);
 
-  const playlist = await Playlist.findById(playlistId);
+  const playlist = await authorizeUserToPlaylist(userId, playlistId);
 
   if (!playlist) throw new AppError('Playlist not found', 404);
 
@@ -654,6 +669,7 @@ exports.addPlaylistImage = catchAsync(async (req, res, next) => {
 exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   await reorderPlaylistTracks(
     req.params.playlist_id,
+    req.user._id,
     req.body.range_start,
     req.body.range_length,
     req.body.insert_before
@@ -662,6 +678,7 @@ exports.reorderPlaylistTracks = catchAsync(async (req, res, next) => {
   res.status(200).send();
 });
 
+/* istanbul ignore next */
 exports.uploadImage = catchAsync(async (req, res, next) => {
   await uploadImage(req.files.image.data, req.params.playlist_id, req.user._id);
 
@@ -674,3 +691,6 @@ exports.addPlaylistTrackLogic = addPlaylistTrack;
 exports.getUserPlaylistsLogic = getUserPlaylists;
 exports.changePlaylistDetailsLogic = changePlaylistDetails;
 exports.deletePlaylistTrackLogic = deletePlaylistTrack;
+exports.reorderPlaylistTracksLogic = reorderPlaylistTracks;
+exports.validateLimitOffsetLogic = validateLimitOffset;
+exports.authorizeUserToPlaylistLogic = authorizeUserToPlaylist;

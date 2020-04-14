@@ -1,6 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
+//This File Is An Interface For AWS-SDK module - No Need For Testing
 /* istanbul ignore file */
 class Aws {
   constructor(s3) {

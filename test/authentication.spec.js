@@ -1,6 +1,8 @@
 const assert = require('assert');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const faker = require('faker');
+const jwt = require('jsonwebtoken');
 
 const { dropDB } = require('./../utils/dropDB');
 const authenticationController = require('../controllers/authenticationController');
@@ -82,7 +84,7 @@ const createUserAssertions = function(user, body) {
 };
 
 describe('Testing Authentication Services', function() {
-  this.beforeAll(async () => {
+  this.beforeAll('Authentication', async () => {
     await dropDB();
 
     // console.log(userBody);
@@ -160,7 +162,16 @@ describe('Testing Authentication Services', function() {
     let token;
     let decodedToken;
     it('Should check that the token exists in the req header/cookie/query and return without error', async function() {
-      token = authenticationController.signToken(userUser._id);
+      token = jwt.sign(
+        {
+          id: userUser._id
+        },
+        process.env.JWT_SECRET,
+        {
+          //the secret string should be at least 32 characters long
+          expiresIn: process.env.JWT_EXPIRES_IN
+        }
+      );
       const req = {
         headers: {
           authorization: `Bearer ${token}`
@@ -282,6 +293,80 @@ describe('Testing Authentication Services', function() {
         correct,
         `The entered password does not match the updated password`
       );
+    });
+
+    it(`Should reset user's password given a previously embedded resetToken in the user Correctly without errors.`, async function() {
+      //First create a reset token and set it in the user
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      userUser.passwordResetToken = crypto
+        .createHash('SHA256')
+        .update(resetToken)
+        .digest('hex');
+      userUser.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+      await userUser.save({
+        //To avoid the passwordConfirm field validation
+        validateBeforeSave: false
+      });
+      const password = '123abcxyzT';
+      const returnedUser = await authenticationController.resetPasswordService(
+        resetToken,
+        password,
+        password
+      );
+      userUser = await User.findById(userUser._id, User.privateUser());
+      assert.ok(
+        await bcrypt.compare(password, userUser.password),
+        'The resetPassword Service Does Not Work Properly'
+      );
+    });
+  });
+  describe('Testing Errors Throwing', function() {
+    it('Should throw an error for each assertion', async function() {
+      assert.rejects(async () => {
+        await authenticationController.checkEmailAndPassword(
+          userBody.email,
+          'A wrong password&^%^'
+        );
+      }, 'An expected error is not thrown');
+      assert.rejects(async () => {
+        await authenticationController.checkEmailAndPassword(
+          'A wrong user email*%',
+          userBody.password
+        );
+      }, 'An expected error is not thrown');
+
+      const req = { headers: {}, query: {}, cookies: {} };
+      assert.rejects(async () => {
+        await authenticationController.getDecodedToken(req);
+      }, 'An expected error is not thrown');
+      let tokenId = jwt.sign(
+        {
+          id: 'Invalid User Id'
+        },
+        process.env.JWT_SECRET,
+        {
+          //the secret string should be at least 32 characters long
+          expiresIn: process.env.JWT_EXPIRES_IN
+        }
+      );
+      const token = { id: tokenId, iat: Date.now() };
+      assert.rejects(async () => {
+        await authenticationController.getUserByToken(token);
+      }, 'An expected error is not thrown');
+      tokenId = jwt.sign(
+        {
+          id: userUser._id
+        },
+        process.env.JWT_SECRET,
+        {
+          //the secret string should be at least 32 characters long
+          expiresIn: process.env.JWT_EXPIRES_IN
+        }
+      );
+      token.id = tokenId;
+      assert.rejects(async () => {
+        await authenticationController.getUserByToken(token);
+      }, 'An expected error is not thrown');
     });
   });
 });

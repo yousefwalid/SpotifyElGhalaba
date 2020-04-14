@@ -5,6 +5,8 @@ const ImageObject = require('./objects/imageObject');
 const PlaylistTrackObject = require('./objects/playlistTrackObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
+/* istanbul ignore file */
+
 /**
  * @typedef {Object} PlaylistObject
  * @property {String} id The id for the playlist
