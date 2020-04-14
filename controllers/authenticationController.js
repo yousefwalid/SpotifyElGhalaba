@@ -192,8 +192,7 @@ const sendResetToken = async (email, baseURL) => {
   const resetToken = await user.createPasswordResetToken();
 
   const resetURL = `${baseURL}/${resetToken}`;
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\n
-  If you didn't forget your password, please ignore this email.`;
+  const message = `Forgot your password? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/password-reset/${resetToken}\nIf you didn't submit a request, please ignore this email.`;
 
   try {
     await sendEmail({
