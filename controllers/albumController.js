@@ -27,6 +27,68 @@ const getAlbum = async (albumID, next) => {
 };
 
 /**
+ * Get's urls of next page and previous page
+ * @param {Number} offset - The number of docs to skip
+ * @param {Number} limit - The docs limit of the response
+ * @param {Number} totalCount -the total number of docs
+ */
+const getNextAndPrevious = (offset, limit, totalCount) => {
+  const nextPage =
+    offset + limit <= totalCount
+      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset +
+          limit}&limit=${limit}`
+      : null;
+  const previousPage =
+    offset - limit >= 0
+      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset -
+          limit}&limit=${limit}`
+      : null;
+  return { nextPage, previousPage };
+};
+
+exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
+  limit = limit * 1 || 20;
+  offset = offset * 1 || 0;
+
+  if (limit < 1 || limit > 50)
+    throw new AppError('Invalid limit value (out of range or negative)', 400);
+
+  if (offset < 0) throw new AppError('Offset cannot be negative', 400);
+
+  const albums = await Album.find({ _id: { $in: albumsIds } })
+    .select(
+      'album_type artists external_urls id href images name release_date type uri'
+    )
+    .populate({
+      path: 'artists',
+      select: 'external_urls href id name type uri'
+    })
+    .limit(limit)
+    .skip(offset);
+
+  const albumsCount = await Album.find({
+    _id: { $in: albumsIds }
+  }).countDocuments();
+
+  const { nextPage, previousPage } = getNextAndPrevious(
+    offset,
+    limit,
+    albumsCount
+  );
+
+  const pagingObject = {
+    items: albums,
+    limit: limit,
+    offset: offset,
+    next: nextPage,
+    previous: previousPage,
+    total: albumsCount
+  };
+
+  return pagingObject;
+};
+
+/**
  * Gets several albums based on the given IDs
  * @param {Array<Numbers>} AlbumsIds - List of required albums ids
  * @returns {Array<AlbumObject>} Array of the required albums
@@ -77,25 +139,6 @@ const validateLimitOffset = (limit, offset) => {
   return { limit, offset };
 };
 
-/**
- * Get's urls of next page and previous page
- * @param {Number} offset - The number of docs to skip
- * @param {Number} limit - The docs limit of the response
- * @param {Number} totalCount -the total number of docs
- */
-const getNextAndPrevious = (offset, limit, totalCount) => {
-  const nextPage =
-    offset + limit <= totalCount
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset +
-          limit}&limit=${limit}`
-      : null;
-  const previousPage =
-    offset - limit >= 0
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset -
-          limit}&limit=${limit}`
-      : null;
-  return { nextPage, previousPage };
-};
 /**
  * Gets the tracks of the specified album
  * @param {String} albumID - The required album ID

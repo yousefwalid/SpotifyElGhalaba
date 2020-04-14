@@ -6,10 +6,7 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router
-  .route('/')
-  //.post(artistController.addArtist)
-  .get(artistController.getMultipleArtists);
+router.route('/').get(artistController.getMultipleArtists);
 
 router.route('/:id').get(artistController.getArtist);
 

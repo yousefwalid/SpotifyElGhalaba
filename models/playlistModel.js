@@ -116,15 +116,11 @@ playlistSchema.virtual('uri').get(function() {
 });
 
 playlistSchema.virtual('href').get(function() {
-  return `http://localhost:${
-    process.env.PORT
-  }/api/v1/users/spotify/playlists/${this.id}`;
+  return `http://localhost:${process.env.PORT}/api/v1/users/spotify/playlists/${this.id}`;
 });
 
 playlistSchema.virtual('tracks.href').get(function() {
-  return `http://localhost:${
-    process.env.PORT
-  }/api/v1/users/spotify/playlists/${this.id}/tracks`;
+  return `http://localhost:${process.env.PORT}/api/v1/users/spotify/playlists/${this.id}/tracks`;
 });
 
 playlistSchema.virtual('external_urls').get(function() {
