@@ -14,7 +14,7 @@ const playlistController = require('../controllers/playlistController');
 const insertArtist = require('./utils/insertArtistIntoDB');
 
 describe('Testing Playlist Controller', function() {
-  this.beforeAll(async () => {
+  this.beforeAll('Playlist', async () => {
     await dropDB();
   });
 
@@ -250,6 +250,43 @@ describe('Testing Playlist Controller', function() {
         else assert.ok(el[key] === undefined);
       });
     });
+  });
+
+  it('Add Tracks to a Playlist over limit throws 403', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const toBeAddedTracksIds = [];
+    const generatedTrack = generateTrack(albumId, artistId);
+    const insertedTrack = await Track.create(generatedTrack);
+    const trackId = insertedTrack._id;
+    for (let i = 0; i < 20000; i += 1) {
+      toBeAddedTracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    try {
+      await playlistController.addPlaylistTrackLogic(
+        playlistId,
+        userId,
+        toBeAddedTracksIds
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 403);
+    }
   });
 
   it('Get A Playlist returns 404', async function() {
@@ -653,6 +690,58 @@ describe('Testing Playlist Controller', function() {
     assert.deepStrictEqual(returnedPlaylists.items.length, 0);
   });
 
+  it('Get User Playlists throws 400 when limit query out of range', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const queryParams = {
+      limit: -5
+    };
+
+    try {
+      await playlistController.getUserPlaylistsLogic(userId, queryParams);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+
+    queryParams.limit = 50000;
+
+    try {
+      await playlistController.getUserPlaylistsLogic(userId, queryParams);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('Get User Playlists throws 400 when offset query out of range', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const queryParams = {
+      offset: -5
+    };
+
+    try {
+      await playlistController.getUserPlaylistsLogic(userId, queryParams);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+
+    queryParams.limit = 9999999999;
+
+    try {
+      await playlistController.getUserPlaylistsLogic(userId, queryParams);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
   it('Get Playlists of User with playlists', async function() {
     const generatedUser = generateUser();
     const insertedUser = await User.create(generatedUser);
@@ -1012,5 +1101,261 @@ describe('Testing Playlist Controller', function() {
     } catch (err) {
       assert.deepStrictEqual(err.statusCode, 400);
     }
+  });
+
+  it('Remove Tracks from Playlist with no requests tracks throws 400', async function() {
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    try {
+      await playlistController.deletePlaylistTrackLogic(
+        playlistId,
+        userId,
+        undefined
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it("Remove Tracks from Playlist that doesn't exist throws 404", async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+    const correctTracksAfterDeletion = [];
+
+    for (let i = 0; i < 4; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      for (let j = 0; j <= i; j += 1) {
+        tracksIds.push(trackId);
+        if (i !== 2 && i !== 0) correctTracksAfterDeletion.push(trackId);
+      }
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    await Playlist.findByIdAndDelete(playlistId);
+
+    const requestTracks = [
+      {
+        id: String(tracksIds[3])
+      },
+      {
+        id: String(tracksIds[0])
+      }
+    ];
+    try {
+      await playlistController.deletePlaylistTrackLogic(
+        playlistId,
+        userId,
+        requestTracks
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 404);
+    }
+  });
+
+  it('Remove Tracks from Playlist that has no tracks throws 400', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+    const correctTracksAfterDeletion = [];
+
+    for (let i = 0; i < 4; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      for (let j = 0; j <= i; j += 1) {
+        tracksIds.push(trackId);
+        if (i !== 2 && i !== 0) correctTracksAfterDeletion.push(trackId);
+      }
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const requestTracks = [
+      {
+        id: String(tracksIds[3])
+      },
+      {
+        id: String(tracksIds[0])
+      }
+    ];
+    try {
+      await playlistController.deletePlaylistTrackLogic(
+        playlistId,
+        userId,
+        requestTracks
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('Reorder Playlist Tracks works properly', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+
+    for (let i = 0; i < 10; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const oldTracksArray = insertedPlaylist.tracks.items.toObject();
+
+    const toBeReorderedtracks = oldTracksArray.splice(2, 2);
+    oldTracksArray.splice(4, 0, ...toBeReorderedtracks);
+
+    await playlistController.reorderPlaylistTracksLogic(
+      playlistId,
+      userId,
+      2,
+      2,
+      6
+    );
+
+    const playlistAfterReorderingTracks = await Playlist.findById(playlistId);
+
+    const newTracksArray = playlistAfterReorderingTracks.tracks.items.toObject();
+
+    assert.deepStrictEqual(newTracksArray, oldTracksArray);
+  });
+
+  it('Reorder Playlist Tracks with invalid parameters throws 400', async function() {
+    const insertedArtist = await insertArtist();
+    const artistId = insertedArtist._id;
+
+    const generatedAlbum = generateAlbum(artistId);
+    const insertedAlbum = await Album.create(generatedAlbum);
+
+    const albumId = insertedAlbum._id;
+
+    const tracksIds = [];
+
+    for (let i = 0; i < 3; i += 1) {
+      const generatedTrack = generateTrack(albumId, artistId);
+      const insertedTrack = await Track.create(generatedTrack);
+      const trackId = insertedTrack._id;
+      tracksIds.push(trackId);
+    }
+
+    const generatedUser = generateUser();
+    const insertedUser = await User.create(generatedUser);
+    const userId = insertedUser._id;
+
+    const generatedPlaylist = generatePlaylist(userId, tracksIds);
+    const insertedPlaylist = await Playlist.create(generatedPlaylist);
+    const playlistId = insertedPlaylist._id;
+
+    const oldTracksArray = insertedPlaylist.tracks.items.toObject();
+
+    const toBeReorderedtracks = oldTracksArray.splice(2, 2);
+    oldTracksArray.splice(4, 0, ...toBeReorderedtracks);
+
+    try {
+      await playlistController.reorderPlaylistTracksLogic(
+        playlistId,
+        userId,
+        undefined,
+        2,
+        6
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+
+    try {
+      await playlistController.reorderPlaylistTracksLogic(
+        playlistId,
+        userId,
+        2,
+        6,
+        3
+      );
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('validateLimitOffset throws error when limit<0', async function() {
+    try {
+      playlistController.validateLimitOffsetLogic(-5);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('validateLimitOffset throws error when limit>100', async function() {
+    try {
+      playlistController.validateLimitOffsetLogic(500);
+      assert.ok(false);
+    } catch (err) {
+      assert.deepStrictEqual(err.statusCode, 400);
+    }
+  });
+
+  it('authorizeUserToPlaylist throws 400 when parameters not specified', async function() {
+    let catched = 0;
+    await playlistController
+      .authorizeUserToPlaylistLogic(undefined, undefined)
+      .catch(err => {
+        catched = 1;
+        assert.deepStrictEqual(err.statusCode, 400);
+      });
+    assert.deepStrictEqual(catched, 1);
   });
 });

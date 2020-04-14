@@ -12,28 +12,22 @@ const Playlist = require('../models/playlistModel');
 
 describe('Testing follow controller', function () {
     let me;
-    let user2;
-    let user1;
-    let artist1;
-    let artist2;
-    let playlist;
 
     this.beforeAll(async () => {
         await dropDB();
         me = await User.create(createUserBody());
-        user1 = await User.create(createUserBody());
-        user2 = await User.create(createUserBody());
 
-        artist1 = await generateArtist();
-        artist2 = await generateArtist();
-
-        playlist = await Playlist.create(generatePlaylist(user1.id));
     });
 
     it('Should follow users only', async function () {
         const userId = (me.id).toString();
+
+        const user1 = await User.create(createUserBody());
         const userIdsToFollow = [user1.id];
+
+        const artist1 = await generateArtist();
         const artistIdsToFollow = [artist1.userInfo.id];
+
         const idsToFollow = userIdsToFollow.concat(artistIdsToFollow);
 
         await followController.followLogic(userId, idsToFollow, 'user');
@@ -55,8 +49,13 @@ describe('Testing follow controller', function () {
 
     it('Should follow artists only', async function () {
         const userId = (me.id).toString();
+
+        const user2 = await User.create(createUserBody());
         const userIdsToFollow = [user2.id];
+
+        const artist1 = await generateArtist();
         const artistIdsToFollow = [artist1.userInfo.id];
+
         const idsToFollow = userIdsToFollow.concat(artistIdsToFollow);
 
         await followController.followLogic(userId, idsToFollow, 'artist');
@@ -79,8 +78,13 @@ describe('Testing follow controller', function () {
 
     it('Should follow both users and artists', async function () {
         const userId = (me.id).toString();
+
+        const user2 = await User.create(createUserBody());
         const userIdsToFollow = [user2.id];
+
+        const artist2 = await generateArtist();
         const artistIdsToFollow = [artist2.userInfo.id];
+
         const idsToFollow = userIdsToFollow.concat(artistIdsToFollow);
 
         await followController.followLogic(userId, idsToFollow);
@@ -102,67 +106,97 @@ describe('Testing follow controller', function () {
     });
 
     it('check if user follows users with given ids', async function () {
-        const userId = (me.id).toString();
-        const idsToCheck = [user2.id, user1.id];
+        const myuser = await User.findById(me.id);
 
-        const response = await followController.checkFollowingLogic(userId, idsToCheck, 'user');
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToCheck = [user.id, artist.userInfo.id];
 
-        response.forEach(val => {
-            assert.ok(val);
+        idsToCheck.forEach(id => {
+            myuser.following.push(id);
         });
+
+        await myuser.save();
+
+        const response = await followController.checkFollowingLogic(me.id, idsToCheck, 'user');
+
+        assert.ok(response[0] === true);
+        assert.ok(response[1] === false);
     });
 
     it('check if user follows artists with given ids', async function () {
-        const userId = (me.id).toString();
-        const usersIdsToCheck = [user1.id, user2.id];
-        const artistsIdsToCheck = [artist1.userInfo.id, artist2.userInfo.id];
-        const idsToCheck = usersIdsToCheck.concat(artistsIdsToCheck);
+        const myuser = await User.findById(me.id);
 
-        const response = await followController.checkFollowingLogic(userId, idsToCheck, 'artist');
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToCheck = [user.id, artist.userInfo.id];
 
-        for (let i = 0; i < idsToCheck.length; i += 1) {
-            if (i < usersIdsToCheck.length) {
-                assert.ok(!response[i]);
-            } else {
-                assert.ok(response[i]);
-            }
-        }
+        idsToCheck.forEach(id => {
+            myuser.following.push(id);
+        });
+
+        await myuser.save();
+
+        const response = await followController.checkFollowingLogic(me.id, idsToCheck, 'artist');
+
+        assert.ok(response[0] === false);
+        assert.ok(response[1] === true);
     });
 
 
     it('check if user follows users or artists with given ids', async function () {
-        const userId = (me.id).toString();
-        const usersIdsToCheck = [user1.id, user2.id];
-        const artistsIdsToCheck = [artist1.userInfo.id, artist2.userInfo.id];
-        const idsToCheck = usersIdsToCheck.concat(artistsIdsToCheck);
+        const myuser = await User.findById(me.id);
 
-        const response = await followController.checkFollowingLogic(userId, idsToCheck);
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToCheck = [user.id, artist.userInfo.id];
 
-        assert.ok(idsToCheck.length === response.length);
+        idsToCheck.forEach(id => {
+            myuser.following.push(id);
+        });
+
+        await myuser.save();
+
+        const response = await followController.checkFollowingLogic(me.id, idsToCheck);
 
         response.forEach(val => {
             assert.ok(val);
-        });
+        })
     });
 
 
     it('Get followed users', async function () {
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        myuser.following.push(user.id);
+        await myuser.save();
+
         let {
             following
-        } = await User.findById(me.id).select('following');
+        } = myuser;
         following = following.map(id => id.toString());
 
         const followedUsers = await followController.getFollowedUsersLogic(me.id);
 
-        followedUsers.forEach(user => {
-            assert.ok(following.includes(user.id));
+        followedUsers.forEach(followedUser => {
+            assert.ok(following.includes(followedUser.id));
         });
     });
 
     it('unfollow users only', async function () {
-        const usersIdsToUnfollow = [user2.id];
-        const artistsIdsToUnfollow = [artist2.userInfo.id];
-        const idsToUnfollow = usersIdsToUnfollow.concat(artistsIdsToUnfollow);
+
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToUnfollow = [user.id, artist.userInfo.id];
+
+        idsToUnfollow.forEach(id => {
+            myuser.following.push(id);
+        });
+
+        await myuser.save();
 
         await followController.unfollowUsersLogic(me.id, idsToUnfollow, 'user');
 
@@ -171,20 +205,23 @@ describe('Testing follow controller', function () {
         } = await User.findById(me.id).select('following');
         following = following.map(id => id.toString());
 
-        usersIdsToUnfollow.forEach(id => {
-            assert.ok(!following.includes(id));
-        });
-
-        artistsIdsToUnfollow.forEach(id => {
-            assert.ok(following.includes(id));
-        });
+        assert.ok(following.includes(artist.userInfo.id));
+        assert.ok(!following.includes(user.id));
     });
 
 
     it('unfollow artists only', async function () {
-        const usersIdsToUnfollow = [user1.id];
-        const artistsIdsToUnfollow = [artist2.userInfo.id];
-        const idsToUnfollow = usersIdsToUnfollow.concat(artistsIdsToUnfollow);
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToUnfollow = [user.id, artist.userInfo.id];
+
+        idsToUnfollow.forEach(id => {
+            myuser.following.push(id);
+        });
+
+        await myuser.save();
 
         await followController.unfollowUsersLogic(me.id, idsToUnfollow, 'artist');
 
@@ -193,19 +230,22 @@ describe('Testing follow controller', function () {
         } = await User.findById(me.id).select('following');
         following = following.map(id => id.toString());
 
-        usersIdsToUnfollow.forEach(id => {
-            assert.ok(following.includes(id));
-        });
-
-        artistsIdsToUnfollow.forEach(id => {
-            assert.ok(!following.includes(id));
-        });
+        assert.ok(!following.includes(artist.userInfo.id));
+        assert.ok(following.includes(user.id));
     });
 
     it('unfollow both users and artists', async function () {
-        const usersIdsToUnfollow = [user1.id];
-        const artistsIdsToUnfollow = [artist1.userInfo.id];
-        const idsToUnfollow = usersIdsToUnfollow.concat(artistsIdsToUnfollow);
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        const artist = await generateArtist();
+        const idsToUnfollow = [user.id, artist.userInfo.id];
+
+        idsToUnfollow.forEach(id => {
+            myuser.following.push(id);
+        });
+
+        await myuser.save();
 
         await followController.unfollowUsersLogic(me.id, idsToUnfollow);
 
@@ -214,16 +254,14 @@ describe('Testing follow controller', function () {
         } = await User.findById(me.id).select('following');
         following = following.map(id => id.toString());
 
-        usersIdsToUnfollow.forEach(id => {
-            assert.ok(!following.includes(id));
-        });
-
-        artistsIdsToUnfollow.forEach(id => {
-            assert.ok(!following.includes(id));
-        });
+        assert.ok(!following.includes(artist.userInfo.id));
+        assert.ok(!following.includes(user.id));
     });
 
     it('follow a playlist', async function () {
+        const user = await User.create(createUserBody());
+        const playlist = await Playlist.create(generatePlaylist(user.id));
+
         await followController.followPlaylistLogic(me.id, playlist.id, true);
 
         const {
@@ -235,6 +273,16 @@ describe('Testing follow controller', function () {
     });
 
     it('follow a playlist you are already following return an error 400', async function () {
+        const myuser = await User.findById(me.id);
+        const user = await User.create(createUserBody());
+        const playlist = await Playlist.create(generatePlaylist(user.id));
+
+        myuser.followedPlaylists.push({
+            playlist: playlist.id,
+            public: true
+        });
+        await myuser.save();
+
         try {
             assert.rejects(await followController.followPlaylistLogic(me.id, playlist.id, true));
         } catch (err) {
@@ -243,6 +291,18 @@ describe('Testing follow controller', function () {
     });
 
     it('check if playlist followed by users', async function () {
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        const playlist = await Playlist.create(generatePlaylist(user.id));
+
+        myuser.followedPlaylists.push({
+            playlist: playlist.id,
+            public: true
+        });
+
+        await myuser.save();
+
         const usersIds = [me.id];
         const response = await followController.checkFollowingPlaylistLogic(playlist.id, usersIds);
 
@@ -252,7 +312,14 @@ describe('Testing follow controller', function () {
     });
 
     it('check if playlist followed by users return error code 400 on more than 5 users', async function () {
-        const usersIds = [me.id, user1.id, user2.id, artist1.id, artist2.id, user1.id];
+
+        const usersIds = [];
+        for (let i = 0; i < 6; i += 1) {
+            usersIds.push(me.id);
+        }
+
+        const playlist = await Playlist.create(generatePlaylist(me.id));
+
         try {
             assert.rejects(await followController.checkFollowingPlaylistLogic(playlist.id, usersIds));
         } catch (err) {
@@ -261,6 +328,19 @@ describe('Testing follow controller', function () {
     });
 
     it('unfollow a playlist', async function () {
+
+        const myuser = await User.findById(me.id);
+
+        const user = await User.create(createUserBody());
+        const playlist = await Playlist.create(generatePlaylist(user.id));
+
+        myuser.followedPlaylists.push({
+            playlist: playlist.id,
+            public: true
+        });
+
+        await myuser.save();
+
         await followController.unfollowPlaylistLogic(me.id, playlist.id);
 
         const {
@@ -273,12 +353,12 @@ describe('Testing follow controller', function () {
 
 
     it('unfollow a playlist you are not following returns an error 400', async function () {
+        const playlist = await Playlist.create(generatePlaylist(me.id));
+
         try {
             assert.rejects(await followController.unfollowPlaylistLogic(me.id, playlist.id));
         } catch (err) {
             assert.ok(err.statusCode === 400);
         }
     });
-
-
 });

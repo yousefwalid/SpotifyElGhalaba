@@ -17,10 +17,16 @@ const dropDB = async function(collectionName) {
         collections = await db.collections();
 
         if (collections.length !== 0) {
-          collections.forEach(async collection => {
-            await collection.deleteMany({});
-            await collection.dropIndexes();
-          });
+          // for (let i = 0; i < collections.length; i += 1) {
+          //   const collection = collections[i];
+          //   // eslint-disable-next-line no-await-in-loop
+          //   await collection.drop();
+          //   // // eslint-disable-next-line no-await-in-loop
+          //   // await collection.deleteMany({});
+          //   // // eslint-disable-next-line no-await-in-loop
+          //   // await collection.dropIndexes();
+          // }
+          await db.dropDatabase();
           console.log(`✅ database dropped successfully`);
         } else {
           console.log(`✅ database was already empty.`);
