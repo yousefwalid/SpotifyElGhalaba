@@ -52,6 +52,7 @@ const follow = async (userId, idsToFollow, type) => {
         }
     });
 };
+exports.followLogic = follow;
 
 /**
  * A method that takes a user id and an array of ids to check if the user  follow them or not.
@@ -82,7 +83,7 @@ const checkFollowing = async (userId, idsToBeChecked, type) => {
 
     return response;
 };
-
+exports.checkFollowingLogic = checkFollowing;
 /**
  * A method that takes a user id and return array of the followed users
  * @param {String} userId - The id of the user to get his followers
@@ -115,6 +116,7 @@ const getFollowedUsers = async (userId, queryParams) => {
 
     return await features.query;
 };
+exports.getFollowedUsersLogic = getFollowedUsers;
 
 
 /**
@@ -153,8 +155,9 @@ const unfollowUsers = async (userId, idsToUnfollow, type) => {
             followers: -1
         }
     });
-
 };
+
+exports.unfollowUsersLogic = unfollowUsers;
 
 /**
  * A method to follow a playlist given the user id and the playlist id
@@ -207,6 +210,7 @@ const followPlaylist = async (userId, playlistId, isPublic) => {
     }
 
 };
+exports.followPlaylistLogic = followPlaylist;
 
 /**
  * * A method to unfollow a playlist given the user id and the playlist id
@@ -255,6 +259,7 @@ const unfollowPlaylist = async (userId, playlistId) => {
         throw err;
     }
 };
+exports.unfollowPlaylistLogic = unfollowPlaylist;
 
 const checkFollowingPlaylist = async (playlistId, userIds) => {
     if (userIds.length > 5) throw new AppError('Maximum number of ids is 5', 400);
@@ -269,6 +274,7 @@ const checkFollowingPlaylist = async (playlistId, userIds) => {
 
     return userIds.map(userId => matchedUsers.includes(userId));
 };
+exports.checkFollowingPlaylistLogic = checkFollowingPlaylist;
 
 exports.followUser = catchAsync(async (req, res, next) => {
     await follow(req.user._id, req.body.ids, req.query.type);
