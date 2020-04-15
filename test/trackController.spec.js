@@ -32,11 +32,9 @@ describe('Testing track controller', function() {
         user.userInfo._id
       );
     });
+
     try {
-      await trackController.createTrackLogic(
-        track[0],
-        '5e8281b93f83d84d5ab32e51'
-      );
+      await trackController.createTrackLogic(track[0], user.userInfo._id);
     } catch (err) {
       assert.strictEqual(err.statusCode, 404);
     }
