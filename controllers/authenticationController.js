@@ -36,140 +36,6 @@ const sendEmail = require('./../utils/email');
  ####### ####### ####### ####### ####### ####### ####### ####### #######
 */
 
-// const setActiveDevice = async (user, deviceId) => {
-//   if (user.devices.length > 0) {
-//     await User.findOneAndUpdate(
-//       { _id: user._id },
-//       {
-//         $set: { 'devices.$[].isActive': false }
-//       }
-//     );
-//     user = await User.findOneAndUpdate(
-//       { _id: user._id, 'devices._id': deviceId },
-//       { $set: { 'devices.$.isActive': true } },
-//       { new: true, runValidators: true }
-//     );
-//   }
-//   return user;
-// };
-
-/**
- * @description Sets all user devices active status to false
- * @param {Object} user The user document
- * @returns {UserObject}
- */
-const setAllDevicesInactive = async user => {
-  if (user.devices.length > 0) {
-    await User.findOneAndUpdate(
-      {
-        _id: user._id
-      },
-      {
-        $set: {
-          'devices.$[].isActive': false
-        }
-      }
-    );
-  }
-  return user;
-};
-
-/**
- * @description Adds a device to users' devices
- * @param {Object} user The user document
- * @param {device} device The device object
- * @returns {UserObject}  The updated user object
- * @todo make the logic of adding devices for different users (user/artist)
- */
-const addDevice = async (user, device) => {
-  // if (user.devices.length < 3) {
-  //   user = await User.findByIdAndUpdate(
-  //     user._id,
-  //     {
-  //       $push: {
-  //         devices: {
-  //           name: device.client.name,
-  //           type: device.device.type,
-  //           isActive: true
-  //         }
-  //       }
-  //     },
-  //     { new: true, runValidators: true }
-  //   );
-  // } else {
-  //   let deviceId;
-  //   for (let i = 0; i < 3; i += 1) {
-  //     if (!user.devices[i].isActive) {
-  //       deviceId = user.devices[i]._id;
-  //       break;
-  //     }
-  //   }
-  //   user = await User.findOneAndUpdate(
-  //     {
-  //       _id: user._id,
-  //       'devices._id': deviceId
-  //     },
-  //     {
-  //       $set: {
-  //         'devices.$': {
-  //           name: device.client.name,
-  //           type: device.device.type,
-  //           isActive: true
-  //         }
-  //       }
-  //     },
-  //     { new: true, runValidators: true }
-  //   );
-  // }
-  // return user;
-};
-/**
- * @description Gets the id of the first inactive device from the users' devices.
- * @param {Object} user The user document
- * @returns {deviceId}  The device id
- */
-const getFirstInactiveDevice = user => {
-  let deviceId;
-
-  for (let i = 0; i < 3; i += 1) {
-    if (!user.devices[i].isActive) {
-      deviceId = user.devices[i]._id;
-      break;
-    }
-  }
-  return deviceId;
-};
-
-/**
- * @description Replaces a user device by another device.
- * @param {UserObject} user The user document.
- * @param {ObjectId} deviceId The id of the device to be replaced.
- * @param {Object} device The new device object.
- * @returns {UserObject}  The updated user document.
- */
-const replaceUserDevice = async (user, deviceId, device) => {
-  user = await User.findOneAndUpdate(
-    {
-      _id: user._id,
-      'devices._id': deviceId
-    },
-    {
-      $set: {
-        'devices.$': {
-          name: device.client.name,
-          type: device.device.type,
-          isActive: true
-        }
-      }
-    },
-    {
-      new: true,
-      runValidators: true
-    }
-  );
-  return user;
-};
-
 /**
  * @description Creates a new user given his data.
  * @description Creates a corresponding artist to the user if the type is artist.
@@ -289,6 +155,8 @@ exports.getUserByToken = getUserByToken;
  * @param {ObjectId} id The id of the user.
  * @returns {String}  A json web token (JWT).
  */
+//Uses jwt package function - No need for unittesting
+/* istanbul ignore next */
 const signToken = id => {
   return jwt.sign(
     {
@@ -308,6 +176,8 @@ exports.signToken = signToken;
  * @param {String} email The user's email to send token to.
  * @param {String} baseURL The base url for the password reset link that is sent to the user.
  */
+//Uses createPasswirdResetToken in user model which is tested. Uses sendEmail service (Nodemailer is an imported) - No need for unittesting
+/* istanbul ignore next */
 const sendResetToken = async (email, baseURL) => {
   const user = await User.findOne(
     {
@@ -322,8 +192,7 @@ const sendResetToken = async (email, baseURL) => {
   const resetToken = await user.createPasswordResetToken();
 
   const resetURL = `${baseURL}/${resetToken}`;
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\n
-  If you didn't forget your password, please ignore this email.`;
+  const message = `Forgot your password? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/password-reset/${resetToken}\nIf you didn't submit a request, please ignore this email.`;
 
   try {
     await sendEmail({
@@ -344,7 +213,6 @@ const sendResetToken = async (email, baseURL) => {
   }
 };
 exports.sendResetToken = sendResetToken;
-
 /**
  * @description  Resets the user's password.
  * @param {String} token The password reset token that was sent to the user's email.
@@ -408,6 +276,8 @@ exports.updatePasswordService = updatePassword;
  * @param {Number} statusCode  The status code of the response.
  * @param {Object} res  The response object.
  */
+//This is a requestHandler that is repeated so it's separated in a standalone function - No need for unittesting
+/* istanbul ignore next */
 const createAndSendToken = (user, statusCode, res) => {
   let id;
 
@@ -483,6 +353,8 @@ exports.sendUser = sendUser;
  * @description Protect middleware
  * @param {Object} req Request object.
  */
+// Calls three functions that are already tested - No need for unittesting
+/* istanbul ignore next */
 const protect = async req => {
   //Get the token from the request header or cookie or url.
   const decodedToken = await getDecodedToken(req);
@@ -498,6 +370,8 @@ exports.protectService = protect;
  * @description Closes the websocket connection.
  * @param {Object} ws Websocket object
  */
+//Calls send and close functions in webSocket module - No need for unittesting
+/* istanbul ignore next */
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
@@ -531,7 +405,8 @@ exports.closeSocket = closeSocket;
  ##    ##  ##  ##    ##  ##   ### ##     ## ##        
   ######  ####  ######   ##    ##  #######  ##        
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.signup = catchAsync(async (req, res, next) => {
   //Creates a new user. If the type is artist, creates a referencing artist.
   if (!req.body.password || !req.body.passwordConfirm)
@@ -552,7 +427,8 @@ exports.signup = catchAsync(async (req, res, next) => {
  ########  #######   ######   #### ##    ## 
  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -564,7 +440,8 @@ exports.login = catchAsync(async (req, res, next) => {
   //Send the new User in the response.
   sendUser(user, res);
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.loginWithFacebook = catchAsync(async (req, res, next) => {
   const token = signToken(req.user._id);
 
@@ -584,13 +461,15 @@ exports.loginWithFacebook = catchAsync(async (req, res, next) => {
 
   res.redirect(process.env.FRONTEND_URL);
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.logout = catchAsync(async (req, res, next) => {
   res.clearCookie('jwt');
   res.clearCookie('loggedIn');
   res.status(200).json('done');
 });
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.getToken = catchAsync(async (req, res, next) => {
   const token = signToken(req.user._id);
   res.status(200).json({
@@ -609,7 +488,8 @@ exports.getToken = catchAsync(async (req, res, next) => {
  ##        ##     ##  #######     ##    ########  ######     ##    
  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.protect = catchAsync(async (req, res, next) => {
   await protect(req);
 
@@ -627,7 +507,8 @@ exports.protect = catchAsync(async (req, res, next) => {
  ##     ## ########  ######     ##    ##     ## ####  ######     ##          ##     #######  
  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.restrictTo = (...types) => {
   return (req, res, next) => {
     if (!types.includes(req.user.type)) {
@@ -650,7 +531,8 @@ exports.restrictTo = (...types) => {
  ##        #######  ##     ##  ######    #######     ##    ##        ##     ##  ######   ######   ###  ###   #######  ##     ## ########  
  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const baseURL = `${req.protocol}://${req.get('host')}${
     req.baseApiUrl
@@ -675,7 +557,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
  ##     ## ########  ######  ########    ##       ##        ##     ##  ######   ######   ###  ###   #######  ##     ## ########  
  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.resetPassword = catchAsync(async (req, res, next) => {
   if (!req.body.password || !req.body.passwordConfirm)
     return next(
@@ -703,7 +586,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
  ##     ## ##        ##     ## ##     ##    ##    ##          ##        ##     ## ##    ## ##    ## ##  ##  ## ##     ## ##    ##  ##     ## 
   #######  ##        ########  ##     ##    ##    ########    ##        ##     ##  ######   ######   ###  ###   #######  ##     ## ########  
 */
-
+//request handler - No need for unittesting
+/* istanbul ignore next */
 exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await updatePassword(
     req.user._id,
@@ -723,6 +607,8 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
  ##  ##  ## ##       ##     ##    ##    ## ##     ## ##    ## ##   ##  ##          ##    ##    ##    ##     ## ##     ##    ##    ##     ## ##       ##   ###    ##     ##  ##    ## ##     ##    ##     ##  ##     ## ##   ### 
   ###  ###  ######## ########      ######   #######   ######  ##    ## ########    ##     ######     ##     ##  #######     ##    ##     ## ######## ##    ##    ##    ####  ######  ##     ##    ##    ####  #######  ##    ## 
 */
+//request handler - No need for unittesting
+/* istanbul ignore next */
 
 exports.protectWs = async (req, ws) => {
   try {

@@ -17,41 +17,47 @@ const ApiFeatures = require('./../utils/apiFeatures');
  * @returns {void}
  */
 const follow = async (userId, idsToFollow, type) => {
-    const me = await User.findById(userId);
+  const me = await User.findById(userId);
 
-    // the already followed ids
-    const following = me.following.map(id => id.toString());
+  // the already followed ids
+  const following = me.following.map(id => id.toString());
 
-    // get the distinct ids only
-    idsToFollow = idsToFollow.filter(id => !following.includes(id));
+  // get the distinct ids only
+  idsToFollow = idsToFollow.filter(id => !following.includes(id));
 
-    if (type)
-        idsToFollow = (await User.find({
-            _id: {
-                $in: idsToFollow
-            },
-            type: type
-        })).map(user => user._id.toString());
-
-    // adding new ids to be followed to the user
-    idsToFollow.forEach(id => {
-        me.following.push(id);
-    });
-
-    // saving the current user
-    await me.save();
-
-    // updating followers counter of the followed users
-    await User.updateMany({
+  if (type)
+    idsToFollow = (
+      await User.find({
         _id: {
-            $in: idsToFollow
-        }
-    }, {
-        $inc: {
-            followers: 1
-        }
-    });
+          $in: idsToFollow
+        },
+        type: type
+      })
+    ).map(user => user._id.toString());
+
+  // adding new ids to be followed to the user
+  idsToFollow.forEach(id => {
+    me.following.push(id);
+  });
+
+  // saving the current user
+  await me.save();
+
+  // updating followers counter of the followed users
+  await User.updateMany(
+    {
+      _id: {
+        $in: idsToFollow
+      }
+    },
+    {
+      $inc: {
+        followers: 1
+      }
+    }
+  );
 };
+exports.followLogic = follow;
 
 /**
  * A method that takes a user id and an array of ids to check if the user  follow them or not.
@@ -61,28 +67,30 @@ const follow = async (userId, idsToFollow, type) => {
  * @returns {Array} - Comma separated boolean values in the same order in which the idsToBeChecked were specified.
  */
 const checkFollowing = async (userId, idsToBeChecked, type) => {
-    const me = await User.findById(userId);
+  const me = await User.findById(userId);
 
-    // the already followed ids
-    const following = me.following.map(id => id.toString());
+  // the already followed ids
+  const following = me.following.map(id => id.toString());
 
-    let idsToBeCheckedFiltered = idsToBeChecked;
+  let idsToBeCheckedFiltered = idsToBeChecked;
 
-    if (type)
-        idsToBeCheckedFiltered = (await User.find({
-            _id: {
-                $in: idsToBeChecked
-            },
-            type: type
-        })).map(user => user._id.toString());
+  if (type)
+    idsToBeCheckedFiltered = (
+      await User.find({
+        _id: {
+          $in: idsToBeChecked
+        },
+        type: type
+      })
+    ).map(user => user._id.toString());
 
-    const response = idsToBeChecked.map(
-        id => following.includes(id) && idsToBeCheckedFiltered.includes(id)
-    );
+  const response = idsToBeChecked.map(
+    id => following.includes(id) && idsToBeCheckedFiltered.includes(id)
+  );
 
-    return response;
+  return response;
 };
-
+exports.checkFollowingLogic = checkFollowing;
 /**
  * A method that takes a user id and return array of the followed users
  * @param {String} userId - The id of the user to get his followers
@@ -90,71 +98,70 @@ const checkFollowing = async (userId, idsToBeChecked, type) => {
  * @returns {Array} Array of the users followed by the given id
  */
 const getFollowedUsers = async (userId, queryParams) => {
-    if (!queryParams) queryParams = {};
+  if (!queryParams) queryParams = {};
 
-    //get an array of the followed ids
-    const {
-        following: followedIds
-    } = await User.findById(userId);
+  //get an array of the followed ids
+  const { following: followedIds } = await User.findById(userId);
 
-    // construct the query to get the users with those ids
-    const query = {
-        _id: {
-            $in: followedIds
-        }
-    };
+  // construct the query to get the users with those ids
+  const query = {
+    _id: {
+      $in: followedIds
+    }
+  };
 
-    // filter the query if specific user type is required
-    if (queryParams.type) query.type = queryParams.type;
+  // filter the query if specific user type is required
+  if (queryParams.type) query.type = queryParams.type;
 
-    const features = new ApiFeatures(
-            User.find(query),
-            queryParams
-        )
-        .skip();
+  const features = new ApiFeatures(User.find(query), queryParams).skip();
 
-    return await features.query;
+  return await features.query;
 };
-
+exports.getFollowedUsersLogic = getFollowedUsers;
 
 /**
  * A method that takes an id of the user and an array of ids to be unfollowed by this user
  * @param {String} userId - user id who wants to unfollow other users
- * @param {Array} idsToUnfollow - Array of ids to be unfollowed by the given user 
+ * @param {Array} idsToUnfollow - Array of ids to be unfollowed by the given user
  * @param {String} [type] - (Optional) To limit the unfollowing process, ex: unfollow artists only or normal users only
  * @returns {void}
  */
 const unfollowUsers = async (userId, idsToUnfollow, type) => {
-    const me = await User.findById(userId);
-    const following = me.following.map(id => id.toString());
+  const me = await User.findById(userId);
+  const following = me.following.map(id => id.toString());
 
-    idsToUnfollow = idsToUnfollow.filter(idToUnfollow =>
-        following.includes(idToUnfollow)
-    );
+  idsToUnfollow = idsToUnfollow.filter(idToUnfollow =>
+    following.includes(idToUnfollow)
+  );
 
-
-    if (type)
-        idsToUnfollow = (await User.find({
-            _id: {
-                $in: idsToUnfollow
-            },
-            type: type
-        })).map(user => user._id.toString());
-
-    me.following = following.filter(id => !idsToUnfollow.includes(id));
-    await me.save();
-
-    await User.updateMany({
+  if (type)
+    idsToUnfollow = (
+      await User.find({
         _id: {
-            $in: idsToUnfollow
-        }
-    }, {
-        $inc: {
-            followers: -1
-        }
-    });
+          $in: idsToUnfollow
+        },
+        type: type
+      })
+    ).map(user => user._id.toString());
 
+  me.following = following.filter(id => !idsToUnfollow.includes(id));
+  await me.save();
+
+  await User.updateMany(
+    {
+      _id: {
+        $in: idsToUnfollow
+      }
+    },
+    {
+      $inc: {
+        followers: -1
+      }
+    }
+  );
 };
+
+exports.unfollowUsersLogic = unfollowUsers;
 
 /**
  * A method to follow a playlist given the user id and the playlist id
@@ -164,49 +171,51 @@ const unfollowUsers = async (userId, idsToUnfollow, type) => {
  * @returns {void}
  */
 const followPlaylist = async (userId, playlistId, isPublic) => {
-    const me = await User.findById(userId);
+  const me = await User.findById(userId);
 
-    const followedPlaylists = me.followedPlaylists.map(followedPlaylist =>
-        followedPlaylist.playlist.toString()
-    );
+  const followedPlaylists = me.followedPlaylists.map(followedPlaylist =>
+    followedPlaylist.playlist.toString()
+  );
 
-    // id of the new playlist
-    const playlistToFollow = playlistId;
+  // id of the new playlist
+  const playlistToFollow = playlistId;
 
-    if (followedPlaylists.includes(playlistToFollow))
-        throw new AppError('You are already following this playlist.', 400);
+  if (followedPlaylists.includes(playlistToFollow))
+    throw new AppError('You are already following this playlist.', 400);
 
-    //update the followers counter in the playlist
-    const playlist = await Playlist.findByIdAndUpdate(playlistToFollow, {
-        $inc: {
-            followers: 1
-        }
-    }, {
-        new: true
+  //update the followers counter in the playlist
+  const playlist = await Playlist.findByIdAndUpdate(
+    playlistToFollow,
+    {
+      $inc: {
+        followers: 1
+      }
+    },
+    {
+      new: true
+    }
+  );
+
+  if (!playlist) throw new AppError('No playlist with this id', 404);
+
+  try {
+    //adding the new playlist to the user
+    me.followedPlaylists.push({
+      playlist: playlistToFollow,
+      public: isPublic
     });
 
-    if (!playlist) throw new AppError('No playlist with this id', 404);
-
-
-
-    try {
-        //adding the new playlist to the user
-        me.followedPlaylists.push({
-            playlist: playlistToFollow,
-            public: isPublic
-        });
-
-        await me.save();
-    } catch (err) {
-        await Playlist.findByIdAndUpdate(playlistToFollow, {
-            $inc: {
-                followers: -1
-            }
-        });
-        throw err;
-    }
-
+    await me.save();
+  } catch (err) {
+    await Playlist.findByIdAndUpdate(playlistToFollow, {
+      $inc: {
+        followers: -1
+      }
+    });
+    throw err;
+  }
 };
+exports.followPlaylistLogic = followPlaylist;
 
 /**
  * * A method to unfollow a playlist given the user id and the playlist id
@@ -215,99 +224,117 @@ const followPlaylist = async (userId, playlistId, isPublic) => {
  * @returns {void}
  */
 const unfollowPlaylist = async (userId, playlistId) => {
-    const me = await User.findById(userId);
+  const me = await User.findById(userId);
 
-    const followedPlaylists = me.followedPlaylists.map(followedPlaylist =>
-        followedPlaylist.playlist.toString()
-    );
+  const followedPlaylists = me.followedPlaylists.map(followedPlaylist =>
+    followedPlaylist.playlist.toString()
+  );
 
-    // id of the new playlist
-    const playlistToUnFollow = playlistId;
+  // id of the new playlist
+  const playlistToUnFollow = playlistId;
 
-    if (!followedPlaylists.includes(playlistToUnFollow))
-        throw new AppError('You are not following this playlist.', 400);
+  if (!followedPlaylists.includes(playlistToUnFollow))
+    throw new AppError('You are not following this playlist.', 400);
 
+  //update the followers counter in the playlist
+  await Playlist.findByIdAndUpdate(playlistToUnFollow, {
+    $inc: {
+      followers: -1
+    }
+  });
+
+  // update the array of followed playlists in the user
+
+  try {
+    await User.findByIdAndUpdate(userId, {
+      $pull: {
+        followedPlaylists: {
+          playlist: playlistToUnFollow
+        }
+      }
+    });
+  } catch (err) {
     //update the followers counter in the playlist
     await Playlist.findByIdAndUpdate(playlistToUnFollow, {
-        $inc: {
-            followers: -1
-        }
+      $inc: {
+        followers: 1
+      }
     });
 
-    // update the array of followed playlists in the user
-
-    try {
-        await User.findByIdAndUpdate(userId, {
-            $pull: {
-                followedPlaylists: {
-                    playlist: playlistToUnFollow
-                }
-            }
-        });
-    } catch (err) {
-        //update the followers counter in the playlist
-        await Playlist.findByIdAndUpdate(playlistToUnFollow, {
-            $inc: {
-                followers: 1
-            }
-        });
-
-        throw err;
-    }
+    throw err;
+  }
 };
+exports.unfollowPlaylistLogic = unfollowPlaylist;
 
 const checkFollowingPlaylist = async (playlistId, userIds) => {
-    if (userIds.length > 5) throw new AppError('Maximum number of ids is 5', 400);
+  if (userIds.length > 5) throw new AppError('Maximum number of ids is 5', 400);
 
-    // array of user ids who follows this playlist
-    const matchedUsers = (await User.find({
-        _id: {
-            $in: userIds
-        },
-        'followedPlaylists.playlist': playlistId
-    })).map(user => user._id.toString());
+  // array of user ids who follows this playlist
+  const matchedUsers = (
+    await User.find({
+      _id: {
+        $in: userIds
+      },
+      'followedPlaylists.playlist': playlistId
+    })
+  ).map(user => user._id.toString());
 
-    return userIds.map(userId => matchedUsers.includes(userId));
+  return userIds.map(userId => matchedUsers.includes(userId));
 };
+exports.checkFollowingPlaylistLogic = checkFollowingPlaylist;
 
+/* istanbul ignore next */
 exports.followUser = catchAsync(async (req, res, next) => {
-    await follow(req.user._id, req.body.ids, req.query.type);
-    res.status(204).json({});
+  await follow(req.user._id, req.body.ids, req.query.type);
+  res.status(204).json({});
 });
 
+/* istanbul ignore next */
 exports.checkFollowing = catchAsync(async (req, res, next) => {
-    const idsToBeChecked = req.query.ids.split(',');
+  const idsToBeChecked = req.query.ids.split(',');
 
-    const response = await checkFollowing(
-        req.user._id,
-        idsToBeChecked,
-        req.query.type
-    );
+  const response = await checkFollowing(
+    req.user._id,
+    idsToBeChecked,
+    req.query.type
+  );
 
-    res.status(200).json(response);
+  res.status(200).json(response);
 });
 
+/* istanbul ignore next */
 exports.getFollowedUsers = catchAsync(async (req, res, next) => {
-    const followedUsers = await getFollowedUsers(req.user._id, req.query);
-    res.status(200).json(followedUsers);
+  const followedUsers = await getFollowedUsers(req.user._id, req.query);
+  res.status(200).json(followedUsers);
 });
 
+/* istanbul ignore next */
 exports.unfollow = catchAsync(async (req, res, next) => {
-    unfollowUsers(req.user._id, req.body.ids, req.query.type);
-    res.status(204).json();
+  unfollowUsers(req.user._id, req.body.ids, req.query.type);
+  res.status(204).json();
 });
 
+/* istanbul ignore next */
 exports.followPlaylist = catchAsync(async (req, res, next) => {
-    await followPlaylist(req.user._id, req.params.playlist_id, req.body.public ? req.body.public : false);
-    res.status(200).json('Playlist followed successfully');
+  await followPlaylist(
+    req.user._id,
+    req.params.playlist_id,
+    req.body.public ? req.body.public : false
+  );
+  res.status(200).json('Playlist followed successfully');
 });
 
+/* istanbul ignore next */
 exports.unfollowPlaylist = catchAsync(async (req, res, next) => {
-    await unfollowPlaylist(req.user._id, req.params.playlist_id);
-    res.status(200).json('Playlist unfollowed successfully');
+  await unfollowPlaylist(req.user._id, req.params.playlist_id);
+  res.status(200).json('Playlist unfollowed successfully');
 });
 
+/* istanbul ignore next */
 exports.checkFollowingPlaylist = catchAsync(async (req, res, next) => {
-    const response = await checkFollowingPlaylist(req.params.playlist_id, req.query.ids.split(','));
-    res.status(200).json(response);
+  const response = await checkFollowingPlaylist(
+    req.params.playlist_id,
+    req.query.ids.split(',')
+  );
+  res.status(200).json(response);
 });
