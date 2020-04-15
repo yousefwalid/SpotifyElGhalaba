@@ -39,7 +39,8 @@ const artistSchema = new mongoose.Schema(
     userInfo: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
-      required: [true, `The artist's user info has to be specifed`]
+      required: [true, `The artist's user info has to be specifed`],
+      select: true
     },
     albums: {
       type: [mongoose.Schema.ObjectId],
@@ -86,6 +87,27 @@ artistSchema.virtual('type').get(function() {
 
 artistSchema.virtual('href').get(function() {
   return `https://api.spotify.com/v1/artists/${this.id}`;
+});
+
+artistSchema.pre(/^find/, async function(next) {
+  this.populate({
+    path: 'userInfo',
+    select: 'name'
+  });
+});
+
+artistSchema.post(/^find/, async function(doc, next) {
+  if (doc.forEach) {
+    doc.forEach(el => {
+      el._doc.name = el.userInfo.name;
+      el.userInfo = undefined;
+    });
+  } else {
+    doc._doc.name = doc.userInfo.name;
+    doc.userInfo = undefined;
+  }
+
+  next();
 });
 
 const Artist = mongoose.model('Artist', artistSchema);

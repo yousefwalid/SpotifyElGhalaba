@@ -12,20 +12,12 @@ const albumController = require('./albumController');
 const getArtist = async artistId => {
   if (!artistId) throw new AppError('Artist id not specified', 400);
   const artist = (
-    await Artist.findById(artistId)
-      .select(
-        'external_urls biography genres followers href id images popularity uri type userInfo name'
-      )
-      .populate({
-        path: 'userInfo',
-        select: 'name'
-      })
+    await Artist.findById(artistId).select(
+      'external_urls biography genres followers href id images popularity uri type name'
+    )
   ).toJSON();
 
   if (!artist) throw new AppError('No artist found with that id', 404);
-
-  artist.name = artist.userInfo.name;
-  artist.userInfo = undefined;
 
   return artist;
 };
@@ -41,20 +33,10 @@ const getMultipleArtists = async artistsIds => {
     );
 
   const artists = (
-    await Artist.find({ _id: { $in: artistsIds } })
-      .select(
-        'external_urls biography genres followers href id images popularity uri type userInfo name'
-      )
-      .populate({
-        path: 'userInfo',
-        select: 'name'
-      })
+    await Artist.find({ _id: { $in: artistsIds } }).select(
+      'external_urls biography genres followers href id images popularity uri type name'
+    )
   ).map(el => el.toJSON());
-
-  artists.forEach(artist => {
-    artist.name = artist.userInfo.name;
-    artist.userInfo = undefined;
-  });
 
   return artists;
 };
