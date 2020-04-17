@@ -171,7 +171,8 @@ describe('Testing library controller', function() {
     await SavedAlbum.create(savedAlbumsObjects);
     const boolArray = await libraryController.checkUsersSavedModelLogic(
       albumsIDs,
-      Album
+      Album,
+      user
     );
     boolArray.forEach(el => {
       assert.strictEqual(el, true);
@@ -196,7 +197,8 @@ describe('Testing library controller', function() {
     await SavedTrack.create(savedTracksObjects);
     const boolArray = await libraryController.checkUsersSavedModelLogic(
       tracksIDs,
-      Track
+      Track,
+      user
     );
     boolArray.forEach(el => {
       assert.strictEqual(el, true);
@@ -216,7 +218,8 @@ describe('Testing library controller', function() {
     await SavedAlbum.create(savedAlbumsObjects);
     const boolArray = await libraryController.checkUsersSavedModelLogic(
       ['5e869a2b5a21c7219c5d8750', '5e869a2b5a21c7219c5d8750'],
-      Album
+      Album,
+      user
     );
     boolArray.forEach(el => {
       assert.strictEqual(el, false);
@@ -241,7 +244,8 @@ describe('Testing library controller', function() {
     await SavedTrack.create(savedTracksObjects);
     const boolArray = await libraryController.checkUsersSavedModelLogic(
       ['5e869a2b5a21c7219c5d8750', '5e869a2b5a21c7219c5d8750'],
-      Track
+      Track,
+      user
     );
     boolArray.forEach(el => {
       assert.strictEqual(el, false);

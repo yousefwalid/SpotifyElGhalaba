@@ -156,7 +156,19 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
           populate: [
             {
               path: 'album',
-              select: 'name'
+              select: '-tracks',
+              populate: [
+                {
+                  path: 'artists',
+                  select: 'userInfo',
+                  populate: [
+                    {
+                      path: 'userInfo',
+                      select: 'name'
+                    }
+                  ]
+                }
+              ]
             },
             {
               path: 'artists',
@@ -182,11 +194,21 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
       .populate([
         {
           path: modelName,
-          select: 'artists name',
           populate: [
             {
-              path: 'album',
-              select: 'name'
+              path: 'tracks',
+              populate: [
+                {
+                  path: 'artists',
+                  select: 'userInfo',
+                  populate: [
+                    {
+                      path: 'userInfo',
+                      select: 'name'
+                    }
+                  ]
+                }
+              ]
             },
             {
               path: 'artists',
