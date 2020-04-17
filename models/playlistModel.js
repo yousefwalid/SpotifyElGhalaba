@@ -5,6 +5,8 @@ const ImageObject = require('./objects/imageObject');
 const PlaylistTrackObject = require('./objects/playlistTrackObject');
 const ExternalUrlObject = require('./objects/externalUrlObject');
 
+/* istanbul ignore file */
+
 /**
  * @typedef {Object} PlaylistObject
  * @property {String} id The id for the playlist
@@ -116,15 +118,11 @@ playlistSchema.virtual('uri').get(function() {
 });
 
 playlistSchema.virtual('href').get(function() {
-  return `http://localhost:${
-    process.env.PORT
-  }/api/v1/users/spotify/playlists/${this.id}`;
+  return `http://localhost:${process.env.PORT}/api/v1/users/spotify/playlists/${this.id}`;
 });
 
 playlistSchema.virtual('tracks.href').get(function() {
-  return `http://localhost:${
-    process.env.PORT
-  }/api/v1/users/spotify/playlists/${this.id}/tracks`;
+  return `http://localhost:${process.env.PORT}/api/v1/users/spotify/playlists/${this.id}/tracks`;
 });
 
 playlistSchema.virtual('external_urls').get(function() {

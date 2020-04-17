@@ -92,7 +92,7 @@ exports.getAudioFeaturesForTrack = catchAsync(async (req, res, next) => {
   const trackAudioFeatures = await getAudioFeaturesForTrack(req.params.id);
   res.status(200).json(trackAudioFeatures);
 });
-
+/* istanbul ignore next */
 exports.getAudioFeaturesForSeveralTracks = catchAsync(
   async (req, res, next) => {
     if (req.query.ids == '') {

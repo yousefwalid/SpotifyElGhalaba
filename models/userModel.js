@@ -40,160 +40,169 @@ const ImageObject = require('./objects/imageObject');
   ######   ######  ##     ## ######## ##     ## ##     ## 
  
 */
-const followedPlaylist = new mongoose.Schema({
-  playlist: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Playlist'
+const followedPlaylist = new mongoose.Schema(
+  {
+    playlist: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Playlist'
+    }
+  },
+  {
+    _id: false,
+    id: false,
+    __v: false
   }
-}, {
-  _id: false,
-  id: false,
-  __v: false
-});
+);
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    trim: true,
-    maxlength: 30,
-    minlength: 2,
-    required: [true, 'Name of the user is required'],
-    validate: {
-      validator: function (v) {
-        return /^[a-z ,.'-]+$/i.test(v);
-      },
-      message: 'Invalid Name'
-    }
-  },
-  email: {
-    type: String,
-    trim: true,
-    maxlength: 50,
-    minlength: 5,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true, //transform the emails to lowercase,
-    validate: [validator.isEmail, 'Please enter a valid email']
-  },
-  gender: {
-    type: String,
-    enum: {
-      values: ['m', 'f'],
-      message: 'Invalid gender value. Please specify either m or f.'
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+      maxlength: 30,
+      minlength: 2,
+      required: [true, 'Name of the user is required'],
+      validate: {
+        validator: function(v) {
+          return /^[a-z ,.'-]+$/i.test(v);
+        },
+        message: 'Invalid Name'
+      }
     },
-    required: [true, `You have to specify the current user's gender`]
-  },
-  googleId: String,
-  facebookId: String,
-  phoneNumber: {
-    type: String
-  },
-  country: {
-    type: String,
-    validate: [
-      validator.isISO31661Alpha2,
-      'Please enter a valid counrty code'
-    ]
-  },
-  type: {
-    type: String,
-    required: [true, 'user type is required'],
-    enum: {
-      values: ['user', 'artist', 'admin'],
-      message: 'Invalid type value. Please specify one of the three user types: user, artist or admin'
+    email: {
+      type: String,
+      trim: true,
+      maxlength: 50,
+      minlength: 5,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true, //transform the emails to lowercase,
+      validate: [validator.isEmail, 'Please enter a valid email']
     },
-    default: 'user'
-  },
-  product: {
-    type: String,
-    required: [true, 'user product is required'],
-    enum: {
-      values: ['free', 'premium'],
-      message: 'Invalid product value. Please specify either free or premium.'
+    gender: {
+      type: String,
+      enum: {
+        values: ['m', 'f'],
+        message: 'Invalid gender value. Please specify either m or f.'
+      },
+      required: [true, `You have to specify the current user's gender`]
     },
-    default: 'free'
-  },
-  birthdate: {
-    type: Date,
-    required: [true, "Please specify the user's birthdate"],
-    validate: {
-      validator: function (date) {
-        const currentYear = new Date().getFullYear();
-        const candidateYear = date.getFullYear();
-        return (
-          candidateYear <= currentYear && candidateYear >= currentYear - 100
-        );
+    googleId: String,
+    facebookId: String,
+    phoneNumber: {
+      type: String
+    },
+    country: {
+      type: String,
+      validate: [
+        validator.isISO31661Alpha2,
+        'Please enter a valid counrty code'
+      ]
+    },
+    type: {
+      type: String,
+      required: [true, 'user type is required'],
+      enum: {
+        values: ['user', 'artist', 'admin'],
+        message:
+          'Invalid type value. Please specify one of the three user types: user, artist or admin'
       },
-      message: 'Invalid birthdate'
-    }
-  },
-  password: {
-    type: String,
-    minlength: 8,
-    maxlength: 64
-    // select: false
-  },
-  passwordConfirm: {
-    type: String,
-    // select: false,
-    validate: {
-      // this only works on SAVE and CREATE not UPDATE
-      validator: function (el) {
-        return el === this.password;
+      default: 'user'
+    },
+    product: {
+      type: String,
+      required: [true, 'user product is required'],
+      enum: {
+        values: ['free', 'premium'],
+        message: 'Invalid product value. Please specify either free or premium.'
       },
-      message: 'Passwords are not the same'
-    }
-  },
-  image: {
-    type: ImageObject,
-    default: null
-  },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpiresAt: Date,
-  online: {
-    type: Boolean,
-    default: false
-  },
-  active: {
-    // The user's account is active --> not deleted
-    type: Boolean,
-    default: true
-    // select: false
-  },
-  //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
-  currentlyPlaying: {
-    type: CurrentlyPlayingObject,
-    default: {}
-  },
-  devices: {
-    type: [DeviceObject],
-    validate: [
-      function arrayLimit(val) {
-        return val.length <= 3;
-      },
-      '{PATH} exceeds the limit of 3'
+      default: 'free'
+    },
+    birthdate: {
+      type: Date,
+      required: [true, "Please specify the user's birthdate"],
+      validate: {
+        validator: function(date) {
+          const currentYear = new Date().getFullYear();
+          const candidateYear = date.getFullYear();
+          return (
+            candidateYear <= currentYear && candidateYear >= currentYear - 100
+          );
+        },
+        message: 'Invalid birthdate'
+      }
+    },
+    password: {
+      type: String,
+      minlength: 8,
+      maxlength: 64
+      // select: false
+    },
+    passwordConfirm: {
+      type: String,
+      // select: false,
+      validate: {
+        // this only works on SAVE and CREATE not UPDATE
+        validator: function(el) {
+          return el === this.password;
+        },
+        message: 'Passwords are not the same'
+      }
+    },
+    image: {
+      type: ImageObject,
+      default: null
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpiresAt: Date,
+    online: {
+      type: Boolean,
+      default: false
+    },
+    active: {
+      // The user's account is active --> not deleted
+      type: Boolean,
+      default: true
+      // select: false
+    },
+    //currently playing object contains : track ( track id ), time ( minutes and seconds ), device ( devi )
+    currentlyPlaying: {
+      type: CurrentlyPlayingObject,
+      default: {}
+    },
+    devices: {
+      type: [DeviceObject],
+      validate: [
+        function arrayLimit(val) {
+          return val.length <= 3;
+        },
+        '{PATH} exceeds the limit of 3'
+      ],
+      default: []
+    },
+    followers: {
+      type: Number,
+      default: 0
+    },
+    following: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
     ],
-    default: []
+    followedPlaylists: [followedPlaylist]
   },
-  followers: {
-    type: Number,
-    default: 0
-  },
-  following: [{
-    type: mongoose.Schema.ObjectId,
-    ref: 'User'
-  }],
-  followedPlaylists: [followedPlaylist]
-}, {
-  toJSON: {
-    virtuals: true
-  },
-  toObject: {
-    virtuals: true
-  },
-  strict: 'throw'
-});
+  {
+    toJSON: {
+      virtuals: true
+    },
+    toObject: {
+      virtuals: true
+    },
+    strict: 'throw'
+  }
+);
 
 /*
  
@@ -212,7 +221,7 @@ userSchema.plugin(idValidator, {
 });
 userSchema.plugin(mongooseLeanVirtuals);
 
-userSchema.virtual('uri').get(function () {
+userSchema.virtual('uri').get(function() {
   return `spotify:user:${this._id}`;
 });
 
@@ -229,22 +238,23 @@ userSchema.virtual('uri').get(function () {
 */
 
 //Always unsave passwordConfirm in DB.
-userSchema.pre('save', async function (next) {
-  this.passwordConfirm = undefined;
-  next();
-});
+// userSchema.pre('save', async function (next) {
+//   this.passwordConfirm = undefined;
+//   next();
+// });
 
 //If the password is modified set the last time changed at.
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function(next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 12);
+    this.passwordConfirm = undefined;
     if (!this.isNew) this.passwordChangedAt = Date.now() - 100;
   }
   next();
 });
 
 //Always deselect active field from queries
-userSchema.pre(/^find/g, function (next) {
+userSchema.pre(/^find/g, function(next) {
   this.find({
     active: {
       $ne: false
@@ -287,7 +297,7 @@ userSchema.statics.publicUser = () => {
 };
 
 //Compares two passwords
-userSchema.statics.correctPassword = async function (
+userSchema.statics.correctPassword = async function(
   candidatePassword,
   userPassword
 ) {
@@ -295,7 +305,7 @@ userSchema.statics.correctPassword = async function (
 };
 
 //Check if password changed after signing the jwt  token
-userSchema.statics.changedPasswordAfter = function (user, JWTTimestamp) {
+userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
   if (user.passwordChangedAt) {
     const passChangedAttimeStamp = user.passwordChangedAt.getTime();
     return passChangedAttimeStamp > JWTTimestamp * 1000;
@@ -314,7 +324,7 @@ userSchema.statics.changedPasswordAfter = function (user, JWTTimestamp) {
 */
 
 //Creates a hashed reset token and returns it.
-userSchema.methods.createPasswordResetToken = async function () {
+userSchema.methods.createPasswordResetToken = async function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('SHA256')
@@ -329,7 +339,7 @@ userSchema.methods.createPasswordResetToken = async function () {
 };
 
 //Returns an object contains the public user info.
-userSchema.methods.privateToPublic = function () {
+userSchema.methods.privateToPublic = function() {
   const publicUser = this.toObject({
     virtuals: true
   });

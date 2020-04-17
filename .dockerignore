@@ -1,6 +1,9 @@
 node_modules
 npm-debug.log
 .gitlab-ci.yml
+coverage
+api_docs
+test
 
 # Shell scripts
 ./*.sh

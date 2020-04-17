@@ -20,7 +20,7 @@ describe('Testing library controller', function() {
   const albums = [];
   let createdAlbums = [];
   let createdTracks = [];
-  this.beforeAll(async function() {
+  this.beforeAll('Library', async function() {
     await dropDB();
   });
   this.beforeEach(async function() {
@@ -100,41 +100,6 @@ describe('Testing library controller', function() {
       await libraryController.removeUserSavedModelLogic(albumsIDs, user, Album);
     });
   });
-  it('Testing remove albums for current user', async function() {
-    const savedAlbumsObjects = [];
-    const albumsIDs = [];
-    for (let i = 0; i < createdAlbums.length; i += 1) {
-      albumsIDs.push(createdAlbums[i]._id);
-    }
-    try {
-      await libraryController.removeUserSavedModelLogic(
-        albumsIDs[0],
-        user,
-        Album
-      );
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 404);
-    }
-  });
-  it('Testing remove track for current user with non existing saved track', async function() {
-    const savedTracksObjects = [];
-    for (let i = 0; i < 10; i += 1)
-      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
-    const tracksIDs = [];
-    createdTracks = await Track.create(tracks);
-    for (let i = 0; i < tracks.length; i += 1) {
-      tracksIDs[i] = createdTracks[i]._id;
-    }
-    try {
-      await libraryController.removeUserSavedModelLogic(
-        tracksIDs[0],
-        user,
-        Track
-      );
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 404);
-    }
-  });
   it('Testing remove tracks for current user', async function() {
     const savedTracksObjects = [];
     for (let i = 0; i < 10; i += 1)
@@ -156,6 +121,41 @@ describe('Testing library controller', function() {
     assert.doesNotReject(async () => {
       await libraryController.removeUserSavedModelLogic(tracksIDs, user, Track);
     });
+  });
+  it('Testing remove albums for current user with no existing saved album', async function() {
+    const savedAlbumsObjects = [];
+    const albumsIDs = [];
+    for (let i = 0; i < createdAlbums.length; i += 1) {
+      albumsIDs.push(createdAlbums[i]._id);
+    }
+    try {
+      await libraryController.removeUserSavedModelLogic(
+        albumsIDs[0],
+        user,
+        Album
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
+  });
+  it('Testing remove tracks for current user with non existing saved track', async function() {
+    const savedTracksObjects = [];
+    for (let i = 0; i < 10; i += 1)
+      tracks[i] = generateTrack(createdAlbums[i].id, [artist._id]);
+    const tracksIDs = [];
+    createdTracks = await Track.create(tracks);
+    for (let i = 0; i < createdTracks.length; i += 1) {
+      tracksIDs.push(createdTracks[i]._id);
+    }
+    try {
+      await libraryController.removeUserSavedModelLogic(
+        tracksIDs[0],
+        user,
+        Track
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
   });
   it('Testing check users saved albums', async function() {
     const savedAlbumsObjects = [];
@@ -322,5 +322,38 @@ describe('Testing library controller', function() {
     } catch (err) {
       assert.strictEqual(err.statusCode, 400);
     }
+  });
+  it('Testing validating limit and offset', function() {
+    let { limit, offset } = libraryController.validateLimitOffset();
+    assert.strictEqual(limit, 20);
+    assert.strictEqual(offset, 0);
+    try {
+      limit = libraryController.validateLimitOffset(50, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      limit = libraryController.validateLimitOffset(-1, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      limit = libraryController.validateLimitOffset(60, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+  });
+  it('Testing getNextAndPrevious', function() {
+    let { nextPage, previousPage } = libraryController.getNextAndPrevious(
+      1,
+      1,
+      'track',
+      1
+    );
+    assert.strictEqual(nextPage, null);
+    assert.notStrictEqual(previousPage, null);
+    let page = libraryController.getNextAndPrevious(-1, 1, 'track', 1);
+    assert.notStrictEqual(page.nextPage, null);
+    assert.strictEqual(page.previousPage, null);
   });
 });

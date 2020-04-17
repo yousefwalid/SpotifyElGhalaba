@@ -1,3 +1,4 @@
+image: node:13-alpine3.11
 stages:
   - build
   - test
@@ -10,24 +11,23 @@ cache:
     - .npm/
 
 before_script:
-  - npm i
+  - npm ci --cache .npm --prefer-offline
 
-run in local env:
-  image: node:13-alpine3.11
+run in prod-like env:
   stage: build
   script:
     - sh
-    - echo "$TEST_ENV" > config.env
+    - echo "$CI_ENV" > config.env
     - apk add coreutils
     - timeout --preserve-status 60s node .
 
 run unit tests:
-  image: node:13-alpine3.11
   only:
     - master
     - 2-ci-cd-pipeline
   stage: test
   script:
     - sh
-    - echo "$TEST_ENV" > config.env
+    - echo "$CI_ENV" > config.env
+    - echo "$CI_ENV" > .test.env
     - npm run test

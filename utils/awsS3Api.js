@@ -1,6 +1,7 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const AWS = require('aws-sdk');
+//This File Is An Interface For AWS-SDK module - No Need For Testing
 /* istanbul ignore file */
 class Aws {
   constructor(s3) {
@@ -92,7 +93,15 @@ class Aws {
       Key
     };
     if (Range) params.Range = Range;
-    return this.s3.getObject(params).createReadStream();
+    this.s3Obj = this.s3.getObject(params);
+    return this.s3Obj.createReadStream();
+  }
+
+  /**
+   * @returns {Object} returns s3.getObject()
+   */
+  getS3Obj() {
+    return this.s3Obj;
   }
 
   /**

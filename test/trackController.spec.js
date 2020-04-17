@@ -16,7 +16,7 @@ describe('Testing track controller', function() {
   let album;
   let createdTrack;
 
-  this.beforeAll(async function() {
+  this.beforeAll('Track', async function() {
     await dropDB();
   });
   this.beforeEach(async function() {
@@ -32,6 +32,12 @@ describe('Testing track controller', function() {
         user.userInfo._id
       );
     });
+
+    try {
+      await trackController.createTrackLogic(track[0], user.userInfo._id);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
+    }
   });
 
   it('testing getting a track', async function() {
