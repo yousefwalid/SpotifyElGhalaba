@@ -8,16 +8,40 @@ const sharp = require('sharp');
 const Artist = require('./../models/artistModel');
 const User = require('./../models/userModel');
 const albumController = require('./albumController');
+const { ObjectId } = require('mongoose').Types;
+
+const getArtistByUserInfo = async userInfoId => {
+  if (!userInfoId) throw new AppError('UserInfo id not specified', 400);
+
+  const artist = await Artist.find({ userInfo: { _id: userInfoId } }).select(
+    'external_urls biography genres followers href id images popularity uri type name'
+  );
+
+  if (!artist) throw new AppError('No artist found with that id');
+
+  return artist;
+};
+
+const getMultipleArtistsByUserInfoIds = async userInfoIds => {
+  if (!userInfoIds) throw new AppError('UserInfo ids not specified', 400);
+
+  const artists = await Artist.find({ userInfo: { $in: userInfoIds } }).select(
+    'external_urls biography genres followers href id images popularity uri type name'
+  );
+  //.map(el => el.toJSON());
+
+  return artists;
+};
 
 const getArtist = async artistId => {
   if (!artistId) throw new AppError('Artist id not specified', 400);
-  const artist = (
-    await Artist.findById(artistId).select(
-      'external_urls biography genres followers href id images popularity uri type name'
-    )
-  ).toJSON();
+  const artist = await Artist.findById(artistId).select(
+    'external_urls biography genres followers href id images popularity uri type name'
+  );
 
   if (!artist) throw new AppError('No artist found with that id', 404);
+
+  //artist = artist.toJSON();
 
   return artist;
 };
@@ -47,7 +71,11 @@ const getArtistAlbums = async (artistId, limit, offset) => {
 
   if (!artistId) throw new AppError('Artist id not specified', 400);
 
-  const albumsIds = (await Artist.findById(artistId).select('albums')).albums;
+  const artist = await Artist.findById(artistId).select('albums');
+
+  if (!artist) throw new AppError('No artist found with that id', 404);
+
+  const albumsIds = artist.albums;
 
   const pagingObject = await albumController.getSeveralSimplifiedAlbums(
     albumsIds,
@@ -77,6 +105,16 @@ exports.getArtistAlbums = catchAsync(async (req, res, next) => {
     req.query.offset
   );
   res.status(200).json(albums);
+});
+
+exports.getArtistByUserInfoId = catchAsync(async (req, res, next) => {
+  const artist = await getArtistByUserInfo(req.params.id);
+  res.status(200).json(artist);
+});
+
+exports.getMultipleArtistsByUserInfoIds = catchAsync(async (req, res, next) => {
+  const artist = await getMultipleArtistsByUserInfoIds(req.body.ids);
+  res.status(200).json(artist);
 });
 
 exports.getArtistTopTracks = catchAsync(async (req, res, next) => {});
