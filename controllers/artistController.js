@@ -1,47 +1,18 @@
-const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-const APIFeatures = require('./../utils/apiFeatures');
-const imageObject = require('./../models/objects/imageObject');
-const multer = require('multer');
-const sharp = require('sharp');
 const Artist = require('./../models/artistModel');
-const User = require('./../models/userModel');
 const albumController = require('./albumController');
-const { ObjectId } = require('mongoose').Types;
-
-const getArtistByUserInfo = async userInfoId => {
-  if (!userInfoId) throw new AppError('UserInfo id not specified', 400);
-
-  const artist = await Artist.find({ userInfo: { _id: userInfoId } }).select(
-    'external_urls biography genres followers href id images popularity uri type name'
-  );
-
-  if (!artist) throw new AppError('No artist found with that id');
-
-  return artist;
-};
-
-const getMultipleArtistsByUserInfoIds = async userInfoIds => {
-  if (!userInfoIds) throw new AppError('UserInfo ids not specified', 400);
-
-  const artists = await Artist.find({ userInfo: { $in: userInfoIds } }).select(
-    'external_urls biography genres followers href id images popularity uri type name'
-  );
-  //.map(el => el.toJSON());
-
-  return artists;
-};
 
 const getArtist = async artistId => {
   if (!artistId) throw new AppError('Artist id not specified', 400);
-  const artist = await Artist.findById(artistId).select(
+
+  const artist = await Artist.find({
+    $or: [{ _id: artistId }, { userInfo: artistId }]
+  }).select(
     'external_urls biography genres followers href id images popularity uri type name'
   );
 
   if (!artist) throw new AppError('No artist found with that id', 404);
-
-  //artist = artist.toJSON();
 
   return artist;
 };
@@ -57,7 +28,9 @@ const getMultipleArtists = async artistsIds => {
     );
 
   const artists = (
-    await Artist.find({ _id: { $in: artistsIds } }).select(
+    await Artist.find({
+      $or: [{ _id: { $in: artistsIds } }, { userInfo: { $in: artistsIds } }]
+    }).select(
       'external_urls biography genres followers href id images popularity uri type name'
     )
   ).map(el => el.toJSON());
@@ -71,7 +44,9 @@ const getArtistAlbums = async (artistId, limit, offset) => {
 
   if (!artistId) throw new AppError('Artist id not specified', 400);
 
-  const artist = await Artist.findById(artistId).select('albums');
+  const artist = await Artist.findOne({
+    $or: [{ _id: artistId }, { userInfo: artistId }]
+  }).select('albums');
 
   if (!artist) throw new AppError('No artist found with that id', 404);
 

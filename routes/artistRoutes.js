@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-router.route('/userId/:id').get(artistController.getArtistByUserInfoId);
-router.route('/userId/').get(artistController.getMultipleArtistsByUserInfoIds);
+// router.route('/userId/:id').get(artistController.getArtistByUserInfoId);
+// router.route('/userId/').get(artistController.getMultipleArtistsByUserInfoIds);
 router.route('/:id').get(artistController.getArtist);
 router.route('/:id/albums').get(artistController.getArtistAlbums);
 router.route('/:id/top-tracks').get(artistController.getArtistTopTracks);
