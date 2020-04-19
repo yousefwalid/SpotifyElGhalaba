@@ -90,20 +90,20 @@ artistSchema.virtual('href').get(function() {
 
 artistSchema.pre(/^find/, async function(next) {
   this.populate({
-    path: 'userInfo'
+    path: 'userInfo',
+    select: User.publicUser()
   });
 });
 
 artistSchema.post(/^find/, async function(doc, next) {
-  if (doc.forEach) {
-    doc.forEach(el => {
-      el._doc.name = el.userInfo.name;
-      //el.userInfo = undefined;
-    });
-  } else {
-    doc._doc.name = doc.userInfo.name;
-    // doc.userInfo = undefined;
-  }
+  if (doc)
+    if (doc.forEach) {
+      doc.forEach(el => {
+        el._doc.name = el.userInfo.name;
+      });
+    } else {
+      doc._doc.name = doc.userInfo.name;
+    }
 
   next();
 });

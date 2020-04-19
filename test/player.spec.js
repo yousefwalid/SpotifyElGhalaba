@@ -1,5 +1,6 @@
 const assert = require('assert');
 const faker = require('faker');
+const mongoose = require('mongoose');
 
 const playerController = require('../controllers/playerController');
 const authenticationController = require('../controllers/authenticationController');
@@ -94,6 +95,29 @@ describe('Testing Player Services', function() {
         assert.ok(false, 'Could Not delete the record');
       }
     });
+
+    it(`Should throw error if userId is invalid`, async function() {
+      const time = Date.now();
+
+      assert.rejects(async () => {
+        await playerController.saveTrackToHistory(
+          mongoose.Types.ObjectId(),
+          track._id,
+          time
+        );
+      }, `An expected error is not thrown.`);
+    });
+    it(`Should throw error if trackId is invalid`, async function() {
+      const time = Date.now();
+
+      assert.rejects(async () => {
+        await playerController.saveTrackToHistory(
+          user._id,
+          mongoose.Types.ObjectId(),
+          time
+        );
+      }, `An expected error is not thrown.`);
+    });
   });
   describe(`Get User's Recently Played Tracks`, function() {
     it(`Should Assert That The User's X Recently Played Tracks are returned`, async function() {
@@ -151,16 +175,20 @@ describe('Testing Player Services', function() {
       -1 *
       (Math.floor(Math.random() * 100) + 1)
     ).toString();
+    const correctPosition = Math.floor(Math.random() * 10000);
     const wrongRepeat1 = 'a';
     const wrongRepeat2 = '1';
     const wrongRepeat3 = '0';
+    const correctRepeat = 'true';
     const wrongShuffle1 = 'a';
     const wrongShuffle2 = '1';
     const wrongShuffle3 = '0';
+    const correctShuffle = 'true';
     const wrongVolume1 = 'a';
     const wrongVolume2 = (-1 * (Math.floor(Math.random() * 10) + 1)).toString();
     const wrongVolume3 = (Math.random() + 10).toString();
     const wrongVolume4 = Math.floor(Math.random() * 10) + 101;
+    const correctVolume = Math.floor(Math.random() * 102);
     const wrongRecentlyPlayed1 = ['a', null, '5'];
     const wrongRecentlyPlayed2 = [null, 'a', '5'];
     const wrongRecentlyPlayed3 = [null, 1, 'a'];
@@ -171,7 +199,9 @@ describe('Testing Player Services', function() {
       null,
       (Math.floor(Math.random() * 10) + 51).toString()
     ];
-    it('Should throw error for invalid position_ms parameter', function() {
+    const correctRecentlyPlayed = ['2', null, '5'];
+
+    it('Should throw error for invalid query parameters', function() {
       const req = { query: {} };
       const next = err => {
         if (err) throw err;
@@ -261,6 +291,40 @@ describe('Testing Player Services', function() {
       assert.throws(() => {
         playerController.validateGetRecentlyPlayed(req, res, next);
       }, `Invalid Parameter Validation Function For Recently Played`);
+    });
+
+    it('Should not throw any errors for valid query paramters.', function() {
+      const req = { query: {} };
+      const next = err => {
+        if (err) throw err;
+      };
+      const res = {};
+      req.query.position_ms = correctPosition;
+      assert.doesNotThrow(() => {
+        playerController.validateSeek(req, res, next);
+      }, 'An error is thrown for valid input position_ms');
+
+      req.query.state = correctRepeat;
+      assert.doesNotThrow(() => {
+        playerController.validateRepeat(req, res, next);
+      }, `An error is thrown for valid input repeat state`);
+
+      req.query.state = correctShuffle;
+      assert.doesNotThrow(() => {
+        playerController.validateShuffle(req, res, next);
+      }, `An error is thrown for valid input shuffle state`);
+
+      req.query.volume_percent = correctVolume;
+      assert.doesNotThrow(() => {
+        playerController.validateVolume(req, res, next);
+      }, `An error is thrown for valid input volume_percent`);
+
+      req.query.before = correctRecentlyPlayed[0];
+      req.query.after = correctRecentlyPlayed[1];
+      req.query.limit = correctRecentlyPlayed[2];
+      assert.doesNotThrow(() => {
+        playerController.validateGetRecentlyPlayed(req, res, next);
+      }, `An error is thrown for valid inputs before, after and limit`);
     });
   });
 });

@@ -32,8 +32,8 @@ const artistRouter = require('./routes/artistRoutes');
 const playerRouter = require('./routes/playerRoutes');
 const searchRouter = require('./routes/searchRoutes');
 
-const apiVersion = 1;
-const baseApiUrl = `/api/v${apiVersion}`;
+const apiVersion = process.env.API_VERSION;
+const baseApiUrl = `${process.env.API_BASE_URL}/v${apiVersion}`;
 // let apiDomain;
 // if (process.env.NODE_ENV === 'development')
 //   apiDomain = `${process.env.DOMAIN_DEVELOPMENT}:${process.env.PORT}`;
