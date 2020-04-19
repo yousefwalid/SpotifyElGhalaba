@@ -4,6 +4,8 @@ const Artist = require('./../models/artistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
+const { ObjectId } = require('mongoose').Types;
+
 /**
  * This contains all the business logic for the track controller
  * @module TrackController
@@ -71,6 +73,7 @@ const createTrack = async (requestBody, currentUser) => {
   const newTrack = reqObject;
   const artist = await Artist.findOne({ userInfo: currentUser._id });
   if (!artist) throw new AppError('Artist not found', 404);
+
   newTrack.artists = artist._id;
   const createdTrack = await Track.create(newTrack);
   return createdTrack;
