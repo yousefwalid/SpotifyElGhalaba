@@ -5,7 +5,7 @@ const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const authenticationController = require('./authenticationController');
 const Features = require('./../utils/apiFeatures');
-
+const Track = require('./../models/trackModel');
 /*
  
   ######  ######## ########  ##     ## ####  ######  ########  ######  
@@ -181,6 +181,16 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     .skip()
     .query.populate('track')
     .lean({ virtuals: false });
+};
+/**
+ * Increments played number of track
+ * @param {String} trackID -The ID of the played track
+ */
+const updatePlayedNumberOfTrack = async trackID => {
+  const track = await Track.findById(trackID);
+  if (!track) throw new AppError('Track not found', 404);
+  track.played += 1;
+  await track.save();
 };
 exports.getRecentlyPlayedService = getRecentlyPlayed;
 
@@ -365,6 +375,8 @@ exports.playTrack = catchAsync(async (req, res, next) => {
   await saveTrackToHistory(userId, trackId, playedAt, context_uri);
 
   await updateUserCurrentPlayingTrack(userId, trackId);
+
+  await updatePlayedNumberOfTrack(trackId);
 
   res.status(204).json({});
 });
