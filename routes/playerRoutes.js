@@ -17,6 +17,11 @@ router.get(
   playerController.validateGetRecentlyPlayed,
   playerController.getRecentlyPlayed
 );
+router.get(
+  '/recently-played-contexts',
+  playerController.validateGetRecentlyPlayed,
+  playerController.getRecentlyPlayedContexts
+);
 router.get('/currently-playing', playerController.getCurrentlyPlayingTrack);
 router.put('/pause', playerController.pause);
 router.put('/play', playerController.play);
