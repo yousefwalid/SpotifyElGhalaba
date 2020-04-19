@@ -5,7 +5,7 @@ const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const authenticationController = require('./authenticationController');
 const Features = require('./../utils/apiFeatures');
-
+const Track = require('./../models/trackModel');
 /*
  
   ######  ######## ########  ##     ## ####  ######  ########  ######  
@@ -136,11 +136,25 @@ exports.saveTrackToHistory = saveTrackToHistory;
  * @param {ObjectId} userId User's Id
  * @param {ObjectId} trackId Track's Id
  */
-const updateUserCurrentPlayingTrack = async (userId, trackId) => {
+const updateUserCurrentPlayingTrack = async (userId, trackId, contextUri) => {
+  const contextUriElements = contextUri.split(':');
+  const type = contextUriElements[1]; //album / artist / playlist
+  const id = contextUriElements[2];
+  let href =
+    process.env.NODE_ENV === 'production'
+      ? process.env.DOMAIN_PRODUCTION
+      : process.env.DOMAIN_DEVELOPMENT;
+  href += `/${type}s/${id}`;
+
   await User.findByIdAndUpdate(userId, {
     $set: {
       'currentlyPlaying.timestamp': Date.now(),
-      'currentlyPlaying.track': trackId
+      'currentlyPlaying.track': trackId,
+      'currentlyPlaying.context': {
+        type,
+        uri: contextUri,
+        href
+      }
     }
   }).lean({ virtuals: false });
 };
@@ -181,6 +195,16 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     .skip()
     .query.populate('track')
     .lean({ virtuals: false });
+};
+/**
+ * Increments played number of track
+ * @param {String} trackID -The ID of the played track
+ */
+const updatePlayedNumberOfTrack = async trackID => {
+  const track = await Track.findById(trackID);
+  if (!track) throw new AppError('Track not found', 404);
+  track.played += 1;
+  await track.save();
 };
 exports.getRecentlyPlayedService = getRecentlyPlayed;
 
@@ -356,6 +380,8 @@ exports.status = async (ws, req) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.playTrack = catchAsync(async (req, res, next) => {
+  if (!req.body.trackId || !req.body.context_uri)
+    return next(new AppError('Missing a body parameter.', 404));
   // eslint-disable-next-line camelcase
   const { context_uri } = req.body;
   const playedAt = req.body.played_at ? req.body.played_at : Date.now();
@@ -364,7 +390,9 @@ exports.playTrack = catchAsync(async (req, res, next) => {
 
   await saveTrackToHistory(userId, trackId, playedAt, context_uri);
 
-  await updateUserCurrentPlayingTrack(userId, trackId);
+  await updateUserCurrentPlayingTrack(userId, trackId, context_uri);
+
+  await updatePlayedNumberOfTrack(trackId);
 
   res.status(204).json({});
 });
@@ -381,18 +409,14 @@ exports.getAvailableDevices = catchAsync(async (req, res, next) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.getCurrentPlayback = catchAsync(async (req, res, next) => {
-  const currentlyPlaying = await User.findById(
+  let currentlyPlaying = await User.findById(
     req.user._id,
     'currentlyPlaying -_id'
-  )
-    .populate({
-      path: 'currentlyPlaying.track',
-      populate: [
-        { path: 'album' },
-        { path: 'artists', populate: { path: 'userInfo' } }
-      ]
-    })
-    .lean({ virtuals: false });
+  ).populate({
+    path: 'currentlyPlaying.track',
+    populate: [{ path: 'album' }, { path: 'artists' }]
+  });
+  currentlyPlaying = currentlyPlaying.toObject({ virtuals: false });
   currentlyPlaying.currentlyPlaying.track.id =
     currentlyPlaying.currentlyPlaying.track._id;
   currentlyPlaying.currentlyPlaying.track._id = undefined;
@@ -448,12 +472,16 @@ exports.getRecentlyPlayedContexts = catchAsync(async (req, res, next) => {
 exports.getCurrentlyPlayingTrack = catchAsync(async (req, res, next) => {
   const currentlyPlayingTrack = await User.findById(
     req.user._id,
-    'cuurentlyPlaying.track -_id'
+    'currentlyPlaying.track currentlyPlaying.context -_id'
   )
     .populate({
       path: 'currentlyPlaying.track'
     })
     .lean({ virtuals: false });
+
+  //Add the context of the track to the currentlyPlayingTrack object.
+  currentlyPlayingTrack.currentlyPlaying.track.context =
+    currentlyPlayingTrack.currentlyPlaying.context;
 
   res.status(200).json({
     currentlyPlayingTrack: currentlyPlayingTrack.currentlyPlaying.track
