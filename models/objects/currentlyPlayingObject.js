@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const idValidator = require('mongoose-id-validator');
 const DeviceObject = require('./deviceObject');
+const contextObject = require('./contextObject');
 
 const CurrentlyPlayingObject = new mongoose.Schema(
   {
@@ -35,6 +36,7 @@ const CurrentlyPlayingObject = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    context: contextObject,
     device: DeviceObject
   },
   {
