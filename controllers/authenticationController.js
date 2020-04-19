@@ -320,16 +320,21 @@ exports.createAndSendToken = createAndSendToken;
  */
 const getPublicUser = async user => {
   let populatedUser;
+  //The artist is always populated using a pre middleware
   if (user.type === 'artist') {
     populatedUser = await Artist.findOne({
       userInfo: new ObjectId(user._id)
-    }).populate({
-      path: 'userInfo',
-      select: User.publicUser()
     });
-    populatedUser = populatedUser.toObject({
-      virtuals: true
+    populatedUser = populatedUser.toObject({ virtuals: true });
+
+    //We need only the public fields for the userInfo in the artist. So...
+    const publicUser = Object.keys(User.publicUser());
+    Object.keys(populatedUser.userInfo).forEach(property => {
+      if (publicUser.includes(property)) {
+        populatedUser.userInfo[property] = undefined;
+      }
     });
+    // console.log(populatedUser.userInfo);
   } else {
     //Filter private fields of the user and send only the public user
     populatedUser = user.privateToPublic();

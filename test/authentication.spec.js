@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const faker = require('faker');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 const { dropDB } = require('./../utils/dropDB');
 const authenticationController = require('../controllers/authenticationController');
@@ -10,8 +11,10 @@ const authenticationController = require('../controllers/authenticationControlle
 const Artist = require('./../models/artistModel');
 const User = require('./../models/userModel');
 
-const userBody = require('./utils/createUser')('user');
-const artistBody = require('./utils/createUser')('artist');
+const objectBody = require('./utils/createUser');
+
+const userBody = objectBody('user');
+const artistBody = objectBody('artist');
 
 const userDefaultEmptyArrays = ['devices', 'followedPlaylists', 'following'];
 const userDefaultProperties = {
@@ -83,36 +86,38 @@ const createUserAssertions = function(user, body) {
   });
 };
 
+let userUser; //A normal user
+let userArtist; //The user object (userinfo) of the artist
+let artistArtist; //The artist object of the artist
 describe('Testing Authentication Services', function() {
   this.beforeAll('Authentication', async () => {
     await dropDB();
 
-    // console.log(userBody);
-    // console.log(userDefaultProperties);
-    // console.log(userDefaultNestedObjects);
+    userUser = await User.create(userBody);
+    userArtist = await User.create(artistBody);
+    const artistArtist = await Artist.create({
+      userInfo: userArtist._id
+    });
   });
-
-  let userUser;
-  let userArtist;
 
   describe('Testing Create New User/Artist', function() {
     it('Should create a new user without error', async function() {
-      userUser = await authenticationController.createNewUser(userBody);
-      // user = await authenticationController.getPublicUser(user);
-      // console.log(user);
+      const newUserBody = objectBody('user');
+      const newUser = await authenticationController.createNewUser(newUserBody);
 
-      createUserAssertions(userUser, userBody);
+      createUserAssertions(newUser, newUserBody);
     });
 
     it('Should create a new artist without error', async function() {
-      // console.log(artistBody);
-      userArtist = await authenticationController.createNewUser(artistBody);
-      createUserAssertions(userArtist, artistBody);
+      const newArtistBody = objectBody('artist');
+      const newArtist = await authenticationController.createNewUser(
+        newArtistBody
+      );
+      createUserAssertions(newArtist, newArtistBody);
       const artist = await Artist.findOne({
-        userInfo: userArtist._id
+        userInfo: newArtist._id
       });
 
-      //Check that an artist is created in the db
       assert.ok(artist, 'The Artist Document Was Not Created In DB');
     });
   });
@@ -143,6 +148,16 @@ describe('Testing Authentication Services', function() {
           `The private property ${key} exists in  public user!`
         );
       });
+
+      //Same for artist
+      const artist = await authenticationController.getPublicUser(userArtist);
+      // user.password = '123456';
+      Object.keys(publicUser).forEach(key => {
+        assert.ok(
+          !artist.userInfo[key],
+          `The private property ${key} exists in  public artist!`
+        );
+      });
     });
   });
 
@@ -155,6 +170,21 @@ describe('Testing Authentication Services', function() {
 
       //Check that an artist is created in the db
       assert.ok(user, 'No User Was Found With The Given EMAIL AND PASS');
+    });
+    it('Should throw error for wrong email or password', async function() {
+      assert.rejects(async () => {
+        await authenticationController.checkEmailAndPassword(
+          userBody.email,
+          'A wrong password&^%^'
+        );
+      }, 'An expected error is not thrown');
+
+      assert.rejects(async () => {
+        await authenticationController.checkEmailAndPassword(
+          'A wrong user email*%',
+          userBody.password
+        );
+      }, 'An expected error is not thrown');
     });
   });
 
@@ -229,6 +259,43 @@ describe('Testing Authentication Services', function() {
         userChangedPassAfterToken,
         `Although the user changed his password after signing the jwt token, this function could not figure this out. `
       );
+    });
+
+    it('Should throw an error if no token exists in the request object', async function() {
+      const req = { headers: {}, query: {}, cookies: {} };
+      assert.rejects(async () => {
+        await authenticationController.getDecodedToken(req);
+      }, 'An expected error is not thrown');
+    });
+    it('Should thorw an error if token id is invalid', async function() {
+      // This will throw error because the decoded id cannot be parsed to object id to query the user from db.
+      decodedToken.id = 'Invalid user id';
+      decodedToken.iat = Math.round(Date.now() / 1000);
+      assert.rejects(async () => {
+        await authenticationController.getUserByToken(decodedToken);
+      }, 'An expected error is not thrown (due to invalid user id in the token)');
+
+      // This will throw error because the decoded id is not in the db.
+      //mongoose.Types.ObjectId()  Generates a new random object id
+      decodedToken.id = mongoose.Types.ObjectId();
+      decodedToken.iat = Math.round(Date.now() / 1000);
+      assert.rejects(async () => {
+        await authenticationController.getUserByToken(decodedToken);
+      }, 'An expected error is not thrown (due to invalid user id in the token)');
+    });
+
+    it('Should throw an error because the password changed after signing the token', async function() {
+      decodedToken.id = userUser._id;
+      decodedToken.iat = Math.round(Date.now() / 1000);
+
+      userBody.password = 'a brand new password';
+      userBody.passwordConfirm = 'a brand new password';
+      userUser.password = userBody.password;
+      userUser.passwordConfirm = userBody.passwordConfirm;
+      userUser = await userUser.save();
+      assert.rejects(async () => {
+        await authenticationController.getUserByToken(decodedToken);
+      }, 'An expected error is not thrown');
     });
   });
 
@@ -319,54 +386,45 @@ describe('Testing Authentication Services', function() {
         'The resetPassword Service Does Not Work Properly'
       );
     });
-  });
-  describe('Testing Errors Throwing', function() {
-    it('Should throw an error for each assertion', async function() {
+    it('Should throw error if the hashed token is invalid', async function() {
+      const resetToken1 = crypto.randomBytes(32).toString('hex');
+      const resetToken2 = crypto.randomBytes(32).toString('hex');
+      userUser.passwordResetToken = crypto
+        .createHash('SHA256')
+        .update(resetToken1)
+        .digest('hex');
+      userUser.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
+      await userUser.save({
+        //To avoid the passwordConfirm field validation
+        validateBeforeSave: false
+      });
       assert.rejects(async () => {
-        await authenticationController.checkEmailAndPassword(
-          userBody.email,
-          'A wrong password&^%^'
+        await authenticationController.resetPasswordService(
+          resetToken2,
+          userBody.password,
+          userUser.passwordConfirm
         );
       }, 'An expected error is not thrown');
+    });
+    it('Should throw error if the old password is incorrect', async function() {
       assert.rejects(async () => {
-        await authenticationController.checkEmailAndPassword(
-          'A wrong user email*%',
-          userBody.password
+        await authenticationController.updatePasswordService(
+          userUser._id,
+          'invalid old passworddd',
+          'a new passsss',
+          'a new passsss'
         );
-      }, 'An expected error is not thrown');
-
-      const req = { headers: {}, query: {}, cookies: {} };
+      }, 'An expected error is not thrown.');
+    });
+    it('Should throw error if the user whose password is to be updated, does not exist in db', async function() {
       assert.rejects(async () => {
-        await authenticationController.getDecodedToken(req);
-      }, 'An expected error is not thrown');
-      let tokenId = jwt.sign(
-        {
-          id: 'Invalid User Id'
-        },
-        process.env.JWT_SECRET,
-        {
-          //the secret string should be at least 32 characters long
-          expiresIn: process.env.JWT_EXPIRES_IN
-        }
-      );
-      const token = { id: tokenId, iat: Date.now() };
-      assert.rejects(async () => {
-        await authenticationController.getUserByToken(token);
-      }, 'An expected error is not thrown');
-      tokenId = jwt.sign(
-        {
-          id: userUser._id
-        },
-        process.env.JWT_SECRET,
-        {
-          //the secret string should be at least 32 characters long
-          expiresIn: process.env.JWT_EXPIRES_IN
-        }
-      );
-      token.id = tokenId;
-      assert.rejects(async () => {
-        await authenticationController.getUserByToken(token);
-      }, 'An expected error is not thrown');
+        await authenticationController.updatePasswordService(
+          mongoose.Types.ObjectId(),
+          userBody.password,
+          'a new passsss',
+          'a new passsss'
+        );
+      }, 'An expected error is not thrown.');
     });
   });
 });

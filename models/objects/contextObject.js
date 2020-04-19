@@ -7,6 +7,11 @@ const ContextObject = new mongoose.Schema(
     type: {
       type: String,
       trim: true,
+      enum: {
+        values: ['artist', 'playlist', 'album'],
+        message:
+          'Invalid context type. Please specify the type as artist, playlist or album.'
+      },
       required: [true, 'A context object has to have a type.']
     },
     href: {
@@ -16,6 +21,10 @@ const ContextObject = new mongoose.Schema(
     },
     external_urls: {
       type: [ExternalUrlObject]
+    },
+    uri: {
+      type: String,
+      trim: true
     }
   },
   {

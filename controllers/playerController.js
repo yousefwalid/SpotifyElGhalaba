@@ -106,11 +106,25 @@ const checkStreamingStatus = (ws, id) => {
  * @param {ObjectId} trackId Track's Id
  * @param {Date} playedAt Timestamp at which the user played a track.
  */
-const saveTrackToHistory = async (userId, trackId, playedAt) => {
+const saveTrackToHistory = async (userId, trackId, playedAt, contextUri) => {
+  const contextUriElements = contextUri.split(':');
+  const type = contextUriElements[1]; //album / artist / playlist
+  const id = contextUriElements[2];
+  let href =
+    process.env.NODE_ENV === 'production'
+      ? process.env.DOMAIN_PRODUCTION
+      : process.env.DOMAIN_DEVELOPMENT;
+  href += `/${type}s/${id}`;
+
   const record = await PlayHistory.create({
     track: trackId,
     user: userId,
-    played_at: playedAt
+    played_at: playedAt,
+    context: {
+      type,
+      uri: contextUri,
+      href
+    }
   });
 
   if (!record) throw new AppError('The Given Data Is Invalid', 400);
@@ -133,7 +147,7 @@ const updateUserCurrentPlayingTrack = async (userId, trackId) => {
 exports.updateUserCurrentPlayingTrack = updateUserCurrentPlayingTrack;
 
 /**
- * @description Gets a group of the user's recently playing tracks before or after a certain timestamp.
+ * @description Gets a group of the user's recently playing tracks before or after a certain timestamp and their context.
  * @param {ObjectId} id User's Id.
  * @param {Number} limit Number of documents to be returned.
  * @param {Number} before Timestamp before which the tracks are chosen.
@@ -146,7 +160,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     query = PlayHistory.find(
       {
         user: id,
-        played_at: { $gt: new Date(after) }
+        played_at: { $gt: new Date(Number(after)) }
       },
       '-_id -__v -user'
     );
@@ -154,7 +168,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     query = PlayHistory.find(
       {
         user: id,
-        played_at: { $lt: new Date(before) }
+        played_at: { $lt: new Date(Number(before)) }
       },
       '-_id -__v -user'
     );
@@ -169,6 +183,56 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     .lean({ virtuals: false });
 };
 exports.getRecentlyPlayedService = getRecentlyPlayed;
+
+/**
+ * @description Gets a group of the user's recently playing tracks before or after a certain timestamp.
+ * @param {ObjectId} id User's Id.
+ * @param {Number} limit Number of documents to be returned.
+ * @param {Number} before Timestamp before which the tracks are chosen.
+ * @param {Number} after Timestamp after which the tracks are chosen.
+ */
+const getRecentlyPlayedContexts = async (id, limit, before, after) => {
+  let played_at;
+  if (after) {
+    played_at = { $gt: new Date(Number(after)) };
+  } else {
+    played_at = { $lt: new Date(Number(before)) };
+  }
+
+  const playContexts = await PlayHistory.aggregate([
+    {
+      $unwind: '$context'
+    },
+    {
+      $match: {
+        user: id,
+        played_at
+      }
+    },
+    {
+      $group: {
+        _id: '$context.uri',
+        lastPlayedTime: { $max: '$played_at' },
+        track: { $first: '$track' }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        uri: '$_id',
+        lastPlayedTime: { $toLong: '$lastPlayedTime' },
+        lastPlayedTrackUri: {
+          $concat: ['spotify:track:', { $toString: '$track' }]
+        }
+      }
+    },
+    {
+      $limit: Number(limit)
+    }
+  ]);
+
+  return playContexts;
+};
 
 /*
  
@@ -292,11 +356,13 @@ exports.status = async (ws, req) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.playTrack = catchAsync(async (req, res, next) => {
+  // eslint-disable-next-line camelcase
+  const { context_uri } = req.body;
   const playedAt = req.body.played_at ? req.body.played_at : Date.now();
   const userId = new ObjectId(req.user._id);
   const trackId = new ObjectId(req.body.trackId);
 
-  await saveTrackToHistory(userId, trackId, playedAt);
+  await saveTrackToHistory(userId, trackId, playedAt, context_uri);
 
   await updateUserCurrentPlayingTrack(userId, trackId);
 
@@ -353,6 +419,28 @@ exports.getRecentlyPlayed = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     items
+  });
+});
+
+//request handler - No need for unittesting
+/* istanbul ignore next */
+exports.getRecentlyPlayedContexts = catchAsync(async (req, res, next) => {
+  if (!req.query.before && !req.query.after) {
+    req.query.before = Date.now();
+  }
+  if (!req.query.limit) {
+    req.query.limit = 20;
+  }
+
+  const playContexts = await getRecentlyPlayedContexts(
+    req.user._id,
+    req.query.limit,
+    req.query.before,
+    req.query.after
+  );
+
+  res.status(200).json({
+    playContexts
   });
 });
 //request handler - No need for unittesting
