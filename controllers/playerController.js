@@ -1,6 +1,9 @@
 const { ObjectId } = require('mongoose').Types;
 const AppError = require('./../utils/appError');
 const User = require('./../models/userModel');
+const Artist = require('./../models/artistModel');
+const Album = require('./../models/albumModel');
+const Playlist = require('./../models/playlistModel');
 const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const authenticationController = require('./authenticationController');
@@ -110,6 +113,12 @@ const saveTrackToHistory = async (userId, trackId, playedAt, contextUri) => {
   const contextUriElements = contextUri.split(':');
   const type = contextUriElements[1]; //album / artist / playlist
   const id = contextUriElements[2];
+  if (type === 'album' && !(await Album.findById(new ObjectId(id))))
+    throw new AppError('Invalid album id');
+  else if (type === 'artist' && !(await Artist.findById(new ObjectId(id))))
+    throw new AppError('Invalid artist id');
+  else if (type === 'playlist' && !(await Playlist.findById(new ObjectId(id))))
+    throw new AppError('Invalid album id');
   let href =
     process.env.NODE_ENV === 'production'
       ? process.env.DOMAIN_PRODUCTION
@@ -140,6 +149,12 @@ const updateUserCurrentPlayingTrack = async (userId, trackId, contextUri) => {
   const contextUriElements = contextUri.split(':');
   const type = contextUriElements[1]; //album / artist / playlist
   const id = contextUriElements[2];
+  if (type === 'album' && !(await Album.findById(new ObjectId(id))))
+    throw new AppError('Invalid album id');
+  else if (type === 'artist' && !(await Artist.findById(new ObjectId(id))))
+    throw new AppError('Invalid artist id');
+  else if (type === 'playlist' && !(await Playlist.findById(new ObjectId(id))))
+    throw new AppError('Invalid album id');
   let href =
     process.env.NODE_ENV === 'production'
       ? process.env.DOMAIN_PRODUCTION
@@ -203,8 +218,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
 const updatePlayedNumberOfTrack = async trackID => {
   const track = await Track.findById(trackID);
   if (!track) throw new AppError('Track not found', 404);
-  track.played += 1;
-  await track.save();
+  await Track.findByIdAndUpdate(track._id, { $inc: { played: 1 } });
 };
 exports.getRecentlyPlayedService = getRecentlyPlayed;
 

@@ -61,7 +61,10 @@ const trackSchema = new mongoose.Schema(
     track_number: {
       type: Number
     },
-    played: Number
+    played: {
+      type: Number,
+      default: 0
+    }
   },
 
   {
