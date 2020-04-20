@@ -166,11 +166,9 @@ const createAlbum = async (requestBody, currentUser) => {
     'label',
     'name'
   ]);
-  console.log(currentUser);
   const newAlbum = reqObject;
   newAlbum.release_date = new Date();
   const artist = await Artist.findOne({ userInfo: currentUser._id });
-  console.log(artist);
   newAlbum.artists = artist._id;
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
