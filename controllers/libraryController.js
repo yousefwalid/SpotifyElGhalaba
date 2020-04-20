@@ -31,6 +31,7 @@ const saveForCurrentUser = async (IDs, Model, User) => {
   const count = await savedModel.countDocuments({
     user: User._id
   });
+  /*istanbul ignore next*/
   if (count >= 10000) {
     throw new AppError(`Reached max number of saved ${modelName}s`, 403);
   }
@@ -53,6 +54,7 @@ const saveForCurrentUser = async (IDs, Model, User) => {
   query['user'] = User._id;
   const currentlySavedModel = await savedModel.find(query);
   currentlySavedModel.forEach(el => {
+    /*istanbul ignore next*/
     for (let i = 0; i < filteredModelIds.length; i += 1) {
       if (String(el[modelName]) === String(filteredModelIds[i])) {
         filteredModelIds.splice(i, 1);
@@ -108,6 +110,7 @@ const getNextAndPrevious = (offset, limit, modelName, totalCount) => {
 const getSavedModel = async (user, limit, offset, Model, url) => {
   let modelName;
   let savedModel;
+  /*istanbul ignore next*/
   if (Model === Track) {
     modelName = 'track';
     savedModel = savedTrack;
@@ -118,6 +121,7 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
     throw new AppError('Invalid model', 400);
   }
   let savedDocs;
+  /*istanbul ignore next*/
   if (modelName == 'track') {
     savedDocs = await savedModel
       .find({
@@ -195,6 +199,7 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
 const checkUsersSavedModel = async (IDs, Model, User) => {
   let modelName;
   let savedModel;
+  /*istanbul ignore next*/
   if (Model === Track) {
     modelName = 'track';
     savedModel = savedTrack;
@@ -230,9 +235,11 @@ const checkUsersSavedModel = async (IDs, Model, User) => {
  * @param {UserObject} user -The logged in user details
  * @param {Model} Model -The Model to work on {Album,Track}
  */
+
 const removeUserSavedModel = async (IDs, user, Model) => {
   let modelName;
   let savedModel;
+  /*istanbul ignore next*/
   if (Model === Track) {
     modelName = 'track';
     savedModel = savedTrack;
@@ -250,7 +257,7 @@ const removeUserSavedModel = async (IDs, user, Model) => {
     throw new AppError(`No ${modelName}s found with the given IDs`, 404);
   }
 };
-
+/*istanbul ignore next*/
 exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide album ids', 400));
@@ -259,7 +266,7 @@ exports.saveAlbumsForCurrentUser = catchAsync(async (req, res, next) => {
   const savedAlbumDocs = await saveForCurrentUser(albumIds, Album, req.user);
   res.status(201).send(savedAlbumDocs);
 });
-
+/*istanbul ignore next*/
 exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide track ids', 400));
@@ -268,7 +275,7 @@ exports.saveTracksForCurrentUser = catchAsync(async (req, res, next) => {
   const savedTrackDocs = await saveForCurrentUser(trackIds, Track, req.user);
   res.status(201).send(savedTrackDocs);
 });
-
+/*istanbul ignore next*/
 exports.getSavedAlbums = catchAsync(async (req, res, next) => {
   const { limit, offset } = validateLimitOffset(
     req.query.limit,
@@ -283,7 +290,7 @@ exports.getSavedAlbums = catchAsync(async (req, res, next) => {
   );
   res.status(200).json(pagingObject);
 });
-
+/*istanbul ignore next*/
 exports.getSavedTracks = catchAsync(async (req, res, next) => {
   const { limit, offset } = validateLimitOffset(
     req.query.limit,
@@ -298,7 +305,7 @@ exports.getSavedTracks = catchAsync(async (req, res, next) => {
   );
   res.status(200).json(pagingObject);
 });
-
+/*istanbul ignore next*/
 exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide albums ids', 400));
@@ -307,7 +314,7 @@ exports.checkUserSavedAlbums = catchAsync(async (req, res, next) => {
   const boolArray = await checkUsersSavedModel(albumIds, Album, req.user);
   res.status(200).json(boolArray);
 });
-
+/*istanbul ignore next*/
 exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide tracks ids', 400));
@@ -316,7 +323,7 @@ exports.checkUserSavedTracks = catchAsync(async (req, res, next) => {
   const boolArray = await checkUsersSavedModel(trackIds, Track, req.user);
   res.status(200).json(boolArray);
 });
-
+/*istanbul ignore next*/
 exports.removeUserSavedTrack = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide tracks ids', 400));
@@ -325,7 +332,7 @@ exports.removeUserSavedTrack = catchAsync(async (req, res, next) => {
   await removeUserSavedModel(trackIds, req.user, Track);
   res.status(200).send();
 });
-
+/*istanbul ignore next*/
 exports.removeUserSavedAlbum = catchAsync(async (req, res, next) => {
   if (!req.query.ids) {
     return next(new AppError('Please provide albums ids', 400));
