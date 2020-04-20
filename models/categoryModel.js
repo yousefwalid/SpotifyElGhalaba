@@ -28,7 +28,11 @@ const categoryModels = new mongoose.Schema(
         type: mongoose.Schema.ObjectId,
         ref: 'Playlist'
       }
-    ]
+    ],
+    created_at: {
+      type: Date,
+      default: Date.now()
+    }
   },
   {
     strict: 'throw'

@@ -323,26 +323,6 @@ describe('Testing library controller', function() {
       assert.strictEqual(err.statusCode, 400);
     }
   });
-  it('Testing validating limit and offset', function() {
-    let { limit, offset } = libraryController.validateLimitOffset();
-    assert.strictEqual(limit, 20);
-    assert.strictEqual(offset, 0);
-    try {
-      limit = libraryController.validateLimitOffset(50, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-    try {
-      limit = libraryController.validateLimitOffset(-1, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-    try {
-      limit = libraryController.validateLimitOffset(60, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-  });
   it('Testing getNextAndPrevious', function() {
     let { nextPage, previousPage } = libraryController.getNextAndPrevious(
       1,

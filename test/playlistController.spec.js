@@ -749,18 +749,25 @@ describe('Testing Playlist Controller', function() {
 
     const playlistsIds = [];
 
+    const followedPlaylistsIds = [];
+
     for (let i = 0; i < 5; i += 1) {
       const generatedPlaylist = generatePlaylist(userId);
       const insertedPlaylist = await Playlist.create(generatedPlaylist);
       const playlistId = insertedPlaylist._id;
-      playlistsIds.push(playlistId);
+      playlistsIds.push(String(playlistId));
+      followedPlaylistsIds.push({ playlist: playlistId });
     }
+
+    await User.findByIdAndUpdate(userId, {
+      followedPlaylists: followedPlaylistsIds
+    });
 
     const returnedPlaylists = (
       await playlistController.getUserPlaylistsLogic(userId)
     ).items;
 
-    const returnedPlaylistsIds = returnedPlaylists.map(el => el._id);
+    const returnedPlaylistsIds = returnedPlaylists.map(el => String(el._id));
 
     assert.deepStrictEqual(returnedPlaylistsIds, playlistsIds);
   });

@@ -70,31 +70,32 @@ describe('Testing Player Services', function() {
     assert.ok(track, 'Could Not Create A Track In DB');
   });
 
-  describe(`Update User's currenly playing track`, function() {
-    it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
-      await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
-      user = await User.findById(user._id);
-      assert.ok(
-        user.currentlyPlaying.track.equals(track._id),
-        `The user's playback was not saved.`
-      );
-    });
-  });
+  // describe(`Update User's currenly playing track`, function() {
+  //   it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
+  //     await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
+  //     user = await User.findById(user._id);
+  //     assert.ok(
+  //       user.currentlyPlaying.track.equals(track._id),
+  //       `The user's playback was not saved.`
+  //     );
+  //   });
+  // });
+
   describe(`Add to User's play history`, function() {
-    it(`Should Assert That A Track Is Added To User's Play History`, async function() {
-      const time = Date.now();
-      await playerController.saveTrackToHistory(user._id, track._id, time);
-      const record = await PlayHistory.findOne({
-        user: new ObjectId(user._id),
-        played_at: time
-      });
-      assert.ok(record, `The User's Play History Is Not Updated!`);
-      try {
-        await PlayHistory.findByIdAndDelete(record._id);
-      } catch (err) {
-        assert.ok(false, 'Could Not delete the record');
-      }
-    });
+    // it(`Should Assert That A Track Is Added To User's Play History`, async function() {
+    //   const time = Date.now();
+    //   await playerController.saveTrackToHistory(user._id, track._id, time);
+    //   const record = await PlayHistory.findOne({
+    //     user: new ObjectId(user._id),
+    //     played_at: time
+    //   });
+    //   assert.ok(record, `The User's Play History Is Not Updated!`);
+    //   try {
+    //     await PlayHistory.findByIdAndDelete(record._id);
+    //   } catch (err) {
+    //     assert.ok(false, 'Could Not delete the record');
+    //   }
+    // });
 
     it(`Should throw error if userId is invalid`, async function() {
       const time = Date.now();

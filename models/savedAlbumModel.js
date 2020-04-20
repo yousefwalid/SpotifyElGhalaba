@@ -23,6 +23,10 @@ const savedAlbumSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: true
+    },
+    created_at: {
+      type: Date,
+      default: Date.now()
     }
   },
   {

@@ -85,6 +85,10 @@ const playlistSchema = new mongoose.Schema(
             return false;
         }
       }
+    },
+    created_at: {
+      type: Date,
+      default: Date.now()
     }
   },
   {
