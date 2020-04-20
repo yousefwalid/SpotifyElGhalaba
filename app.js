@@ -66,9 +66,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-if (process.env.NODE_ENV === 'development') {
-  app.enable('trust proxy');
-}
+app.enable('trust proxy');
 
 //CORS headers
 
