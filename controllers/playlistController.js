@@ -58,7 +58,7 @@ const authorizeUserToPlaylist = async (userId, playlistId) => {
   if (!playlist.public) {
     // If user is not owner and not in the collaborators IF it is collaborative
     if (
-      String(playlist.owner.id) !== String(userId) &&
+      String(playlist.owner._id) !== String(userId) &&
       !(
         playlist.collaborative === true &&
         playlist.collaborators.map(id => id.toString()).includes(String(userId))
