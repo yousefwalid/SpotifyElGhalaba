@@ -65,7 +65,11 @@ const albumSchema = new mongoose.Schema(
         type: mongoose.Schema.ObjectId,
         ref: 'Track'
       }
-    ]
+    ],
+    created_at: {
+      type: Date,
+      default: Date.now()
+    }
   },
   {
     toJSON: {

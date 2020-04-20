@@ -74,6 +74,10 @@ const audioFeaturesSchema = new mongoose.Schema(
       type: Number,
       min: [0, 'valence must be between 0 and 1'],
       max: [1, 'valence must be between 0 and 1']
+    },
+    created_at: {
+      type: Date,
+      default: Date.now()
     }
   },
   {

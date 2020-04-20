@@ -12,7 +12,7 @@ const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
 const AwsS3Api = require('./../utils/awsS3Api');
 const uploadAWSImage = require('../utils/uploadAWSImage');
-
+const validateLimitOffset = require('./../utils/validateLimitOffset');
 /**
  * Gets a track with a specific ID
  * @param {String} albumID - The id of the desired track
@@ -117,27 +117,6 @@ const getSeveralAlbums = async AlbumsIds => {
   });
   return albumList;
 };
-/**
- * Validates the ranges of limit and offset
- * @param {Number} limit The limit parameter, defaults to 20 if not passed
- * @param {Number} offset The offset parameter, defaults to 0 if not passed
- */
-
-const validateLimitOffset = (limit, offset) => {
-  limit = limit * 1 || 20;
-  offset = offset * 1 || 0;
-
-  if (limit <= 0)
-    throw new AppError(
-      'Limit query parameter can not be less than or equal to 0',
-      400
-    );
-
-  if (limit > 50)
-    throw new AppError('Limit query parameter can not be greater than 50', 400);
-
-  return { limit, offset };
-};
 
 /**
  * Gets the tracks of the specified album
@@ -187,9 +166,11 @@ const createAlbum = async (requestBody, currentUser) => {
     'label',
     'name'
   ]);
+  console.log(currentUser);
   const newAlbum = reqObject;
   newAlbum.release_date = new Date();
   const artist = await Artist.findOne({ userInfo: currentUser._id });
+  console.log(artist);
   newAlbum.artists = artist._id;
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
@@ -279,6 +260,5 @@ exports.createAlbumLogic = createAlbum;
 exports.getSeveralAlbumsLogic = getSeveralAlbums;
 exports.getAlbumTracksLogic = getAlbumTracks;
 exports.getAlbumLogic = getAlbum;
-exports.validateLimitOffset = validateLimitOffset;
 exports.uploadImageLogic = uploadImage;
 exports.getNextAndPrevious = getNextAndPrevious;
