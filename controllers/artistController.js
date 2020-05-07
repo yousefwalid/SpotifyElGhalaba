@@ -1,6 +1,7 @@
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const Artist = require('./../models/artistModel');
+const Track = require('./../models/trackModel');
 const albumController = require('./albumController');
 
 const getArtist = async artistId => {
@@ -63,6 +64,46 @@ const getArtistAlbums = async (artistId, limit, offset) => {
   return pagingObject;
 };
 
+const getArtistTopTracks = async artistId => {
+  if (!artistId) throw new AppError('Artist id not specified', 400);
+
+  const userInfoId = await Artist.findOne({ userInfo: artistId }); // retrieve the artist Id from the userInfoId
+
+  if (userInfoId) artistId = userInfoId;
+
+  const topTracks = await Track.find({ artists: artistId })
+    .sort({ played: -1 })
+    .limit(10)
+    .select(
+      'album artists disc_number duration_ms explicit external_ids external_urls href id name popularity preview_url track_number type uri played'
+    )
+    .populate([
+      {
+        path: 'album',
+        select: 'album_type artists external_urls href id images name type uri',
+        populate: {
+          path: 'artists',
+          select: 'external_urls href id name type uri'
+        }
+      },
+      {
+        path: 'artists',
+        select: 'external_urls href id name type uri'
+      }
+    ]);
+
+  topTracks.map(track => {
+    track.artists.map(artist => {
+      artist.userInfo = undefined;
+    });
+    track.album.artists.map(artist => {
+      artist.userInfo = undefined;
+    });
+  });
+
+  return topTracks;
+};
+
 exports.getArtist = catchAsync(async (req, res, next) => {
   const artist = await getArtist(req.params.id);
   res.status(200).json(artist);
@@ -92,6 +133,9 @@ exports.getMultipleArtistsByUserInfoIds = catchAsync(async (req, res, next) => {
   res.status(200).json(artist);
 });
 
-exports.getArtistTopTracks = catchAsync(async (req, res, next) => {});
+exports.getArtistTopTracks = catchAsync(async (req, res, next) => {
+  const tracks = await getArtistTopTracks(req.params.id);
+  res.status(200).json(tracks);
+});
 
 exports.getArtistRelatedArtists = catchAsync(async (req, res, next) => {});
