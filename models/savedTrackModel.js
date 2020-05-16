@@ -32,10 +32,14 @@ const savedTrackSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-      }
+
+      transform:
+        //This function is only called on sending the json response[no need for unittesting]
+        /* istanbul ignore next */
+        function(doc, ret) {
+          ret.id = ret._id;
+          delete ret._id;
+        }
     }, //show virtual properties when providing the data as JSON
     toObject: { virtuals: true }, //show virtual properties when providing the data as Objects
     strict: 'throw'

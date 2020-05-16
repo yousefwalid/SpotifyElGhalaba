@@ -22,6 +22,7 @@ const appws = expressWs(app);
 const authenticationRouter = require('./routes/authenticationRoutes');
 const streamingRouter = require('./routes/streamingRoutes');
 const userRouter = require('./routes/userRoutes');
+const adRouter = require('./routes/adRoutes');
 const albumRouter = require('./routes/albumRoutes');
 const trackRouter = require('./routes/trackRoutes');
 const browseRouter = require('./routes/browseRoutes');
@@ -159,6 +160,7 @@ app.use('/api', limiter); //Use rate limiter for all routes except streaming rou
 
 app.use(`${baseApiUrl}/authentication`, authenticationRouter);
 app.use(`${baseApiUrl}/users`, userRouter);
+app.use(`${baseApiUrl}/ads`, adRouter);
 app.use(`${baseApiUrl}/albums`, albumRouter);
 app.use(`${baseApiUrl}/tracks`, trackRouter);
 app.use(`${baseApiUrl}/playlists`, playlistRouter);

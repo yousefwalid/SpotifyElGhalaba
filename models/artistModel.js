@@ -57,10 +57,13 @@ const artistSchema = new mongoose.Schema(
   },
   {
     toJSON: {
-      transform: function(doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-      },
+      transform:
+        //This function is only called on sending the json response[no need for unittesting]
+        /* istanbul ignore next */
+        function(doc, ret) {
+          ret.id = ret._id;
+          delete ret._id;
+        },
       virtuals: true
     },
     toObject: {
