@@ -49,6 +49,10 @@ const artistSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: ''
+    },
+    created_at: {
+      type: Date,
+      default: Date.now()
     }
   },
   {

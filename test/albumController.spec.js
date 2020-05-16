@@ -105,26 +105,6 @@ describe('Testing album controller', function() {
       assert.strictEqual(err.statusCode, 404);
     }
   });
-  it('Testing validating limit and offset', function() {
-    let { limit, offset } = albumController.validateLimitOffset();
-    assert.strictEqual(limit, 20);
-    assert.strictEqual(offset, 0);
-    try {
-      limit = albumController.validateLimitOffset(50, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-    try {
-      limit = albumController.validateLimitOffset(-1, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-    try {
-      limit = albumController.validateLimitOffset(60, 0);
-    } catch (err) {
-      assert.strictEqual(err.statusCode, 400);
-    }
-  });
   it('Testing upload Image', async function() {
     const createdAlbum = await Album.create(generateAlbum(user.id));
     try {

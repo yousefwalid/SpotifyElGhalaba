@@ -70,6 +70,7 @@ describe('Testing Player Services', function() {
     assert.ok(track, 'Could Not Create A Track In DB');
   });
 
+<<<<<<< HEAD
   describe(`Update User's currenly playing track`, function() {
     it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
       const context = `spotify:album:${album._id}`;
@@ -136,6 +137,34 @@ describe('Testing Player Services', function() {
         assert.ok(false, 'Could Not delete the record');
       }
     });
+=======
+  // describe(`Update User's currenly playing track`, function() {
+  //   it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
+  //     await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
+  //     user = await User.findById(user._id);
+  //     assert.ok(
+  //       user.currentlyPlaying.track.equals(track._id),
+  //       `The user's playback was not saved.`
+  //     );
+  //   });
+  // });
+
+  describe(`Add to User's play history`, function() {
+    // it(`Should Assert That A Track Is Added To User's Play History`, async function() {
+    //   const time = Date.now();
+    //   await playerController.saveTrackToHistory(user._id, track._id, time);
+    //   const record = await PlayHistory.findOne({
+    //     user: new ObjectId(user._id),
+    //     played_at: time
+    //   });
+    //   assert.ok(record, `The User's Play History Is Not Updated!`);
+    //   try {
+    //     await PlayHistory.findByIdAndDelete(record._id);
+    //   } catch (err) {
+    //     assert.ok(false, 'Could Not delete the record');
+    //   }
+    // });
+>>>>>>> 5f4f6662fee9ee3d147b6ded0ea93bf0737cbc54
 
     it(`Should throw error when the id in the given context uri is invalid`, async function() {
       const time = Date.now();

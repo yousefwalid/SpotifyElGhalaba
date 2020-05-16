@@ -1,5 +1,6 @@
 const assert = require('assert');
 const excludePopulationFields = require('./../utils/excludePopulationFields');
+const validateLimitOffset = require('./../utils/validateLimitOffset');
 
 describe('Testing Utility Module', function() {
   it('Testing excludePopulationFields', () => {
@@ -11,5 +12,25 @@ describe('Testing Utility Module', function() {
     const returnObj = excludePopulationFields(fieldsString, 'x');
     assert.deepStrictEqual(returnObj.fieldsString, remainedStr);
     assert.deepStrictEqual(returnObj.trimmedString, excludedStr);
+  });
+  it('Testing validating limit and offset', function() {
+    let { limit, offset } = validateLimitOffset();
+    assert.strictEqual(limit, 20);
+    assert.strictEqual(offset, 0);
+    try {
+      limit = validateLimitOffset(50, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      limit = validateLimitOffset(-1, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
+    try {
+      limit = validateLimitOffset(60, 0);
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 400);
+    }
   });
 });

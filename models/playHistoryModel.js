@@ -19,7 +19,11 @@ const playHistorySchema = new mongoose.Schema(
       type: Date,
       required: [true, 'A play history must have a played_at timestamp']
     },
-    context: ContextObject
+    context: ContextObject,
+    created_at: {
+      type: Date,
+      default: Date.now()
+    }
   },
   {
     toJSON: {

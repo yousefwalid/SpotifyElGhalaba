@@ -64,6 +64,10 @@ const trackSchema = new mongoose.Schema(
     played: {
       type: Number,
       default: 0
+    },
+    created_at: {
+      type: Date,
+      default: Date.now()
     }
   },
 
@@ -92,11 +96,6 @@ trackSchema.plugin(mongooseLeanVirtuals);
 
 trackSchema.pre('save', async function(next) {
   const album = await Album.findById(this.album);
-  //This condition is statisfied if there is a fault in inserting in db[no need for unittesting]
-  /* istanbul ignore next */
-  if (!album) {
-    next(new AppError('No album found with this id', 404));
-  }
   this.track_number = album.tracks.length + 1;
   this.played = 0;
   next();

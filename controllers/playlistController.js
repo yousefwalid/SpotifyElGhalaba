@@ -10,7 +10,7 @@ const excludePopulationFields = require('./../utils/excludePopulationFields');
 const jsonToPrivateUser = require('../utils/jsonToPublicUser');
 const uploadAWSImage = require('./../utils/uploadAWSImage');
 const User = require('./../models/userModel');
-
+const followController = require('./followController');
 /**
  * @module PlaylistController
  */
@@ -58,7 +58,7 @@ const authorizeUserToPlaylist = async (userId, playlistId) => {
   if (!playlist.public) {
     // If user is not owner and not in the collaborators IF it is collaborative
     if (
-      String(playlist.owner.id) !== String(userId) &&
+      String(playlist.owner._id) !== String(userId) &&
       !(
         playlist.collaborative === true &&
         playlist.collaborators.map(id => id.toString()).includes(String(userId))
@@ -94,7 +94,6 @@ const getPlaylistTracks = async (playlistId, userId, queryParams) => {
 
   let returnObj;
   let populationFields;
-  let albumPopulationFields;
 
   if (queryParams && queryParams.fields) {
     returnObj = excludePopulationFields(
@@ -304,12 +303,12 @@ const getUserPlaylists = async (userId, queryParams) => {
 
   const features = new APIFeatures(
     Playlist.find(
-      { $or: [{ owner: userId }, { _id: { $in: userFollowedPlaylists } }] },
+      { _id: { $in: userFollowedPlaylists } },
       selectFields
     ).populate([
       {
         path: 'owner',
-        select: 'external_urls href id type uri'
+        select: 'external_urls href id type uri name'
       }
     ]),
     queryParams
@@ -541,6 +540,30 @@ const reorderPlaylistTracks = async (
   });
 };
 
+/**
+ * Creates a Playlist
+ * @param {String} userId The id of the owner of the playlist
+ * @param {Object} requestBody The body of the playlist to be created
+ */
+const createPlaylist = async (userId, requestBody) => {
+  const allowedBodyFields = ['name', 'description', 'public', 'collaborative'];
+  if (!requestBody || !requestBody.name)
+    throw new AppError('Invalid Request Body or missing name', 400);
+
+  if (requestBody.collaborative === 'true' && requestBody.public !== 'false')
+    throw new AppError("A playlist can't be collaborative and public", 400);
+
+  requestBody = filterObj(requestBody, allowedBodyFields);
+
+  requestBody.owner = userId;
+
+  const newPlaylist = await Playlist.create(requestBody);
+
+  followController.followPlaylistLogic(userId, newPlaylist._id, true);
+
+  return newPlaylist;
+};
+
 /* istanbul ignore next */
 const uploadImage = async (fileData, playlistId, userId) => {
   if (!fileData) throw new AppError('Invalid file uploaded', 400);
@@ -608,8 +631,7 @@ exports.getPlaylistImages = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.createPlaylist = catchAsync(async (req, res, next) => {
-  req.body.owner = req.user;
-  const newPlaylist = await Playlist.create(req.body);
+  const newPlaylist = await createPlaylist(req.user._id, req.body);
 
   res.status(201).json(newPlaylist);
 });

@@ -193,7 +193,11 @@ const userSchema = new mongoose.Schema(
         ref: 'User'
       }
     ],
-    followedPlaylists: [followedPlaylist]
+    followedPlaylists: [followedPlaylist],
+    created_at: {
+      type: Date,
+      default: Date.now()
+    }
   },
   {
     toJSON: {

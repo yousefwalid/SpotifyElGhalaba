@@ -13,6 +13,11 @@ const router = express.Router();
 router.use(authController.protect);
 
 router
+  .route('/:playlist_id/followers')
+  .put(followController.followPlaylist)
+  .delete(followController.unfollowPlaylist);
+
+router
   .route('/:playlist_id')
   .get(playlistController.getPlaylist)
   .put(playlistController.changePlaylistDetails);
@@ -29,11 +34,6 @@ router.route('/:playlist_id/images').get(playlistController.getPlaylistImages);
 router
   .route('/:playlist_id/images')
   .post(fileUpload(), playlistController.uploadImage);
-
-router
-  .route('/:playlist_id/followers')
-  .put(followController.followPlaylist)
-  .delete(followController.unfollowPlaylist);
 
 router
   .route('/:playlist_id/followers/contains')

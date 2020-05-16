@@ -72,9 +72,13 @@ const createTrack = async (requestBody, currentUser) => {
   ]);
   const newTrack = reqObject;
   const artist = await Artist.findOne({ userInfo: currentUser._id });
-  if (!artist) throw new AppError('Artist not found', 404);
 
+  if (!artist) throw new AppError('Artist not found', 404);
   newTrack.artists = artist._id;
+
+  const album = await Album.findById(newTrack.album);
+  if (!album) throw new AppError('No album found with that ID', 404);
+
   const createdTrack = await Track.create(newTrack);
   return createdTrack;
 };
@@ -113,7 +117,7 @@ exports.getTrack = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.createTrack = catchAsync(async (req, res, next) => {
-  const newTrack = createTrack(req.body, req.user);
+  const newTrack = await createTrack(req.body, req.user);
   res.status(201).json(newTrack);
 });
 /* istanbul ignore next */
