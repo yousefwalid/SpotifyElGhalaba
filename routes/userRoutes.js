@@ -16,6 +16,13 @@ router.get('/me', authenticationController.protect, userController.getMe);
 
 router.get('/:id', authenticationController.protect, userController.getUser);
 
+// router.patch(
+//   '/premium',
+//   authenticationController.protect,
+//   userController.applyPremium
+// );
+// router.post('/premium/:token', userController.setPremium);
+
 //This middleware will be applied on all routes that come after it
 router.use(authenticationController.protect);
 

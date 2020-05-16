@@ -135,7 +135,8 @@ const saveTrackToHistory = async (userId, trackId, playedAt, contextUri) => {
       href
     }
   });
-
+  //This condition is rarely  satisfied( when the insertion in database is corrupted )-no need for unittesting
+  /* istanbul ignore next */
   if (!record) throw new AppError('The Given Data Is Invalid', 400);
 };
 exports.saveTrackToHistory = saveTrackToHistory;
@@ -211,6 +212,7 @@ const getRecentlyPlayed = async (id, limit, before, after) => {
     .query.populate('track')
     .lean({ virtuals: false });
 };
+exports.getRecentlyPlayedService = getRecentlyPlayed;
 /**
  * Increments played number of track
  * @param {String} trackID -The ID of the played track
@@ -220,7 +222,7 @@ const updatePlayedNumberOfTrack = async trackID => {
   if (!track) throw new AppError('Track not found', 404);
   await Track.findByIdAndUpdate(track._id, { $inc: { played: 1 } });
 };
-exports.getRecentlyPlayedService = getRecentlyPlayed;
+exports.updatePlayedNumberOfTrack = updatePlayedNumberOfTrack;
 
 /**
  * @description Gets a group of the user's recently playing tracks before or after a certain timestamp.
@@ -229,6 +231,7 @@ exports.getRecentlyPlayedService = getRecentlyPlayed;
  * @param {Number} before Timestamp before which the tracks are chosen.
  * @param {Number} after Timestamp after which the tracks are chosen.
  */
+/* istanbul ignore next */
 const getRecentlyPlayedContexts = async (id, limit, before, after) => {
   let played_at;
   if (after) {

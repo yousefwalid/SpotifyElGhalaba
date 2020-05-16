@@ -70,10 +70,13 @@ const trackSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-      }
+      transform:
+        //This function is only called on sending the json response[no need for unittesting]
+        /* istanbul ignore next */
+        function(doc, ret) {
+          ret.id = ret._id;
+          delete ret._id;
+        }
     }, //show virtual properties when providing the data as JSON
     toObject: {
       virtuals: true
@@ -89,6 +92,8 @@ trackSchema.plugin(mongooseLeanVirtuals);
 
 trackSchema.pre('save', async function(next) {
   const album = await Album.findById(this.album);
+  //This condition is statisfied if there is a fault in inserting in db[no need for unittesting]
+  /* istanbul ignore next */
   if (!album) {
     next(new AppError('No album found with this id', 404));
   }

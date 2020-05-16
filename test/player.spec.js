@@ -72,18 +72,59 @@ describe('Testing Player Services', function() {
 
   describe(`Update User's currenly playing track`, function() {
     it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
-      await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
+      const context = `spotify:album:${album._id}`;
+      await playerController.updateUserCurrentPlayingTrack(
+        user._id,
+        track._id,
+        context
+      );
       user = await User.findById(user._id);
       assert.ok(
         user.currentlyPlaying.track.equals(track._id),
         `The user's playback was not saved.`
       );
     });
+    it(`Should throw error when the id in the given context uri is invalid`, async function() {
+      let context = `spotify:album:${ObjectId()}`;
+
+      user = await User.findById(user._id);
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+
+      context = `spotify:playlist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+
+      context = `spotify:artist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+    });
   });
   describe(`Add to User's play history`, function() {
     it(`Should Assert That A Track Is Added To User's Play History`, async function() {
       const time = Date.now();
-      await playerController.saveTrackToHistory(user._id, track._id, time);
+      const context = `spotify:album:${album._id}`;
+      await playerController.saveTrackToHistory(
+        user._id,
+        track._id,
+        time,
+        context
+      );
       const record = await PlayHistory.findOne({
         user: new ObjectId(user._id),
         played_at: time
@@ -94,6 +135,39 @@ describe('Testing Player Services', function() {
       } catch (err) {
         assert.ok(false, 'Could Not delete the record');
       }
+    });
+
+    it(`Should throw error when the id in the given context uri is invalid`, async function() {
+      const time = Date.now();
+      let context = `spotify:album:${ObjectId()}`;
+      assert.rejects(async () => {
+        await playerController.saveTrackToHistory(
+          user._id,
+          track._id,
+          time,
+          context
+        );
+      }, 'An Invalid Context Id is accepted');
+
+      context = `spotify:playlist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.saveTrackToHistory(
+          user._id,
+          track._id,
+          time,
+          context
+        );
+      }, 'An Invalid Context Id is accepted');
+
+      context = `spotify:artist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.saveTrackToHistory(
+          user._id,
+          track._id,
+          time,
+          context
+        );
+      }, 'An Invalid Context Id is accepted');
     });
 
     it(`Should throw error if userId is invalid`, async function() {
@@ -326,5 +400,26 @@ describe('Testing Player Services', function() {
         playerController.validateGetRecentlyPlayed(req, res, next);
       }, `An error is thrown for valid inputs before, after and limit`);
     });
+  });
+
+  describe('Update played number of track', function() {
+    it('should update the number of the track successfuly', async function() {
+      const trackPlayedNumber = (await Track.findById(track._id)).played;
+      await playerController.updatePlayedNumberOfTrack(track._id);
+      const newTrackPlayedNumber = (await Track.findById(track._id)).played;
+      assert.ok(
+        newTrackPlayedNumber === trackPlayedNumber + 1,
+        'The track played number is not incremented'
+      );
+    });
+    it(
+      'should throw error if the track id is invalid',
+      async function() {
+        assert.rejects(async () => {
+          await playerController.updatePlayedNumberOfTrack(ObjectId());
+        });
+      },
+      'An invalid track id is accepted.'
+    );
   });
 });
