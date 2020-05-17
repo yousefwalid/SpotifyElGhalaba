@@ -83,7 +83,8 @@ const audioFeaturesSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: /* istanbul ignore next */
+      function(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
       }
@@ -92,12 +93,15 @@ const audioFeaturesSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 audioFeaturesSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 audioFeaturesSchema.plugin(mongooseLeanVirtuals);
 
 const type = audioFeaturesSchema.virtual('type');
+/* istanbul ignore next */
 type.get(function() {
   return 'audio_features';
 });

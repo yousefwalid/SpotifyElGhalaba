@@ -32,7 +32,9 @@ const savedAlbumSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: 
+      /* istanbul ignore next */
+      function(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
       }
@@ -41,9 +43,11 @@ const savedAlbumSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 savedAlbumSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 savedAlbumSchema.plugin(mongooseLeanVirtuals);
 
 const SavedAlbum = mongoose.model('SavedAlbum', savedAlbumSchema);

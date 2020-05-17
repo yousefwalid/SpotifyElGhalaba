@@ -32,7 +32,8 @@ const savedTrackSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform:/* istanbul ignore next */
+       function(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
       }
@@ -41,9 +42,11 @@ const savedTrackSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 savedTrackSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 savedTrackSchema.plugin(mongooseLeanVirtuals);
 
 const SavedTrack = mongoose.model('SavedTrack', savedTrackSchema);

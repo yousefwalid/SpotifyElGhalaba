@@ -156,6 +156,8 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiresAt: Date,
+    premiumToken:String,
+    premiumTokenExpireDate:Date,
     online: {
       type: Boolean,
       default: false
@@ -340,6 +342,18 @@ userSchema.methods.createPasswordResetToken = async function() {
     validateBeforeSave: false
   });
   return resetToken;
+};
+/* istanbul ignore next */
+userSchema.methods.createUpgradeToPremiumToken=async function(){
+  const upgradeToken= crypto.randomBytes(32).toString('hex');
+  this.premiumToken=crypto.createHash('SHA256')
+  .update(upgradeToken)
+  .digest('hex');
+  this.premiumTokenExpireDate= Date.now()+10*60*1000;
+  await this.save({
+    validateBeforeSave:false
+  });
+  return upgradeToken;
 };
 
 //Returns an object contains the public user info.

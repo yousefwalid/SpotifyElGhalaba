@@ -69,32 +69,44 @@ const albumSchema = new mongoose.Schema(
     created_at: {
       type: Date,
       default: Date.now()
-    }
+    },
+    active: Boolean
   },
   {
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: 
+      /* istanbul ignore next */
+      function(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
       }
     },
+    /* istanbul ignore next */
     toObject: {
       virtuals: true
     },
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 albumSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 albumSchema.plugin(mongooseLeanVirtuals);
-
+/* istanbul ignore next */
 albumSchema.pre('save', async function(next) {
+  this.active = true;
   this.wasNew = this.isNew;
   next();
 });
-
+/* istanbul ignore next */
+albumSchema.pre(/^find/,async function(next){
+  this.where({active:true});
+  next();
+});
+/* istanbul ignore next */
 albumSchema.post('save', async function(doc, next) {
   if (this.wasNew) {
     if (this.artists && this.artists.length > 0) {
@@ -113,16 +125,19 @@ albumSchema.post('save', async function(doc, next) {
 });
 
 const URI = albumSchema.virtual('uri');
+/* istanbul ignore next */
 URI.get(function() {
   return `spotify:track:${this._id}`;
 });
 const type = albumSchema.virtual('type');
+/* istanbul ignore next */
 type.get(function() {
   return 'album';
 });
 const href = albumSchema.virtual('href');
+/* istanbul ignore next */
 href.get(function() {
-  return `http://localhost:${process.env.PORT}/api/v1/albums/${this._id}`;
+  return `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/${this._id}`;
 });
 const Album = mongoose.model('Album', albumSchema, 'Albums');
 module.exports = Album;
