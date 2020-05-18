@@ -7,10 +7,6 @@ const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const sendEmail = require('./../utils/email');
-<<<<<<< HEAD
-const crypto = require('crypto');
-=======
->>>>>>> e87d85fb3b0c50f6ecbd528cda3e7f9e55399edf
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
