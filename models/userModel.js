@@ -331,11 +331,24 @@ userSchema.statics.changedPasswordAfter = function(user, JWTTimestamp) {
 
 //Creates a hashed reset token and returns it.
 userSchema.methods.createPasswordResetToken = async function() {
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  this.passwordResetToken = crypto
-    .createHash('SHA256')
-    .update(resetToken)
-    .digest('hex');
+  let resetToken;
+  let unique = false;
+  while (!unique) {
+    resetToken = crypto.randomBytes(32).toString('hex');
+    this.passwordResetToken = crypto
+      .createHash('SHA256')
+      .update(resetToken)
+      .digest('hex');
+
+    const identicalTokens = await this.model('User').find({
+      passwordResetToken: this.passwordResetToken
+    });
+
+    if (identicalTokens.length === 0) {
+      unique = true;
+      break;
+    }
+  }
   this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000;
   await this.save({
     //To avoid the passwordConfirm field validation
@@ -356,6 +369,36 @@ userSchema.methods.createUpgradeToPremiumToken=async function(){
   return upgradeToken;
 };
 
+//Creates a hashed premium token and returns it.
+//This function is exactly the same as createPasswordResetToken[tested]
+/* istanbul ignore next */
+userSchema.methods.createPremiumToken = async function() {
+  let premiumToken;
+
+  let unique = false;
+  while (!unique) {
+    premiumToken = crypto.randomBytes(32).toString('hex');
+    this.premiumToken = crypto
+      .createHash('SHA256')
+      .update(premiumToken)
+      .digest('hex');
+
+    const identicalTokens = await this.model('User').find({
+      premiumToken: this.premiumToken
+    });
+
+    if (identicalTokens.length === 0) {
+      unique = true;
+      break;
+    }
+  }
+  this.premiumTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+  await this.save({
+    //To avoid the passwordConfirm field validation
+    validateBeforeSave: false
+  });
+  return premiumToken;
+};
 //Returns an object contains the public user info.
 userSchema.methods.privateToPublic = function() {
   const publicUser = this.toObject({

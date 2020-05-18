@@ -67,8 +67,11 @@ const getChunkInfo = (range, fileSize) => {
     // eslint-disable-next-line no-restricted-globals
     if (isNaN(end) || !/^\d+$/.test(parts[1]))
       throw new AppError('Could Not Parse The Range.');
-    if (start > end || end > fileSize) {
-      throw new AppError('Invalid range end');
+    if (start > end || end > fileSize || end - start > 16 * 10 ** 5) {
+      throw new AppError(
+        `Invalid range. The range end must be positive number greater than the range start. It 
+        must be less than the file size and less than or equal 1.6MB`
+      );
     }
   }
 
@@ -142,7 +145,12 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
     streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
     try {
-      streamTrack(res, awsObj, trackInfo);
+      if (req.user.product === 'premium') streamTrack(res, awsObj, trackInfo);
+      else
+        res.status(400).send({
+          status: 'fail',
+          message: `Premium users only are allowed to download tracks.`
+        });
     } catch (err) {
       res.status(500).send({ Error: 'ERROR!' });
     }

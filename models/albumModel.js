@@ -75,12 +75,14 @@ const albumSchema = new mongoose.Schema(
   {
     toJSON: {
       virtuals: true,
-      transform: 
-      /* istanbul ignore next */
-      function(doc, ret) {
-        ret.id = ret._id;
-        delete ret._id;
-      }
+
+      transform:
+        //This function is only called on sending the json response[no need for unittesting]
+        /* istanbul ignore next */
+        function(doc, ret) {
+          ret.id = ret._id;
+          delete ret._id;
+        }
     },
     /* istanbul ignore next */
     toObject: {

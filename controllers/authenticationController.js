@@ -348,6 +348,8 @@ exports.getPublicUser = getPublicUser;
  * @param {UserObject} user The user document.
  * @param {Object} res  The response object.
  */
+// Calls a request handler - No need for unittesting
+/* istanbul ignore next */
 const sendUser = async (user, res) => {
   const sentUser = await getPublicUser(user);
   createAndSendToken(sentUser, 200, res);

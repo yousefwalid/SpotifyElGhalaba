@@ -2,12 +2,15 @@
  * User Controller
  * @module UserController
  */
-
+const crypto = require('crypto');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const sendEmail = require('./../utils/email');
+<<<<<<< HEAD
 const crypto = require('crypto');
+=======
+>>>>>>> e87d85fb3b0c50f6ecbd528cda3e7f9e55399edf
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -71,12 +74,13 @@ const sendPremiumToken = async (userObj)=>{
     throw new AppError("You're already a premium user",400);
 
   const upgradeToken= await user.createUpgradeToPremiumToken();
-  const message= `Click the link below to upgrade to premium:\n localhost:8000/api/v1/premium/${upgradeToken}`;
+  const message= `Applied for permium product at Spotify Elghalaba? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/premium/${upgradeToken}\n
+  If you didn't submit a request, please ignore this email.`;
 
   try{
     await sendEmail({
       email:user.email,
-      subject:'Your upgrade to premium token',
+      subject:'Your premium request token (Valid for 10 mins)',
       message
     });
   }catch(err){
@@ -143,6 +147,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
   res.status(200).json(user);
 });
 
+/* istanbul ignore next */
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm)
     throw new AppError('This endpoint is not for updating passwords', 400);
