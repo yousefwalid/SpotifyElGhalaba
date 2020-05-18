@@ -251,7 +251,7 @@ const removeAlbum = async (albumID,userID) => {
 };
 /* istanbul ignore next */
 exports.removeAlbum=catchAsync(async(req,res)=>{
-  await removeAlbum(req.params.id);
+  await removeAlbum(req.params.id,req.user._id);
   res.status(200).send();
 })
 
