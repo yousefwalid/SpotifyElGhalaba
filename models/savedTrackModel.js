@@ -45,9 +45,11 @@ const savedTrackSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 savedTrackSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 savedTrackSchema.plugin(mongooseLeanVirtuals);
 
 const SavedTrack = mongoose.model('SavedTrack', savedTrackSchema);

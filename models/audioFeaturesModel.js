@@ -95,12 +95,15 @@ const audioFeaturesSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 audioFeaturesSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 audioFeaturesSchema.plugin(mongooseLeanVirtuals);
 
 const type = audioFeaturesSchema.virtual('type');
+/* istanbul ignore next */
 type.get(function() {
   return 'audio_features';
 });

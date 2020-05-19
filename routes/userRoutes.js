@@ -14,6 +14,8 @@ router
 
 router.get('/me', authenticationController.protect, userController.getMe);
 
+router.patch('/premium',authenticationController.protect,userController.sendPremiumToken);
+router.post('/premium/:token',authenticationController.protect,userController.upgradeToPremium);
 router.get('/:id', authenticationController.protect, userController.getUser);
 
 // router.patch(

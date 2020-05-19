@@ -44,9 +44,11 @@ const savedAlbumSchema = new mongoose.Schema(
     strict: 'throw'
   }
 );
+/* istanbul ignore next */
 savedAlbumSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
+/* istanbul ignore next */
 savedAlbumSchema.plugin(mongooseLeanVirtuals);
 
 const SavedAlbum = mongoose.model('SavedAlbum', savedAlbumSchema);

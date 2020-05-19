@@ -13,6 +13,8 @@ const filterObj = require('./../utils/filterObject');
 const AwsS3Api = require('./../utils/awsS3Api');
 const uploadAWSImage = require('../utils/uploadAWSImage');
 const validateLimitOffset = require('./../utils/validateLimitOffset');
+const { ObjectId } = require('mongoose').Types;
+
 /**
  * Gets a track with a specific ID
  * @param {String} albumID - The id of the desired track
@@ -35,17 +37,17 @@ const getAlbum = async (albumID, next) => {
 const getNextAndPrevious = (offset, limit, totalCount) => {
   const nextPage =
     offset + limit <= totalCount
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset +
+      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset +
           limit}&limit=${limit}`
       : null;
   const previousPage =
     offset - limit >= 0
-      ? `http://localhost:${process.env.PORT}/api/v1/albums/?offset=${offset -
+      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset -
           limit}&limit=${limit}`
       : null;
   return { nextPage, previousPage };
 };
-
+/* istanbul ignore next */
 exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
   limit = limit * 1 || 20;
   offset = offset * 1 || 0;
@@ -142,7 +144,7 @@ const getAlbumTracks = async (albumID, limit, offset, url) => {
   );
 
   const pagingObject = {
-    href: `http://localhost:${process.env.PORT}/v1/albums${url}`,
+    href: `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums${url}`,
     items: limitedTracks,
     limit,
     next: nextPage,
@@ -182,6 +184,7 @@ const uploadImage = async (fileData, albumID) => {
   if (!fileData) throw new AppError('Invalid file uploaded', 400);
   if (!albumID) throw new AppError('album id not specified', 400);
   const album = await Album.findById(albumID);
+    /*istanbul ignore next*/
   if (!album) {
     throw new AppError('Album not found', 404);
   }
@@ -207,6 +210,56 @@ const uploadImage = async (fileData, albumID) => {
   /*istanbul ignore next*/
   await album.save();
 };
+/**
+ *
+ * @param {String} albumID -The ID of the album to be modified
+ * @param {Object} body -The keys in the album that will be modified with their new values
+ * @param {String} userID -The logged in user ID
+ */
+const updateAlbum = async (albumID, body, userID) => {
+  const filteredObject = filterObj(body, ['name', 'album_type', 'label']);
+  const album = await Album.findById(albumID);
+
+  if (!album) throw new AppError('No album found with this ID', 404);
+
+  const artist = await Artist.findOne({ userInfo: new ObjectId(userID) });
+
+  if (!album.artists.includes(artist.id))
+    throw new AppError(
+      'Only the Artist of the album can update the album info',
+      403
+    );
+  const updatedAlbum = await Album.findByIdAndUpdate(albumID,filteredObject,{new:true});
+  return updatedAlbum;
+};
+
+/**
+ * Sets an album active property with a given ID to false 
+ * @param {String} trackID -The track ID to be deleted
+ */
+const removeAlbum = async (albumID,userID) => {
+  const artist=await Artist.findOne({userInfo:new ObjectId(userID)});
+  const album=await Album.findById(albumID);
+
+  if(!album)
+    throw new AppError("No album was found with this ID",404);
+  
+  if(!album.artists.includes(artist.id))
+    throw new AppError("Only the album artists can remove their track",403);
+  
+  await Album.findByIdAndUpdate(albumID,{active:false});
+};
+/* istanbul ignore next */
+exports.removeAlbum=catchAsync(async(req,res)=>{
+  await removeAlbum(req.params.id,req.user._id);
+  res.status(200).send();
+})
+
+/*istanbul ignore next*/
+exports.updateAlbum = catchAsync(async (req, res) => {
+  const modifiedAlbum = await updateAlbum(req.params.id, req.body, req.user._id);
+  res.status(200).send(modifiedAlbum);
+});
 /*istanbul ignore next*/
 exports.uploadImage = catchAsync(async (req, res, next) => {
   await uploadImage(req.files.image.data, req.params.id);
@@ -260,3 +313,5 @@ exports.getAlbumTracksLogic = getAlbumTracks;
 exports.getAlbumLogic = getAlbum;
 exports.uploadImageLogic = uploadImage;
 exports.getNextAndPrevious = getNextAndPrevious;
+exports.updateAlbumLogic = updateAlbum;
+exports.removeAlbumLogic=removeAlbum;

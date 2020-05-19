@@ -5,7 +5,14 @@ const fileUpload = require('express-fileupload');
 
 const router = express.Router();
 router.use(authenticationController.protect);
-router.route('/:id').get(albumController.getAlbum);
+router
+  .route('/:id')
+  .get(albumController.getAlbum)
+  .delete(authenticationController.restrictTo('artist'),albumController.removeAlbum)
+  .patch(
+    authenticationController.restrictTo('artist'),
+    albumController.updateAlbum
+  );
 router.route('/:id/tracks').get(albumController.getAlbumTracks);
 router.route('/:id/images').post(fileUpload(), albumController.uploadImage);
 router

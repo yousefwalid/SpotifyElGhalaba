@@ -37,8 +37,8 @@ const trackSchema = new mongoose.Schema(
           type: mongoose.Schema.ObjectId,
           ref: 'Artist'
         }
-      ]
-      //required: [true, 'A track must have at least one artist reference']
+      ],
+      required: [true, 'A track must have at least one artist reference']
     },
     disc_number: {
       type: Number,
@@ -55,9 +55,6 @@ const trackSchema = new mongoose.Schema(
     external_urls: {
       type: [ExternalUrlObject]
     },
-    // preview_url: {
-    //   type: String
-    // },
     track_number: {
       type: Number
     },
@@ -68,7 +65,8 @@ const trackSchema = new mongoose.Schema(
     created_at: {
       type: Date,
       default: Date.now()
-    }
+    },
+    active: Boolean
   },
 
   {
@@ -82,6 +80,7 @@ const trackSchema = new mongoose.Schema(
           delete ret._id;
         }
     }, //show virtual properties when providing the data as JSON
+    /* istanbul ignore next */
     toObject: {
       virtuals: true
     }, //show virtual properties when providing the data as Objects
@@ -89,34 +88,49 @@ const trackSchema = new mongoose.Schema(
   }
 );
 
+/* istanbul ignore next */
 trackSchema.plugin(idValidator, {
   message: 'Bad ID value for {PATH}'
 });
 trackSchema.plugin(mongooseLeanVirtuals);
 
+/* istanbul ignore next */
 trackSchema.pre('save', async function(next) {
   const album = await Album.findById(this.album);
   this.track_number = album.tracks.length + 1;
   this.played = 0;
+  this.active = true;
   next();
 });
+
+/* istanbul ignore next */
+trackSchema.pre(/^find/,async function(next){
+  this.where({active:true});
+  next();
+})
+/* istanbul ignore next */
 trackSchema.post('save', async function(doc, next) {
   const album = await Album.findById(this.album);
   album.tracks.push(this._id);
   await album.save();
   next();
 });
+
 const type = trackSchema.virtual('type');
+/* istanbul ignore next */
 type.get(function() {
   return 'track';
 });
+
 const URI = trackSchema.virtual('uri');
+/* istanbul ignore next */
 URI.get(function() {
   return `spotify:track:${this._id}`;
 });
 const href = trackSchema.virtual('href');
+/* istanbul ignore next */
 href.get(function() {
-  return `http://localhost:${process.env.PORT}/api/v1/tracks/${this._id}`;
+  return `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/tracks/${this._id}`;
 });
 
 const Track = mongoose.model('Track', trackSchema, 'Tracks');

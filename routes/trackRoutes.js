@@ -7,7 +7,11 @@ router.use(authenticationController.protect);
 router
   .route('/:id')
   .get(trackController.getTrack)
-  .delete(trackController.removeTrack);
+  .delete(authenticationController.restrictTo('artist'),trackController.removeTrack)
+  .patch(
+    authenticationController.restrictTo('artist'),
+    trackController.updateTrack
+  );
 router
   .route('/')
   .get(trackController.getSeveralTracks)
@@ -15,4 +19,7 @@ router
     authenticationController.restrictTo('artist'),
     trackController.createTrack
   );
+
+router.route('/share/:id').get(trackController.shareTrack);
+
 module.exports = router;
