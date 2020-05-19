@@ -68,8 +68,8 @@ const getArtistTopTracks = async artistId => {
   if (!artistId) throw new AppError('Artist id not specified', 400);
 
   const userInfoId = await Artist.findOne({ userInfo: artistId }); // retrieve the artist Id from the userInfoId
-
-  if (userInfoId) artistId = userInfoId;
+  
+  if (userInfoId) artistId = userInfoId._id;
 
   const topTracks = await Track.find({ artists: artistId })
     .sort({ played: -1 })
@@ -92,13 +92,17 @@ const getArtistTopTracks = async artistId => {
       }
     ]);
 
+  
   topTracks.map(track => {
     track.artists.map(artist => {
       artist.userInfo = undefined;
     });
-    track.album.artists.map(artist => {
-      artist.userInfo = undefined;
-    });
+    if(track.album && track.album.artists)
+    {
+      track.album.artists.map(artist => {
+        artist.userInfo = undefined;
+      });
+    }
   });
 
   return topTracks;
