@@ -1,9 +1,14 @@
 const express = require('express');
 const trackController = require('./../controllers/trackController');
 const authenticationController = require('./../controllers/authenticationController');
+const statsController = require('./../controllers/statsController')
 
 const router = express.Router();
 router.use(authenticationController.protect);
+
+router.route('/likes').get(statsController.getTracksLikes);
+router.route('/listens').get(statsController.getTracksListens);
+
 router
   .route('/:id')
   .get(trackController.getTrack)
@@ -19,6 +24,8 @@ router
     authenticationController.restrictTo('artist'),
     trackController.createTrack
   );
+
+
 
 router.route('/share/:id').get(trackController.shareTrack);
 
