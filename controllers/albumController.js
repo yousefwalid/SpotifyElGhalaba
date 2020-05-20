@@ -307,6 +307,7 @@ exports.createAlbum = catchAsync(async (req, res, next) => {
   const newAlbum = await createAlbum(req.body, req.user);
   res.status(201).json(newAlbum);
 });
+
 exports.createAlbumLogic = createAlbum;
 exports.getSeveralAlbumsLogic = getSeveralAlbums;
 exports.getAlbumTracksLogic = getAlbumTracks;
