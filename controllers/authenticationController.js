@@ -11,9 +11,13 @@
 */
 
 const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
+const {
+  promisify
+} = require('util');
 const crypto = require('crypto');
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -77,8 +81,7 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email: email
     },
     User.privateUser()
@@ -158,12 +161,10 @@ exports.getUserByToken = getUserByToken;
 //Uses jwt package function - No need for unittesting
 /* istanbul ignore next */
 const signToken = id => {
-  return jwt.sign(
-    {
+  return jwt.sign({
       id
     },
-    process.env.JWT_SECRET,
-    {
+    process.env.JWT_SECRET, {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -179,8 +180,7 @@ exports.signToken = signToken;
 //Uses createPasswirdResetToken in user model which is tested. Uses sendEmail service (Nodemailer is an imported) - No need for unittesting
 /* istanbul ignore next */
 const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       email
     },
     User.privateUser()
@@ -226,8 +226,7 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne(
-    {
+  const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -325,7 +324,9 @@ const getPublicUser = async user => {
     populatedUser = await Artist.findOne({
       userInfo: new ObjectId(user._id)
     });
-    populatedUser = populatedUser.toObject({ virtuals: true });
+    populatedUser = populatedUser.toObject({
+      virtuals: true
+    });
 
     //We need only the public fields for the userInfo in the artist. So...
     const publicUser = Object.keys(User.publicUser());
@@ -382,9 +383,9 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-      'Upgrade: WebSocket\r\n' +
-      'Connection: Upgrade\r\n' +
-      '\r\n'
+    'Upgrade: WebSocket\r\n' +
+    'Connection: Upgrade\r\n' +
+    '\r\n'
   );
   ws.close();
 };
@@ -415,6 +416,7 @@ exports.closeSocket = closeSocket;
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.signup = catchAsync(async (req, res, next) => {
+  console.log("hamadaaaa");
   //Creates a new user. If the type is artist, creates a referencing artist.
   if (!req.body.password || !req.body.passwordConfirm)
     throw new AppError('Password is required to sign up');
@@ -437,7 +439,15 @@ exports.signup = catchAsync(async (req, res, next) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+
+  if ('user' in req) {
+    return sendUser(req.user, res);
+  }
+
+  const {
+    email,
+    password
+  } = req.body;
   if (!email || !password)
     throw new AppError('Please provide email and password!', 400);
 
@@ -447,6 +457,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //Send the new User in the response.
   sendUser(user, res);
 });
+
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.loginWithFacebook = catchAsync(async (req, res, next) => {

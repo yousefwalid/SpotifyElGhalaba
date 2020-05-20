@@ -1,16 +1,17 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20');
 const FacebookStrategy = require('passport-facebook').Strategy;
-const User = require('./models/userModel');
+const FacebookTokenStrategy = require('passport-facebook-token');
+const User = require('../models/userModel');
 
 // passport.serializeUser((user, done) => {
-//     console.log(user);
-//     done(null, user.id);
+//   console.log(user);
+//   done(null, user.id);
 // });
 
 // passport.deserializeUser(async (id, done) => {
-//     const user = await User.findById(id);
-//     done(null, user);
+//   const user = await User.findById(id);
+//   done(null, user);
 // });
 
 passport.use(
@@ -80,5 +81,40 @@ passport.use(
     }
   )
 );
+
+passport.use(new FacebookTokenStrategy({
+  clientID: process.env.FACEBOOK_CLIENT_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  profileFields: [
+    'id',
+    'email',
+    'gender',
+    'link',
+    'name',
+    'birthday',
+    'location',
+    'picture'
+  ]
+}, async function (accessToken, refreshToken, profile, done) {
+  const {
+    _json: profileInfo
+  } = profile;
+
+  const newUser = {
+    name: `${profileInfo.first_name} ${profileInfo.last_name}`,
+    email: profileInfo.email,
+    gender: profileInfo.gender === 'male' ? 'm' : 'f',
+    birthdate: profileInfo.birthday,
+    facebookId: profile.id
+  };
+
+  let user = await User.findOne({
+    facebookId: profile.id
+  });
+
+  if (!user) user = await User.create(newUser);
+
+  done(null, user); //send the user to be serialized
+}));
 
 module.exports = passport;
