@@ -1,14 +1,22 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const albumController = require('./../controllers/albumController');
 const authenticationController = require('./../controllers/authenticationController');
-const fileUpload = require('express-fileupload');
+const statsController = require('./../controllers/statsController');
 
 const router = express.Router();
 router.use(authenticationController.protect);
+
+router.route('/likes').get(statsController.getAlbumsLikes);
+router.route('/listens').get(statsController.getAlbumsListens);
+
 router
   .route('/:id')
   .get(albumController.getAlbum)
-  .delete(authenticationController.restrictTo('artist'),albumController.removeAlbum)
+  .delete(
+    authenticationController.restrictTo('artist'),
+    albumController.removeAlbum
+  )
   .patch(
     authenticationController.restrictTo('artist'),
     albumController.updateAlbum
