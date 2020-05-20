@@ -1,5 +1,5 @@
 const express = require('express');
-const passport = require('./../passportSetup');
+const passport = require('../config/passportSetup');
 
 const authenticationController = require('./../controllers/authenticationController');
 
@@ -46,16 +46,10 @@ router.get(
   authenticationController.loginWithFacebook
 );
 
-
-// to login with google
-// router.get(
-//   '/google',
-//   passport.authenticate('google', {
-//     scope: ['profile', 'email']
-//   })
-// );
-// //google callback route
-// router.get('/google/redirect', passport.authenticate('google'), (req, res) => {
-//   // res.send('You have logged in successfully');
-// });
+router.post('/facebook-token',
+  passport.authenticate('facebook-token', {
+    session: false
+  }),
+  authenticationController.login
+);
 module.exports = router;

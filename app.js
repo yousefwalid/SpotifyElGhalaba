@@ -12,7 +12,8 @@ const device = require('express-device');
 const DeviceDetector = require('node-device-detector');
 const expressWs = require('express-ws');
 const cors = require('cors');
-
+const passport = require('passport');
+const firebase = require('./config/firebase');
 const errorController = require('./controllers/errorController');
 
 const app = express();
@@ -125,12 +126,12 @@ app.use((req, res, next) => {
 //Send error if the country code is not sent in signup.
 app.use((req, res, next) => {
   const countryObject = geoip.lookup(req.ip);
-  if (req.url.includes('signup')) {
-    if (!countryObject || !countryObject.country)
-      return next(new AppError('Sorry... Cannot Read The Country Code'));
-    //else
-    req.body.country = countryObject.country;
-  }
+  // if (req.url.includes('signup')) {
+  //   if (!countryObject || !countryObject.country)
+  //     return next(new AppError('Sorry... Cannot Read The Country Code'));
+  //   //else
+  //   req.body.country = countryObject.country;
+  // }
   next();
 });
 
@@ -153,6 +154,9 @@ app.use((req, res, next) => {
   req.baseApiUrl = baseApiUrl;
   next();
 });
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(`${baseApiUrl}/streaming`, streamingRouter);
 

@@ -64,28 +64,28 @@ exports.updateUserLogic = updateUser;
  * @TODO Upgrade the link sent according to the front end link
  */
 /* istanbul ignore next */
-const sendPremiumToken = async (userObj)=>{
-  const user=await User.findById(userObj.id);
-  if(user.product==="premium")
-    throw new AppError("You're already a premium user",400);
+const sendPremiumToken = async (userObj) => {
+  const user = await User.findById(userObj.id);
+  if (user.product === "premium")
+    throw new AppError("You're already a premium user", 400);
 
-  const upgradeToken= await user.createUpgradeToPremiumToken();
-  const message= `Applied for permium product at Spotify Elghalaba? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/premium/${upgradeToken}\n
+  const upgradeToken = await user.createUpgradeToPremiumToken();
+  const message = `Applied for permium product at Spotify Elghalaba? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/premium/${upgradeToken}\n
   If you didn't submit a request, please ignore this email.`;
 
-  try{
+  try {
     await sendEmail({
-      email:user.email,
-      subject:'Your premium request token (Valid for 10 mins)',
+      email: user.email,
+      subject: 'Your premium request token (Valid for 10 mins)',
       message
     });
-  }catch(err){
-    user.premiumToken=undefined;
-    user.premiumTokenExpireDate=undefined;
+  } catch (err) {
+    user.premiumToken = undefined;
+    user.premiumTokenExpireDate = undefined;
     await user.save({
-      validateBeforeSave:false
+      validateBeforeSave: false
     });
-    throw new AppError('There was an error sending the email, Try again later.',500);
+    throw new AppError('There was an error sending the email, Try again later.', 500);
   }
 }
 /**
@@ -93,43 +93,59 @@ const sendPremiumToken = async (userObj)=>{
  * @param {String} token -The token sent as a request parameter to upgrade to premium
  */
 /* istanbul ignore next */
-const upgradeToPremium = async (token)=>{
-  const hashedToken=crypto
-  .createHash('SHA256')
-  .update(token)
-  .digest('hex');
+const upgradeToPremium = async (token) => {
+  const hashedToken = crypto
+    .createHash('SHA256')
+    .update(token)
+    .digest('hex');
 
   const user = await User.findOne({
-    premiumToken:hashedToken,
-    premiumTokenExpireDate:{
+    premiumToken: hashedToken,
+    premiumTokenExpireDate: {
       $gt: Date.now()
     },
-    active:true
+    active: true
   });
-  if(!user)
-    throw new AppError(`Token is invalid or has expired`,400);
-  user.product="premium";
+  if (!user)
+    throw new AppError(`Token is invalid or has expired`, 400);
+  user.product = "premium";
   await user.save({
-    validateBeforeSave:false
+    validateBeforeSave: false
   });
   return user;
 }
+
+/**
+ * A method that takes the user id and returns the user object {@link User}.
+ * It can also take an optional parameter fields to limit the returned fields
+ * @param {String} userId - Id of the user to get his info
+ * @param {String} [fields] - Limit the returned fields to specific fields ex: "name email" returns name and email only
+ * @returns {User}
+ */
+const addNotificationToken = async (userId, token) => {
+  const user = await User.findById(userId);
+  user.notificationTokens.push(token);
+  await user.save();
+};
+
 /* istanbul ignore next */
-exports.sendPremiumToken=catchAsync(async(req,res)=>{
+exports.sendPremiumToken = catchAsync(async (req, res) => {
   await sendPremiumToken(req.user)
   res.status(200).json({
     "status": "success",
     "message": "a token is sent to your email!"
-});
+  });
 });
 /* istanbul ignore next */
-exports.upgradeToPremium=catchAsync(async (req,res)=>{
-  const token = req.params.token;
-  const user=await upgradeToPremium(token);
+exports.upgradeToPremium = catchAsync(async (req, res) => {
+  const {
+    token
+  } = req.params;
+  const user = await upgradeToPremium(token);
   res.status(200).json({
     "status": "success",
     "message": "Congrats! you are now a premium user."
-});
+  });
 });
 /* istanbul ignore next */
 exports.getMe = catchAsync(async (req, res, next) => {
@@ -151,4 +167,15 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const updatedUser = await updateUser(req.user._id, req.body);
 
   res.status(200).json(updatedUser);
+});
+
+
+exports.addNotificationToken = catchAsync(async (req, res, next) => {
+  const {
+    token
+  } = req.body;
+  // console.log(req.user);
+  await addNotificationToken(req.user.id, token);
+
+  res.status(200).json("Token added successfully");
 });
