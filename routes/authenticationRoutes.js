@@ -5,14 +5,15 @@ const authenticationController = require('./../controllers/authenticationControl
 
 const router = express.Router();
 
-
-
-
-
-router.post('/signup', authenticationController.signup);
+router.post('/signup', authenticationController.signupApply);
+router.patch('/signup-confirm/:token', authenticationController.signupConfirm);
 router.post('/login', authenticationController.login);
 router.get('/logout', authenticationController.logout);
-router.get('/token', authenticationController.protect, authenticationController.getToken);
+router.get(
+  '/token',
+  authenticationController.protect,
+  authenticationController.getToken
+);
 router.post('/forgotPassword', authenticationController.forgotPassword);
 router.patch('/resetPassword/:token', authenticationController.resetPassword);
 router.patch(
@@ -20,7 +21,6 @@ router.patch(
   authenticationController.protect,
   authenticationController.updatePassword
 );
-
 
 // Third party authentications
 
@@ -45,7 +45,6 @@ router.get(
   }),
   authenticationController.loginWithFacebook
 );
-
 
 // to login with google
 // router.get(

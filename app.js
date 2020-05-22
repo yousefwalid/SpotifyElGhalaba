@@ -125,7 +125,7 @@ app.use((req, res, next) => {
 //Send error if the country code is not sent in signup.
 app.use((req, res, next) => {
   const countryObject = geoip.lookup(req.ip);
-  if (req.url.includes('signup')) {
+  if (req.url === `${baseApiUrl}/authentication/signup`) {
     if (!countryObject || !countryObject.country)
       return next(new AppError('Sorry... Cannot Read The Country Code'));
     //else

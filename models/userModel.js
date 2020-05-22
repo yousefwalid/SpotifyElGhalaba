@@ -156,8 +156,9 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiresAt: Date,
-    premiumToken:String,
-    premiumTokenExpireDate:Date,
+    emailConfirmationToken: String,
+    premiumToken: String,
+    premiumTokenExpireDate: Date,
     online: {
       type: Boolean,
       default: false
@@ -197,6 +198,10 @@ const userSchema = new mongoose.Schema(
     created_at: {
       type: Date,
       default: Date.now()
+    },
+    confirmed: {
+      type: Boolean,
+      default: false
     }
   },
   {
@@ -297,6 +302,10 @@ userSchema.statics.publicUser = () => {
     passwordChangedAt: 0,
     passwordResetToken: 0,
     passwordResetExpiresAt: 0,
+    emailConfirmationToken: 0,
+    premiumToken: 0,
+    premiumTokenExpireDate: 0,
+    confirmed: 0,
     active: 0,
     __v: 0
   };
@@ -356,35 +365,18 @@ userSchema.methods.createPasswordResetToken = async function() {
   });
   return resetToken;
 };
-/* istanbul ignore next */
-userSchema.methods.createUpgradeToPremiumToken=async function(){
-  const upgradeToken= crypto.randomBytes(32).toString('hex');
-  this.premiumToken=crypto.createHash('SHA256')
-  .update(upgradeToken)
-  .digest('hex');
-  this.premiumTokenExpireDate= Date.now()+10*60*1000;
-  await this.save({
-    validateBeforeSave:false
-  });
-  return upgradeToken;
-};
-
-//Creates a hashed premium token and returns it.
-//This function is exactly the same as createPasswordResetToken[tested]
-/* istanbul ignore next */
-userSchema.methods.createPremiumToken = async function() {
-  let premiumToken;
-
+userSchema.methods.createEmailConfirmationToken = async function() {
+  let emailConfirmationToken;
   let unique = false;
   while (!unique) {
-    premiumToken = crypto.randomBytes(32).toString('hex');
-    this.premiumToken = crypto
+    emailConfirmationToken = crypto.randomBytes(32).toString('hex');
+    this.emailConfirmationToken = crypto
       .createHash('SHA256')
-      .update(premiumToken)
+      .update(emailConfirmationToken)
       .digest('hex');
 
     const identicalTokens = await this.model('User').find({
-      premiumToken: this.premiumToken
+      emailConfirmationToken: this.emailConfirmationToken
     });
 
     if (identicalTokens.length === 0) {
@@ -392,13 +384,56 @@ userSchema.methods.createPremiumToken = async function() {
       break;
     }
   }
-  this.premiumTokenExpiresAt = Date.now() + 10 * 60 * 1000;
   await this.save({
     //To avoid the passwordConfirm field validation
     validateBeforeSave: false
   });
-  return premiumToken;
+  return emailConfirmationToken;
 };
+/* istanbul ignore next */
+userSchema.methods.createUpgradeToPremiumToken = async function() {
+  const upgradeToken = crypto.randomBytes(32).toString('hex');
+  this.premiumToken = crypto
+    .createHash('SHA256')
+    .update(upgradeToken)
+    .digest('hex');
+  this.premiumTokenExpireDate = Date.now() + 10 * 60 * 1000;
+  await this.save({
+    validateBeforeSave: false
+  });
+  return upgradeToken;
+};
+
+//Creates a hashed premium token and returns it.
+//This function is exactly the same as createPasswordResetToken[tested]
+/* istanbul ignore next */
+// userSchema.methods.createPremiumToken = async function() {
+//   let premiumToken;
+
+//   let unique = false;
+//   while (!unique) {
+//     premiumToken = crypto.randomBytes(32).toString('hex');
+//     this.premiumToken = crypto
+//       .createHash('SHA256')
+//       .update(premiumToken)
+//       .digest('hex');
+
+//     const identicalTokens = await this.model('User').find({
+//       premiumToken: this.premiumToken
+//     });
+
+//     if (identicalTokens.length === 0) {
+//       unique = true;
+//       break;
+//     }
+//   }
+//   this.premiumTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+//   await this.save({
+//     //To avoid the passwordConfirm field validation
+//     validateBeforeSave: false
+//   });
+//   return premiumToken;
+// };
 //Returns an object contains the public user info.
 userSchema.methods.privateToPublic = function() {
   const publicUser = this.toObject({

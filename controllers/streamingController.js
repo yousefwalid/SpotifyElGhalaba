@@ -152,7 +152,9 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
           message: `Premium users only are allowed to download tracks.`
         });
     } catch (err) {
-      res.status(500).send({ Error: 'ERROR!' });
+      res
+        .status(500)
+        .send({ Error: `ERROR - Sorry Couldn't Stream Track ${err}` });
     }
   }
 });
