@@ -70,32 +70,73 @@ describe('Testing Player Services', function() {
     assert.ok(track, 'Could Not Create A Track In DB');
   });
 
-  // describe(`Update User's currenly playing track`, function() {
-  //   it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
-  //     await playerController.updateUserCurrentPlayingTrack(user._id, track._id);
-  //     user = await User.findById(user._id);
-  //     assert.ok(
-  //       user.currentlyPlaying.track.equals(track._id),
-  //       `The user's playback was not saved.`
-  //     );
-  //   });
-  // });
+  describe(`Update User's currenly playing track`, function() {
+    it(`Should Assert That A Track Is Added To User's Current Playback`, async function() {
+      const context = `spotify:album:${album._id}`;
+      await playerController.updateUserCurrentPlayingTrack(
+        user._id,
+        track._id,
+        context
+      );
+      user = await User.findById(user._id);
+      assert.ok(
+        user.currentlyPlaying.track.equals(track._id),
+        `The user's playback was not saved.`
+      );
+    });
+    it(`Should throw error when the id in the given context uri is invalid`, async function() {
+      let context = `spotify:album:${ObjectId()}`;
+
+      user = await User.findById(user._id);
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+
+      context = `spotify:playlist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+
+      context = `spotify:artist:${album._id}`;
+      assert.rejects(async () => {
+        await playerController.updateUserCurrentPlayingTrack(
+          user._id,
+          track._id,
+          context
+        );
+      }, `An invalid context uri is accepted!`);
+    });
+  });
 
   describe(`Add to User's play history`, function() {
-    // it(`Should Assert That A Track Is Added To User's Play History`, async function() {
-    //   const time = Date.now();
-    //   await playerController.saveTrackToHistory(user._id, track._id, time);
-    //   const record = await PlayHistory.findOne({
-    //     user: new ObjectId(user._id),
-    //     played_at: time
-    //   });
-    //   assert.ok(record, `The User's Play History Is Not Updated!`);
-    //   try {
-    //     await PlayHistory.findByIdAndDelete(record._id);
-    //   } catch (err) {
-    //     assert.ok(false, 'Could Not delete the record');
-    //   }
-    // });
+    it(`Should Assert That A Track Is Added To User's Play History`, async function() {
+      const time = Date.now();
+      const context = `spotify:album:${album._id}`;
+      await playerController.saveTrackToHistory(
+        user._id,
+        track._id,
+        time,
+        context
+      );
+      const record = await PlayHistory.findOne({
+        user: new ObjectId(user._id),
+        played_at: time
+      });
+      assert.ok(record, `The User's Play History Is Not Updated!`);
+      try {
+        await PlayHistory.findByIdAndDelete(record._id);
+      } catch (err) {
+        assert.ok(false, 'Could Not delete the record');
+      }
+    });
 
     it(`Should throw error when the id in the given context uri is invalid`, async function() {
       const time = Date.now();
@@ -153,6 +194,7 @@ describe('Testing Player Services', function() {
       }, `An expected error is not thrown.`);
     });
   });
+
   describe(`Get User's Recently Played Tracks`, function() {
     it(`Should Assert That The User's X Recently Played Tracks are returned`, async function() {
       const before = startTimestamp + 1;

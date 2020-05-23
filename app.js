@@ -7,7 +7,6 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
-const geoip = require('geoip-lite');
 const device = require('express-device');
 const DeviceDetector = require('node-device-detector');
 const expressWs = require('express-ws');
@@ -119,19 +118,6 @@ app.use(cookieParser());
 //Get the time at which the request is sent.
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  next();
-});
-
-//Get the country of the public ip address that sends the request.
-//Send error if the country code is not sent in signup.
-app.use((req, res, next) => {
-  const countryObject = geoip.lookup(req.ip);
-  // if (req.url.includes('signup')) {
-  //   if (!countryObject || !countryObject.country)
-  //     return next(new AppError('Sorry... Cannot Read The Country Code'));
-  //   //else
-  //   req.body.country = countryObject.country;
-  // }
   next();
 });
 

@@ -11,13 +11,9 @@
 */
 
 const jwt = require('jsonwebtoken');
-const {
-  promisify
-} = require('util');
+const { promisify } = require('util');
 const crypto = require('crypto');
-const {
-  ObjectId
-} = require('mongoose').Types;
+const { ObjectId } = require('mongoose').Types;
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -46,7 +42,7 @@ const sendEmail = require('./../utils/email');
  * @param {Object} body Body object contains the user data.
  * @return {UserObject} The new user document.
  */
-const createNewUser = async body => {
+const createNewUserUnconfirmed = async body => {
   const newUser = await User.create({
     name: body.name,
     email: body.email,
@@ -56,7 +52,8 @@ const createNewUser = async body => {
     birthdate: body.birthdate,
     type: body.type,
     product: 'free',
-    country: body.country
+    country: body.country,
+    confirmed: false
   });
   if (body.type === 'artist') {
     try {
@@ -72,7 +69,7 @@ const createNewUser = async body => {
   }
   return newUser;
 };
-exports.createNewUser = createNewUser;
+exports.createNewUser = createNewUserUnconfirmed;
 
 /**
  * @description Check if the given email and password correspond to a user in the data base.
@@ -81,7 +78,8 @@ exports.createNewUser = createNewUser;
  * @return {UserObject} The user document.
  */
 const checkEmailAndPassword = async (email, password) => {
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       email: email
     },
     User.privateUser()
@@ -161,10 +159,12 @@ exports.getUserByToken = getUserByToken;
 //Uses jwt package function - No need for unittesting
 /* istanbul ignore next */
 const signToken = id => {
-  return jwt.sign({
+  return jwt.sign(
+    {
       id
     },
-    process.env.JWT_SECRET, {
+    process.env.JWT_SECRET,
+    {
       //the secret string should be at least 32 characters long
       expiresIn: process.env.JWT_EXPIRES_IN
     }
@@ -179,8 +179,9 @@ exports.signToken = signToken;
  */
 //Uses createPasswirdResetToken in user model which is tested. Uses sendEmail service (Nodemailer is an imported) - No need for unittesting
 /* istanbul ignore next */
-const sendResetToken = async (email, baseURL) => {
-  const user = await User.findOne({
+const sendResetToken = async email => {
+  const user = await User.findOne(
+    {
       email
     },
     User.privateUser()
@@ -188,11 +189,17 @@ const sendResetToken = async (email, baseURL) => {
   if (!user) {
     throw new AppError(`There is no user with this email`, 404);
   }
+  if (!user.confirmed)
+    throw new AppError(
+      'This Email Is Not Yet Confirmed Please Check Your Email For Confirmation URL',
+      400
+    );
 
   const resetToken = await user.createPasswordResetToken();
 
-  const resetURL = `${baseURL}/${resetToken}`;
-  const message = `Forgot your password? Click on the link below:\n${process.env.DOMAIN_PRODUCTION}/password-reset/${resetToken}\nIf you didn't submit a request, please ignore this email.`;
+  const message = `Forgot your password? Click on the link below:\n
+  ${process.env.DOMAIN_PRODUCTION}/password-reset/${resetToken}\n
+  If you didn't submit a request, please ignore this email.`;
 
   try {
     await sendEmail({
@@ -226,7 +233,8 @@ const resetPassword = async (token, password, passwordConfirm) => {
     .update(token)
     .digest('hex');
 
-  const user = await User.findOne({
+  const user = await User.findOne(
+    {
       passwordResetToken: hashedToken,
       passwordResetExpiresAt: {
         $gt: Date.now()
@@ -369,6 +377,12 @@ const protect = async req => {
   //Get the user by the data in the decoded token.
   const user = await getUserByToken(decodedToken);
 
+  //This condition won't be satisfied but in case some logical error occured it gurantees that unconfirmed users won't access the api
+  if (!user.confirmed)
+    throw new AppError(
+      'This Email Is Not Yet Confirmed Please Check Your Email For Confirmation URL',
+      400
+    );
   //Send the public user info to the next middleware
   req.user = user.privateToPublic();
 };
@@ -383,9 +397,9 @@ exports.protectService = protect;
 const closeSocket = ws => {
   ws.send(
     'HTTP/1.1 401 Web Socket Protocol Handshake\r\n' +
-    'Upgrade: WebSocket\r\n' +
-    'Connection: Upgrade\r\n' +
-    '\r\n'
+      'Upgrade: WebSocket\r\n' +
+      'Connection: Upgrade\r\n' +
+      '\r\n'
   );
   ws.close();
 };
@@ -415,15 +429,71 @@ exports.closeSocket = closeSocket;
 */
 //request handler - No need for unittesting
 /* istanbul ignore next */
-exports.signup = catchAsync(async (req, res, next) => {
-  console.log("hamadaaaa");
+exports.signupApply = catchAsync(async (req, res, next) => {
   //Creates a new user. If the type is artist, creates a referencing artist.
   if (!req.body.password || !req.body.passwordConfirm)
     throw new AppError('Password is required to sign up');
-  const newUser = await createNewUser(req.body);
-  //Send the new User in the response.
-  sendUser(newUser, res);
+
+  const newUser = await createNewUserUnconfirmed(req.body);
+  const emailConfirmationToken = await newUser.createEmailConfirmationToken();
+
+  const message = `Welcome to Spotify Elghalaba <3.\n
+  Please Click on the link below to confirm your email:\n
+  ${process.env.DOMAIN_PRODUCTION}/email-confirmation/${emailConfirmationToken}\n
+  If you didn't submit a request, please ignore this email.`;
+  try {
+    await sendEmail({
+      email: newUser.email,
+      subject: 'Your Account Confirmation Token (Valid for 10 mins)',
+      message
+    });
+    res.status(200).json({
+      status: 'success',
+      message: 'Please Check Your Email Form Confirmation Token.'
+    });
+  } catch (err) {
+    newUser.emailConfirmationToken = undefined;
+    newUser.passwordResetExpiresAt = undefined;
+    await newUser.save({
+      validateBeforeSave: false
+    });
+    throw new AppError(
+      `There was an error sending the confirmation email. Try again.`,
+      500
+    );
+  }
 });
+
+exports.signupConfirm = catchAsync(async (req, res, next) => {
+  //Creates a new user. If the type is artist, creates a referencing artist.
+  if (!req.params.token)
+    return next(new AppError('A valid email confirmation token is required.'));
+
+  const hashedToken = crypto
+    .createHash('SHA256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne(
+    {
+      emailConfirmationToken: hashedToken
+    },
+    User.privateUser()
+  );
+
+  if (!user) return next(new AppError(`Token is invalid or has expired`, 400));
+
+  user.emailConfirmationToken = undefined;
+  user.confirmed = true;
+  await user.save();
+
+  sendUser(user, res);
+});
+
+//Will Not Be Implemented In Project
+// exports.sendMeAnotherEmailConfirmation = ()={
+
+// }
 
 /*
  
@@ -439,21 +509,23 @@ exports.signup = catchAsync(async (req, res, next) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.login = catchAsync(async (req, res, next) => {
-
   if ('user' in req) {
     return sendUser(req.user, res);
   }
 
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
   if (!email || !password)
-    throw new AppError('Please provide email and password!', 400);
+    return next(new AppError('Please provide email and password!', 400));
 
   //Check if the given email and password exist in the databse.
   const user = await checkEmailAndPassword(email, password);
-
+  if (!user.confirmed)
+    return next(
+      new AppError(
+        'This Email Is Not Yet Confirmed Please Check Your Email For Confirmation URL',
+        400
+      )
+    );
   //Send the new User in the response.
   sendUser(user, res);
 });
@@ -552,11 +624,7 @@ exports.restrictTo = (...types) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  const baseURL = `${req.protocol}://${req.get('host')}${
-    req.baseApiUrl
-  }/resetPassword`;
-
-  await sendResetToken(req.body.email, baseURL);
+  await sendResetToken(req.body.email);
 
   res.status(200).json({
     status: 'success',

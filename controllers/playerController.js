@@ -119,6 +119,7 @@ const saveTrackToHistory = async (userId, trackId, playedAt, contextUri) => {
     throw new AppError('Invalid artist id');
   else if (type === 'playlist' && !(await Playlist.findById(new ObjectId(id))))
     throw new AppError('Invalid album id');
+  /* istanbul ignore next */
   let href =
     process.env.NODE_ENV === 'production'
       ? process.env.DOMAIN_PRODUCTION
@@ -156,6 +157,7 @@ const updateUserCurrentPlayingTrack = async (userId, trackId, contextUri) => {
     throw new AppError('Invalid artist id');
   else if (type === 'playlist' && !(await Playlist.findById(new ObjectId(id))))
     throw new AppError('Invalid album id');
+  /* istanbul ignore next */
   let href =
     process.env.NODE_ENV === 'production'
       ? process.env.DOMAIN_PRODUCTION

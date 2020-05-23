@@ -145,14 +145,17 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
     streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
     try {
-      if (req.user.product === 'premium') streamTrack(res, awsObj, trackInfo);
+      if (req.user.product === 'premium' || req.query.type === 'mobile')
+        streamTrack(res, awsObj, trackInfo);
       else
         res.status(400).send({
           status: 'fail',
           message: `Premium users only are allowed to download tracks.`
         });
     } catch (err) {
-      res.status(500).send({ Error: 'ERROR!' });
+      res
+        .status(500)
+        .send({ Error: `ERROR - Sorry Couldn't Stream Track ${err}` });
     }
   }
 });
