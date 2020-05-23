@@ -156,6 +156,7 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiresAt: Date,
+    emailConfirmationToken: String,
     premiumToken: String,
     premiumTokenExpireDate: Date,
     online: {

@@ -439,12 +439,12 @@ exports.signupApply = catchAsync(async (req, res, next) => {
 
   const message = `Welcome to Spotify Elghalaba <3.\n
   Please Click on the link below to confirm your email:\n
-  ${process.env.DOMAIN_PRODUCTION}/email-confirmation/${emailConfirmationToken}\n
+  ${process.env.DOMAIN_PRODUCTION}/confirm-email/${emailConfirmationToken}\n
   If you didn't submit a request, please ignore this email.`;
   try {
     await sendEmail({
       email: newUser.email,
-      subject: 'Your Account Confirmation Token (Valid for 10 mins)',
+      subject: 'Your Account Confirmation Token',
       message
     });
     res.status(200).json({
