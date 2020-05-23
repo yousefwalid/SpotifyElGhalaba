@@ -14,10 +14,11 @@ router
 
 router.get('/me', authenticationController.protect, userController.getMe);
 
-router.patch('/premium',authenticationController.protect,userController.sendPremiumToken);
-router.post('/premium/:token',authenticationController.protect,userController.upgradeToPremium);
+router.patch('/premium', authenticationController.protect, userController.sendPremiumToken);
+router.post('/premium/:token', authenticationController.protect, userController.upgradeToPremium);
 router.get('/:id', authenticationController.protect, userController.getUser);
 
+router.post('/notification-token', authenticationController.protect, userController.addNotificationToken);
 // router.patch(
 //   '/premium',
 //   authenticationController.protect,
@@ -32,32 +33,5 @@ router.use(authenticationController.protect);
 
 router.route('/:user_id/playlists').get(playlistController.getUserPlaylists);
 router.route('/playlists').post(playlistController.createPlaylist);
-
-/*
- ##     ## ########    ########   #######  ##     ## ######## ########  ######  
- ###   ### ##          ##     ## ##     ## ##     ##    ##    ##       ##    ## 
- #### #### ##          ##     ## ##     ## ##     ##    ##    ##       ##       
- ## ### ## ######      ########  ##     ## ##     ##    ##    ######    ######  
- ##     ## ##          ##   ##   ##     ## ##     ##    ##    ##             ## 
- ##     ## ##          ##    ##  ##     ## ##     ##    ##    ##       ##    ## 
- ##     ## ########    ##     ##  #######   #######     ##    ########  ######  
-*/
-
-// router.get('/me', userController.getMe, userController.getUser);
-// router.patch('/updateMe', userController.updateMe);
-// router.delete('/deleteMe', userController.deleteMe);
-
-// router.route('/').post(async (req, res, next) => {
-//   const user = req.body;
-
-//   const newUser = await User.create(user);
-
-//   res.status(200).json({
-//     state: 'success',
-//     data: {
-//       newUser
-//     }
-//   });
-// });
 
 module.exports = router;

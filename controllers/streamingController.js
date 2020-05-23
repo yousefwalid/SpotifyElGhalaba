@@ -145,7 +145,8 @@ exports.downloadTrack = catchAsync(async (req, res, next) => {
     streamTrack(res, awsObj, trackInfo, chunkInfo);
   } else {
     try {
-      if (req.user.product === 'premium') streamTrack(res, awsObj, trackInfo);
+      if (req.user.product === 'premium' || req.query.type === 'mobile')
+        streamTrack(res, awsObj, trackInfo);
       else
         res.status(400).send({
           status: 'fail',

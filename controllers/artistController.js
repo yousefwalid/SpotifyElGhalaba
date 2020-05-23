@@ -1,8 +1,10 @@
+const mongoose = require('mongoose');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const Artist = require('./../models/artistModel');
 const Track = require('./../models/trackModel');
 const albumController = require('./albumController');
+const playHistory = require('./../models/playHistoryModel');
 
 const getArtist = async artistId => {
   if (!artistId) throw new AppError('Artist id not specified', 400);
@@ -69,7 +71,7 @@ const getArtistTopTracks = async artistId => {
 
   const userInfoId = await Artist.findOne({ userInfo: artistId }); // retrieve the artist Id from the userInfoId
 
-  if (userInfoId) artistId = userInfoId;
+  if (userInfoId) artistId = userInfoId._id;
 
   const topTracks = await Track.find({ artists: artistId })
     .sort({ played: -1 })
@@ -96,12 +98,125 @@ const getArtistTopTracks = async artistId => {
     track.artists.map(artist => {
       artist.userInfo = undefined;
     });
-    track.album.artists.map(artist => {
-      artist.userInfo = undefined;
-    });
+    if (track.album && track.album.artists) {
+      track.album.artists.map(artist => {
+        artist.userInfo = undefined;
+      });
+    }
   });
 
   return topTracks;
+};
+
+const getArtistRelatedArtists = async artistId => {
+  if (!artistId) throw new AppError('Artist id not specified', 400);
+
+  const userInfoId = await Artist.findOne({ userInfo: artistId }); // retrieve the artist Id from the userInfoId
+
+  if (userInfoId) artistId = userInfoId._id;
+
+  const users = await playHistory.aggregate([
+    {
+      $lookup: {
+        from: 'Tracks',
+        localField: 'track',
+        foreignField: '_id',
+        as: 'track'
+      }
+    },
+    {
+      $project: {
+        track: { $arrayElemAt: ['$track', 0] },
+        user: 1
+      }
+    },
+    {
+      $project: {
+        artist: { $arrayElemAt: ['$track.artists', 0] },
+        user: 1
+      }
+    },
+    {
+      $match: {
+        artist: mongoose.Types.ObjectId(artistId)
+      }
+    },
+    {
+      $group: {
+        _id: {
+          userId: '$user'
+        },
+        played: {
+          $sum: 1
+        }
+      }
+    },
+    {
+      $sort: {
+        played: -1
+      }
+    },
+    {
+      $limit: 5000
+    }
+  ]);
+
+  for (let i = 0; i < users.length; i += 1) {
+    users[i] = users[i]._id.userId;
+  }
+
+  const artistsIds = await playHistory.aggregate([
+    {
+      $lookup: {
+        from: 'Tracks',
+        localField: 'track',
+        foreignField: '_id',
+        as: 'track'
+      }
+    },
+    {
+      $project: {
+        track: { $arrayElemAt: ['$track', 0] },
+        user: 1
+      }
+    },
+    {
+      $project: {
+        artist: { $arrayElemAt: ['$track.artists', 0] },
+        user: 1
+      }
+    },
+    {
+      $match: {
+        user: { $in: users },
+        artist: { $ne: mongoose.Types.ObjectId(artistId) }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          artist: '$artist'
+        },
+        played: {
+          $sum: 1
+        }
+      }
+    },
+    {
+      $sort: { played: -1 }
+    }
+  ]);
+
+  for (let i = 0; i < artistsIds.length; i += 1)
+    artistsIds[i] = mongoose.Types.ObjectId(artistsIds[i]._id.artist);
+
+  const artists = await Artist.find({ _id: { $in: artistsIds } })
+    .select(
+      'external_urls biography genres followers href id images popularity uri type name'
+    )
+    .limit(20);
+
+  return artists;
 };
 
 exports.getArtist = catchAsync(async (req, res, next) => {
@@ -123,19 +238,12 @@ exports.getArtistAlbums = catchAsync(async (req, res, next) => {
   res.status(200).json(albums);
 });
 
-exports.getArtistByUserInfoId = catchAsync(async (req, res, next) => {
-  const artist = await getArtistByUserInfo(req.params.id);
-  res.status(200).json(artist);
-});
-
-exports.getMultipleArtistsByUserInfoIds = catchAsync(async (req, res, next) => {
-  const artist = await getMultipleArtistsByUserInfoIds(req.body.ids);
-  res.status(200).json(artist);
-});
-
 exports.getArtistTopTracks = catchAsync(async (req, res, next) => {
   const tracks = await getArtistTopTracks(req.params.id);
   res.status(200).json(tracks);
 });
 
-exports.getArtistRelatedArtists = catchAsync(async (req, res, next) => {});
+exports.getArtistRelatedArtists = catchAsync(async (req, res, next) => {
+  const artists = await getArtistRelatedArtists(req.params.id);
+  res.status(200).json(artists);
+});

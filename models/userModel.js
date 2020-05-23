@@ -156,7 +156,6 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpiresAt: Date,
-    emailConfirmationToken: String,
     premiumToken: String,
     premiumTokenExpireDate: Date,
     online: {
@@ -199,6 +198,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now()
     },
+    notificationTokens: [String],
     confirmed: {
       type: Boolean,
       default: false
@@ -365,6 +365,8 @@ userSchema.methods.createPasswordResetToken = async function() {
   });
   return resetToken;
 };
+//Same logic as password reset token [no need for testing]
+/* istanbul ignore next */
 userSchema.methods.createEmailConfirmationToken = async function() {
   let emailConfirmationToken;
   let unique = false;

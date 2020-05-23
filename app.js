@@ -7,12 +7,12 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
-const geoip = require('geoip-lite');
 const device = require('express-device');
 const DeviceDetector = require('node-device-detector');
 const expressWs = require('express-ws');
 const cors = require('cors');
-
+const passport = require('passport');
+const firebase = require('./config/firebase');
 const errorController = require('./controllers/errorController');
 
 const app = express();
@@ -121,19 +121,6 @@ app.use((req, res, next) => {
   next();
 });
 
-//Get the country of the public ip address that sends the request.
-//Send error if the country code is not sent in signup.
-app.use((req, res, next) => {
-  const countryObject = geoip.lookup(req.ip);
-  if (req.url === `${baseApiUrl}/authentication/signup`) {
-    if (!countryObject || !countryObject.country)
-      return next(new AppError('Sorry... Cannot Read The Country Code'));
-    //else
-    req.body.country = countryObject.country;
-  }
-  next();
-});
-
 //Get info of the device that sends the request
 app.use(device.capture());
 app.use((req, res, next) => {
@@ -153,6 +140,9 @@ app.use((req, res, next) => {
   req.baseApiUrl = baseApiUrl;
   next();
 });
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(`${baseApiUrl}/streaming`, streamingRouter);
 

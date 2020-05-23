@@ -332,7 +332,9 @@ const getPublicUser = async user => {
     populatedUser = await Artist.findOne({
       userInfo: new ObjectId(user._id)
     });
-    populatedUser = populatedUser.toObject({ virtuals: true });
+    populatedUser = populatedUser.toObject({
+      virtuals: true
+    });
 
     //We need only the public fields for the userInfo in the artist. So...
     const publicUser = Object.keys(User.publicUser());
@@ -507,6 +509,10 @@ exports.signupConfirm = catchAsync(async (req, res, next) => {
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.login = catchAsync(async (req, res, next) => {
+  if ('user' in req) {
+    return sendUser(req.user, res);
+  }
+
   const { email, password } = req.body;
   if (!email || !password)
     return next(new AppError('Please provide email and password!', 400));
@@ -523,6 +529,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //Send the new User in the response.
   sendUser(user, res);
 });
+
 //request handler - No need for unittesting
 /* istanbul ignore next */
 exports.loginWithFacebook = catchAsync(async (req, res, next) => {

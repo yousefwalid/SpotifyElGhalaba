@@ -1,11 +1,24 @@
 const express = require('express');
-const passport = require('./../passportSetup');
+const passport = require('../config/passportSetup');
+const geoip = require('geoip-lite');
+const AppError = require('./../utils/appError');
 
 const authenticationController = require('./../controllers/authenticationController');
 
 const router = express.Router();
 
-router.post('/signup', authenticationController.signupApply);
+//Get the country of the public ip address that sends the request.
+//Send error if the country code is not sent in signup.
+const getCountryCode = (req, res, next) => {
+  const countryObject = geoip.lookup(req.ip);
+  if (!countryObject || !countryObject.country)
+    return next(new AppError('Sorry... Cannot Read The Country Code'));
+  //else
+  req.body.country = countryObject.country;
+  next();
+};
+
+router.post('/signup', getCountryCode, authenticationController.signupApply);
 router.patch('/signup-confirm/:token', authenticationController.signupConfirm);
 router.post('/login', authenticationController.login);
 router.get('/logout', authenticationController.logout);
@@ -46,15 +59,11 @@ router.get(
   authenticationController.loginWithFacebook
 );
 
-// to login with google
-// router.get(
-//   '/google',
-//   passport.authenticate('google', {
-//     scope: ['profile', 'email']
-//   })
-// );
-// //google callback route
-// router.get('/google/redirect', passport.authenticate('google'), (req, res) => {
-//   // res.send('You have logged in successfully');
-// });
+router.post(
+  '/facebook-token',
+  passport.authenticate('facebook-token', {
+    session: false
+  }),
+  authenticationController.login
+);
 module.exports = router;
