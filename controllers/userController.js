@@ -115,22 +115,7 @@ const upgradeToPremium = async (token) => {
   return user;
 }
 
-/**
- * A method that takes the user id and returns the user object {@link User}.
- * It can also take an optional parameter fields to limit the returned fields
- * @param {String} userId - Id of the user to get his info
- * @param {String} [fields] - Limit the returned fields to specific fields ex: "name email" returns name and email only
- * @returns {User}
- */
-const addNotificationToken = async (userId, token) => {
-  const user = await User.findById(userId);
 
-  if (user.notificationTokens.includes(token))
-    throw new AppError("This token already exists", 401);
-
-  user.notificationTokens.push(token);
-  await user.save();
-};
 
 /* istanbul ignore next */
 exports.sendPremiumToken = catchAsync(async (req, res) => {
@@ -171,15 +156,4 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const updatedUser = await updateUser(req.user._id, req.body);
 
   res.status(200).json(updatedUser);
-});
-
-exports.addNotificationToken = catchAsync(async (req, res, next) => {
-
-  const {
-    token
-  } = req.body;
-
-  await addNotificationToken(req.user.id, token);
-
-  res.status(201).json("Token added successfully");
 });

@@ -3,10 +3,8 @@ const User = require('../models/userModel');
 
 
 const sendNotification = async (userId, title, message, data = {}) => {
-
-    const {
-        notificationTokens
-    } = await User.findById(userId);
+    title = String(title);
+    const user = await User.findById(userId);
 
     const notification = {
         data,
@@ -14,7 +12,7 @@ const sendNotification = async (userId, title, message, data = {}) => {
             title,
             body: message
         },
-        tokens: notificationTokens,
+        tokens: user.notificationTokens,
         webpush: {
             notification: {
                 body: message,
@@ -24,7 +22,20 @@ const sendNotification = async (userId, title, message, data = {}) => {
         }
     };
 
+    // send the notification to the clients
     await admin.messaging().sendMulticast(notification);
+
+    // update the notifications array in the db
+    const notificationInfo = {
+        title,
+        body: message,
+        data,
+        timestamp: new Date()
+    }
+
+    user.notifications.unshift(notificationInfo);
+
+    await user.save();
 }
 
 module.exports = sendNotification;
