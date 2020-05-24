@@ -7,8 +7,8 @@ const statsController = require('./../controllers/statsController');
 const router = express.Router();
 router.use(authenticationController.protect);
 
-router.route('/likes').get(statsController.getAlbumsLikes);
-router.route('/listens').get(statsController.getAlbumsListens);
+router.route('/likes').post(statsController.getAlbumsLikes);
+router.route('/listens').post(statsController.getAlbumsListens);
 
 router
   .route('/:id')
