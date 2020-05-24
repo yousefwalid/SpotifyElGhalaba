@@ -124,6 +124,10 @@ const upgradeToPremium = async (token) => {
  */
 const addNotificationToken = async (userId, token) => {
   const user = await User.findById(userId);
+
+  if (user.notificationTokens.includes(token))
+    throw new AppError("This token already exists", 401);
+
   user.notificationTokens.push(token);
   await user.save();
 };
@@ -169,13 +173,13 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   res.status(200).json(updatedUser);
 });
 
-
 exports.addNotificationToken = catchAsync(async (req, res, next) => {
+
   const {
     token
   } = req.body;
-  // console.log(req.user);
+
   await addNotificationToken(req.user.id, token);
 
-  res.status(200).json("Token added successfully");
+  res.status(201).json("Token added successfully");
 });
