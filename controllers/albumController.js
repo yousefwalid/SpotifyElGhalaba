@@ -4,6 +4,9 @@
  */
 const mongoose = require('mongoose');
 const sharp = require('sharp');
+const {
+  ObjectId
+} = require('mongoose').Types;
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
@@ -13,7 +16,8 @@ const filterObj = require('./../utils/filterObject');
 const AwsS3Api = require('./../utils/awsS3Api');
 const uploadAWSImage = require('../utils/uploadAWSImage');
 const validateLimitOffset = require('./../utils/validateLimitOffset');
-const { ObjectId } = require('mongoose').Types;
+const ApiFeatures = require('./../utils/apiFeatures');
+
 
 /**
  * Gets a track with a specific ID
@@ -36,16 +40,19 @@ const getAlbum = async (albumID, next) => {
  */
 const getNextAndPrevious = (offset, limit, totalCount) => {
   const nextPage =
-    offset + limit <= totalCount
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset +
-          limit}&limit=${limit}`
-      : null;
+    offset + limit <= totalCount ?
+    `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset +
+          limit}&limit=${limit}` :
+    null;
   const previousPage =
-    offset - limit >= 0
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset -
-          limit}&limit=${limit}`
-      : null;
-  return { nextPage, previousPage };
+    offset - limit >= 0 ?
+    `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/albums/?offset=${offset -
+          limit}&limit=${limit}` :
+    null;
+  return {
+    nextPage,
+    previousPage
+  };
 };
 /* istanbul ignore next */
 exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
@@ -57,7 +64,11 @@ exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
 
   if (offset < 0) throw new AppError('Offset cannot be negative', 400);
 
-  const albums = await Album.find({ _id: { $in: albumsIds } })
+  const albums = await Album.find({
+      _id: {
+        $in: albumsIds
+      }
+    })
     .select(
       'album_type artists external_urls id href images name release_date type uri'
     )
@@ -69,10 +80,15 @@ exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
     .skip(offset);
 
   const albumsCount = await Album.find({
-    _id: { $in: albumsIds }
+    _id: {
+      $in: albumsIds
+    }
   }).countDocuments();
 
-  const { nextPage, previousPage } = getNextAndPrevious(
+  const {
+    nextPage,
+    previousPage
+  } = getNextAndPrevious(
     offset,
     limit,
     albumsCount
@@ -101,9 +117,13 @@ const getSeveralAlbums = async AlbumsIds => {
     AlbumsIds = AlbumsIds.slice(0, 20);
   }
   //Returns the avaliable albums IDs in the DB
-  const Albums = await Album.find({ _id: { $in: AlbumsIds } });
+  const Albums = await Album.find({
+    _id: {
+      $in: AlbumsIds
+    }
+  });
   //Iterate on the list of IDs and if not found add a null
-  let albumList = [];
+  const albumList = [];
   AlbumsIds.forEach(el => {
     let found = false;
     for (let i = 0; i < Albums.length; i += 1) {
@@ -137,7 +157,10 @@ const getAlbumTracks = async (albumID, limit, offset, url) => {
   }
   const totalCount = Tracks.tracks.length;
   const limitedTracks = Tracks.tracks.slice(offset, limit + offset);
-  const { nextPage, previousPage } = getNextAndPrevious(
+  const {
+    nextPage,
+    previousPage
+  } = getNextAndPrevious(
     offset,
     limit,
     totalCount
@@ -170,7 +193,9 @@ const createAlbum = async (requestBody, currentUser) => {
   ]);
   const newAlbum = reqObject;
   newAlbum.release_date = new Date();
-  const artist = await Artist.findOne({ userInfo: currentUser._id });
+  const artist = await Artist.findOne({
+    userInfo: currentUser._id
+  });
   newAlbum.artists = artist._id;
   const createdAlbum = await Album.create(newAlbum);
   return createdAlbum;
@@ -184,7 +209,7 @@ const uploadImage = async (fileData, albumID) => {
   if (!fileData) throw new AppError('Invalid file uploaded', 400);
   if (!albumID) throw new AppError('album id not specified', 400);
   const album = await Album.findById(albumID);
-    /*istanbul ignore next*/
+  /*istanbul ignore next*/
   if (!album) {
     throw new AppError('Album not found', 404);
   }
@@ -222,14 +247,18 @@ const updateAlbum = async (albumID, body, userID) => {
 
   if (!album) throw new AppError('No album found with this ID', 404);
 
-  const artist = await Artist.findOne({ userInfo: new ObjectId(userID) });
+  const artist = await Artist.findOne({
+    userInfo: new ObjectId(userID)
+  });
 
   if (!album.artists.includes(artist.id))
     throw new AppError(
       'Only the Artist of the album can update the album info',
       403
     );
-  const updatedAlbum = await Album.findByIdAndUpdate(albumID,filteredObject,{new:true});
+  const updatedAlbum = await Album.findByIdAndUpdate(albumID, filteredObject, {
+    new: true
+  });
   return updatedAlbum;
 };
 
@@ -237,21 +266,25 @@ const updateAlbum = async (albumID, body, userID) => {
  * Sets an album active property with a given ID to false 
  * @param {String} trackID -The track ID to be deleted
  */
-const removeAlbum = async (albumID,userID) => {
-  const artist=await Artist.findOne({userInfo:new ObjectId(userID)});
-  const album=await Album.findById(albumID);
+const removeAlbum = async (albumID, userID) => {
+  const artist = await Artist.findOne({
+    userInfo: new ObjectId(userID)
+  });
+  const album = await Album.findById(albumID);
 
-  if(!album)
-    throw new AppError("No album was found with this ID",404);
-  
-  if(!album.artists.includes(artist.id))
-    throw new AppError("Only the album artists can remove their track",403);
-  
-  await Album.findByIdAndUpdate(albumID,{active:false});
+  if (!album)
+    throw new AppError("No album was found with this ID", 404);
+
+  if (!album.artists.includes(artist.id))
+    throw new AppError("Only the album artists can remove their track", 403);
+
+  await Album.findByIdAndUpdate(albumID, {
+    active: false
+  });
 };
 /* istanbul ignore next */
-exports.removeAlbum=catchAsync(async(req,res)=>{
-  await removeAlbum(req.params.id,req.user._id);
+exports.removeAlbum = catchAsync(async (req, res) => {
+  await removeAlbum(req.params.id, req.user._id);
   res.status(200).send();
 })
 
@@ -280,7 +313,10 @@ exports.getAlbum = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.getAlbumTracks = catchAsync(async (req, res, next) => {
-  const { limit, offset } = validateLimitOffset(
+  const {
+    limit,
+    offset
+  } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );
@@ -296,7 +332,7 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
-  let albumList = await getSeveralAlbums(req);
+  const albumList = await getSeveralAlbums(req);
   res.status(200).json({
     Albums: albumList
   });
@@ -315,4 +351,22 @@ exports.getAlbumLogic = getAlbum;
 exports.uploadImageLogic = uploadImage;
 exports.getNextAndPrevious = getNextAndPrevious;
 exports.updateAlbumLogic = updateAlbum;
-exports.removeAlbumLogic=removeAlbum;
+exports.removeAlbumLogic = removeAlbum;
+
+/* istanbul ignore next */
+exports.newReleases = catchAsync(async (req, res, next) => {
+  const currentDate = new Date();
+  const lastMonth = currentDate.setMonth(currentDate.getMonth() - 1);
+
+  const features = new ApiFeatures(Album.find({
+    "release_date": {
+      "$gte": lastMonth
+    }
+  }), req.query).skip();
+
+  const newReleases = await features.query;
+
+  res.status(200).json({
+    albums: newReleases
+  });
+});

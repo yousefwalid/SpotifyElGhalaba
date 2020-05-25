@@ -54,7 +54,9 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
     Category.findById(categoryId).select('playlists'),
     queryParams
   ).skip();
-  const { playlists } = await features.query.populate('playlists');
+  const {
+    playlists
+  } = await features.query.populate('playlists');
   return playlists;
 };
 exports.getCategoryPlaylistsLogic = getCategoryPlaylists;

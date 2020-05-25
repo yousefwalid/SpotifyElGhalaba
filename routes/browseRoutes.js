@@ -5,7 +5,6 @@ const albumController = require('./../controllers/albumController');
 const router = express.Router();
 
 router.use("/categories", categoryRouter);
-
-// router.route("/new-releases").get(albumController);
+router.route("/new-releases").get(albumController.newReleases);
 
 module.exports = router;
