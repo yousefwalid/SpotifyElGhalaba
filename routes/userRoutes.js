@@ -36,9 +36,10 @@ router.route('/:user_id/playlists').get(playlistController.getUserPlaylists);
 router.route('/playlists').post(playlistController.createPlaylist);
 
 // Notifications routes
-router.route('/test-notification').post(authenticationController.protect, notificationController.testNotification);
-router.route('/notifications').get(authenticationController.protect, notificationController.getNotifications);
+router.route('/test-notification').post(notificationController.testNotification);
+router.route('/notifications').get(notificationController.getNotifications);
 router.route('/notification-token').post(notificationController.addNotificationToken);
+router.route('/notification-token/:token').delete(notificationController.removeNotificationToken);
 
 
 router.get('/:id', authenticationController.protect, userController.getUser);
