@@ -2,10 +2,26 @@ const admin = require('../config/firebase');
 const User = require('../models/userModel');
 
 
-const sendNotification = async (userId, title, message, data = {}) => {
+const sendNotification = async (userIds, title, message, data = {}) => {
     title = String(title);
-    const user = await User.findById(userId);
-    const tokens = user.notificationTokens.filter(Boolean);
+
+    if (typeof userId === 'string') {
+        userIds = [userIds];
+    }
+
+    const users = await User.find({
+        "_id": {
+            "$in": userIds
+        }
+    });
+
+    let tokens = [];
+    users.forEach(user => {
+        tokens = tokens.concat(user.notificationTokens);
+    });
+
+    // filter all the falsy values
+    tokens = tokens.filter(Boolean);
 
     const notification = {
         data,
@@ -34,9 +50,19 @@ const sendNotification = async (userId, title, message, data = {}) => {
         timestamp: new Date()
     }
 
-    user.notifications.unshift(notificationInfo);
+    await User.updateMany({
+        "_id": {
+            "$in": userIds
+        }
+    }, {
+        $push: {
+            notifications: {
+                $each: [notificationInfo],
+                $position: 0
+            }
+        }
+    });
 
-    await user.save();
 }
 
 module.exports = sendNotification;
