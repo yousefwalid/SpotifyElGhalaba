@@ -8,6 +8,7 @@ const Playlist = require('./../models/playlistModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const ApiFeatures = require('./../utils/apiFeatures');
+const notificationsController = require('./notificationsController');
 
 /**
  * A method that takes user id and an array of user ids to be followed by this user
@@ -56,6 +57,9 @@ const follow = async (userId, idsToFollow, type) => {
       }
     }
   );
+
+  if (idsToFollow)
+    await notificationsController.sendFollowUserNotification(me, idsToFollow);
 };
 exports.followLogic = follow;
 
@@ -214,6 +218,9 @@ const followPlaylist = async (userId, playlistId, isPublic) => {
     });
     throw err;
   }
+
+  if (String(playlist.owner) !== String(userId))
+    await notificationsController.sendFollowPlaylistNotification(playlist, me);
 };
 exports.followPlaylistLogic = followPlaylist;
 

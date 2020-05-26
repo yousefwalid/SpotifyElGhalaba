@@ -83,7 +83,7 @@ const createTrack = async (requestBody, userID) => {
 
   const createdTrack = await Track.create(newTrack);
 
-  notificationsController.sendNewTrackNotification(createdTrack);
+  await notificationsController.sendNewTrackNotification(createdTrack);
 
   return createdTrack;
 };
