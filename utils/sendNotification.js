@@ -23,6 +23,8 @@ const sendNotification = async (userIds, title, message, data = {}) => {
     // filter all the falsy values
     tokens = tokens.filter(Boolean);
 
+    if (tokens.length === 0) return;
+
     const notification = {
         data,
         notification: {
