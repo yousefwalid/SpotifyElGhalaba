@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const sendNotification = async (userId, title, message, data = {}) => {
     title = String(title);
     const user = await User.findById(userId);
+    const tokens = user.notificationTokens.filter(Boolean);
 
     const notification = {
         data,
@@ -12,7 +13,7 @@ const sendNotification = async (userId, title, message, data = {}) => {
             title,
             body: message
         },
-        tokens: user.notificationTokens,
+        tokens,
         webpush: {
             notification: {
                 body: message,

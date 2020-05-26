@@ -14,7 +14,7 @@ const addNotificationToken = async (userId, token) => {
     const user = await User.findById(userId);
 
     if (user.notificationTokens.includes(token))
-        throw new AppError("This token already exists", 401);
+        throw new AppError("This token already exists", 400);
 
     user.notificationTokens.push(token);
     await user.save();
@@ -29,7 +29,7 @@ const addNotificationToken = async (userId, token) => {
  */
 const removeNotificationToken = async (userId, token) => {
     const user = await User.findById(userId);
-    if (!user.notificationTokens.includes(token)) throw new AppError("This token doesn't belong to this user");
+    if (!user.notificationTokens.includes(token)) throw new AppError("This token doesn't belong to this user", 400);
     user.notificationTokens = user.notificationTokens.filter(val => val !== token);
     await user.save();
 };

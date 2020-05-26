@@ -12,46 +12,73 @@ const Playlist = require('./../models/playlistModel');
 const Track = require('./../models/trackModel');
 const User = require('./../models/userModel');
 
-const getAlbums = async regex => {
-  return await Album.find({
-    name: {
-      $regex: regex
-    }
-  });
+const getAlbums = async (regex, queryParams) => {
+  const features = new ApiFeatures(
+    Album.find({
+      name: {
+        $regex: regex
+      }
+    }),
+    queryParams
+  ).skip();
+
+  return await features.query;
+
 };
 
-const getUsers = async regex => {
-  return await User.find({
-    name: {
-      $regex: regex
-    },
-    type: "user"
-  });
+const getUsers = async (regex, queryParams) => {
+  const features = new ApiFeatures(
+    User.find({
+      name: {
+        $regex: regex
+      },
+      type: "user"
+    }),
+    queryParams
+  ).skip();
+
+  return await features.query;
 };
 
-const getArtists = async regex => {
-  return await User.find({
-    name: {
-      $regex: regex
-    },
-    type: "artist"
-  });
+const getArtists = async (regex, queryParams) => {
+  const features = new ApiFeatures(
+    User.find({
+      name: {
+        $regex: regex
+      },
+      type: "artist"
+    }),
+    queryParams
+  ).skip();
+
+  return await features.query;
+
 };
 
-const getPlaylists = async regex => {
-  return await Playlist.find({
-    name: {
-      $regex: regex
-    }
-  });
+const getPlaylists = async (regex, queryParams) => {
+  const features = new ApiFeatures(
+    Playlist.find({
+      name: {
+        $regex: regex
+      }
+    }),
+    queryParams
+  ).skip();
+
+  return await features.query;
 };
 
-const getTracks = async regex => {
-  return await Track.find({
-    name: {
-      $regex: regex
-    }
-  });
+const getTracks = async (regex, queryParams) => {
+  const features = new ApiFeatures(
+    Track.find({
+      name: {
+        $regex: regex
+      }
+    }),
+    queryParams
+  ).skip();
+
+  return await features.query;
 };
 
 exports.search = catchAsync(async (req, res, next) => {
@@ -85,7 +112,7 @@ exports.search = catchAsync(async (req, res, next) => {
       'i'
     );
   } else {
-    const filteredWords = queryString.split('').map(word => word.trim());
+    const filteredWords = queryString.split(' ').map(word => word.trim());
     let regexExpression = '';
     filteredWords.forEach(word => {
       regexExpression += `(?=.*${word})`;
@@ -93,19 +120,12 @@ exports.search = catchAsync(async (req, res, next) => {
     regex = new RegExp(regexExpression, 'i');
   }
 
-  const getResultsFns = [];
-  if (types.includes('album')) getResultsFns.push(getAlbums(regex));
-  if (types.includes('user')) getResultsFns.push(getUsers(regex));
-  if (types.includes('artist')) getResultsFns.push(getArtists(regex));
-  if (types.includes('playlist')) getResultsFns.push(getPlaylists(regex));
-  if (types.includes('track')) getResultsFns.push(getTracks(regex));
+  const response = {};
+  if (types.includes('album')) response.albums = await getAlbums(regex, req.query);
+  if (types.includes('user')) response.users = await getUsers(regex, req.query);
+  if (types.includes('artist')) response.artists = await getArtists(regex, req.query);
+  if (types.includes('playlist')) response.playlists = await getPlaylists(regex, req.query);
+  if (types.includes('track')) response.tracks = await getTracks(regex, req.query);
 
-  const returnedDataArr = await Promise.all(getResultsFns);
-
-  const returnedDataObj = {};
-  types.forEach((type, index) => {
-    returnedDataObj[`${type}s`] = returnedDataArr[index];
-  });
-
-  res.status(200).json(returnedDataObj);
+  res.status(200).json(response);
 });

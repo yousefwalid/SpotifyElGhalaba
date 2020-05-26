@@ -44,8 +44,7 @@ module.exports = async (
     const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
 
     // eslint-disable-next-line no-await-in-loop
-    awsObj.s3.putObject(
-      {
+    awsObj.s3.putObject({
         Body: img,
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: key
