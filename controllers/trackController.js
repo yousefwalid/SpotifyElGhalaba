@@ -163,8 +163,10 @@ const shareTrack = async req => {
 //This endpoint doesn't require unit testing as it depends on validated existing data
 const recommendTracks = async userID => {
   const playHistoryObjects = await PlayHistory.find({ user: userID })
+    .sort({ created_at: -1 })
     .select('track')
-    .populate('track');
+    .populate('track')
+    .limit(10);
   const playHistoryTracks = [];
   const playHistoryAlbums = [];
   playHistoryObjects.forEach(val => {
@@ -190,9 +192,11 @@ const recommendTracks = async userID => {
         similarTracks.push(cTrack);
     });
   });
-  const recommendedTracks = await Track.find({ _id: { $in: similarTracks } })
-    .sort({ played: -1 })
-    .limit(10);
+  //Recommending based on same genre from last 10 played songs but random samples to enable refreshing recommendations
+  const recommendedTracks = await Track.aggregate([
+    { $match: { _id: { $in: similarTracks } } },
+    { $sample: { size: 10 } }
+  ]);
   return recommendedTracks;
 };
 
