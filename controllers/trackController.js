@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongoose').Types;
 const Track = require('./../models/trackModel');
 const Album = require('./../models/albumModel');
 const Artist = require('./../models/artistModel');
@@ -5,7 +6,7 @@ const AppError = require('./../utils/appError');
 const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
-const { ObjectId } = require('mongoose').Types;
+const notificationsController = require('./notificationsController');
 
 /**
  * This contains all the business logic for the track controller
@@ -81,6 +82,9 @@ const createTrack = async (requestBody, userID) => {
   if (!album) throw new AppError('No album found with that ID', 404);
 
   const createdTrack = await Track.create(newTrack);
+
+  await notificationsController.sendNewTrackNotification(createdTrack);
+
   return createdTrack;
 };
 /**

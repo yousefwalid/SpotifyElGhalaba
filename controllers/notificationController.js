@@ -13,6 +13,9 @@ const sendNotification = require('../utils/sendNotification');
 const addNotificationToken = async (userId, token) => {
     const user = await User.findById(userId);
 
+    if (!token)
+        throw new AppError("This isn't a valid token", 400);
+
     if (user.notificationTokens.includes(token))
         throw new AppError("This token already exists", 400);
 
