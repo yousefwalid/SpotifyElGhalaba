@@ -47,6 +47,26 @@ const getTracksListens = async (ids, period, startDate, endDate) => {
           $sum: 1
         }
       }
+    },
+    {
+      $lookup: {
+        from: 'Tracks',
+        localField: '_id.trackId',
+        foreignField: '_id',
+        as: 'track'
+      }
+    },
+    {
+      $project: {
+        year: '$_id.year',
+        ...((period === 'month' || period === 'day') && {
+          month: '$_id.month'
+        }),
+        ...(period === 'day' && { day: '$_id.day' }),
+        played: 1,
+        track: { $arrayElemAt: ['$track', 0] },
+        _id: 0
+      }
     }
   ]);
 
@@ -94,6 +114,26 @@ const getTracksLikes = async (ids, period, startDate, endDate) => {
         liked: {
           $sum: 1
         }
+      }
+    },
+    {
+      $lookup: {
+        from: 'Tracks',
+        localField: '_id.trackId',
+        foreignField: '_id',
+        as: 'track'
+      }
+    },
+    {
+      $project: {
+        year: '$_id.year',
+        ...((period === 'month' || period === 'day') && {
+          month: '$_id.month'
+        }),
+        ...(period === 'day' && { day: '$_id.day' }),
+        liked: 1,
+        track: { $arrayElemAt: ['$track', 0] },
+        _id: 0
       }
     }
   ]);
@@ -167,6 +207,26 @@ const getAlbumsListens = async (ids, period, startDate, endDate) => {
           $sum: 1
         }
       }
+    },
+    {
+      $lookup: {
+        from: 'Albums',
+        localField: '_id.albumId',
+        foreignField: '_id',
+        as: 'album'
+      }
+    },
+    {
+      $project: {
+        year: '$_id.year',
+        ...((period === 'month' || period === 'day') && {
+          month: '$_id.month'
+        }),
+        ...(period === 'day' && { day: '$_id.day' }),
+        played: 1,
+        album: { $arrayElemAt: ['$album', 0] },
+        _id: 0
+      }
     }
   ]);
 
@@ -214,6 +274,26 @@ const getAlbumsLikes = async (ids, period, startDate, endDate) => {
         liked: {
           $sum: 1
         }
+      }
+    },
+    {
+      $lookup: {
+        from: 'Albums',
+        localField: '_id.albumId',
+        foreignField: '_id',
+        as: 'album'
+      }
+    },
+    {
+      $project: {
+        year: '$_id.year',
+        ...((period === 'month' || period === 'day') && {
+          month: '$_id.month'
+        }),
+        ...(period === 'day' && { day: '$_id.day' }),
+        liked: 1,
+        album: { $arrayElemAt: ['$album', 0] },
+        _id: 0
       }
     }
   ]);

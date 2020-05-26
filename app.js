@@ -12,7 +12,6 @@ const DeviceDetector = require('node-device-detector');
 const expressWs = require('express-ws');
 const cors = require('cors');
 const passport = require('passport');
-const firebase = require('./config/firebase');
 const errorController = require('./controllers/errorController');
 
 const app = express();
