@@ -1,6 +1,9 @@
 const admin = require('../config/firebase');
 const User = require('../models/userModel');
 
+// const data = {
+//     link: process.env.NODE_ENV === 'development' 
+// }
 
 const sendNotification = async (userIds, title, message, data = {}) => {
     title = String(title);
@@ -10,8 +13,8 @@ const sendNotification = async (userIds, title, message, data = {}) => {
     }
 
     const users = await User.find({
-        "_id": {
-            "$in": userIds
+        _id: {
+            $in: userIds
         }
     });
 
@@ -25,6 +28,15 @@ const sendNotification = async (userIds, title, message, data = {}) => {
 
     if (tokens.length === 0) return;
 
+    if (!data.link) {
+        let link;
+        if (process.env.NODE_ENV === 'development') link = `${process.env.DOMAIN_DEVELOPMENT}:${process.env.FRONTEND_PORT}/`;
+        else link = process.env.DOMAIN_PRODUCTION;
+        data = {
+            link
+        }
+    }
+
     const notification = {
         data,
         notification: {
@@ -33,9 +45,12 @@ const sendNotification = async (userIds, title, message, data = {}) => {
         },
         tokens,
         webpush: {
+            fcm_options: {
+                link: data.link
+            },
             notification: {
                 body: message,
-                requireInteraction: "true",
+                requireInteraction: 'true',
                 icon: 'https://i.ibb.co/56ZQYbv/logo.png'
             }
         }
@@ -50,11 +65,11 @@ const sendNotification = async (userIds, title, message, data = {}) => {
         body: message,
         data,
         timestamp: new Date()
-    }
+    };
 
     await User.updateMany({
-        "_id": {
-            "$in": userIds
+        _id: {
+            $in: userIds
         }
     }, {
         $push: {
@@ -64,7 +79,6 @@ const sendNotification = async (userIds, title, message, data = {}) => {
             }
         }
     });
-
-}
+};
 
 module.exports = sendNotification;
