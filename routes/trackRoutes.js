@@ -5,7 +5,7 @@ const statsController = require('./../controllers/statsController');
 
 const router = express.Router();
 router.use(authenticationController.protect);
-
+router.route('/recommend').get(trackController.recommendTracks);
 router.route('/likes').post(statsController.getTracksLikes);
 router.route('/listens').post(statsController.getTracksListens);
 
@@ -29,5 +29,4 @@ router
   );
 
 router.route('/share/:id').get(trackController.shareTrack);
-
 module.exports = router;

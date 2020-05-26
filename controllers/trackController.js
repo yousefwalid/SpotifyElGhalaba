@@ -2,6 +2,7 @@ const Track = require('./../models/trackModel');
 const Album = require('./../models/albumModel');
 const Artist = require('./../models/artistModel');
 const AppError = require('./../utils/appError');
+const PlayHistory = require('./../models/playHistoryModel');
 const catchAsync = require('./../utils/catchAsync');
 const filterObj = require('./../utils/filterObject');
 const { ObjectId } = require('mongoose').Types;
@@ -83,21 +84,19 @@ const createTrack = async (requestBody, userID) => {
   return createdTrack;
 };
 /**
- * Sets a track active property with a given ID to false 
+ * Sets a track active property with a given ID to false
  * @param {String} trackID -The track ID to be deleted
  */
-const removeTrack = async (trackID,userID) => {
-  const artist=await Artist.findOne({userInfo:new ObjectId(userID)});
-  const track=await Track.findById(trackID);
+const removeTrack = async (trackID, userID) => {
+  const artist = await Artist.findOne({ userInfo: new ObjectId(userID) });
+  const track = await Track.findById(trackID);
 
-  if(!track)
-    throw new AppError("No track was found with this ID",404);
-  
-  if(!track.artists.includes(artist.id))
-    throw new AppError("Only the track artists can remove their track",403);
-  
-  await Track.findByIdAndUpdate(trackID,{active:false});
+  if (!track) throw new AppError('No track was found with this ID', 404);
 
+  if (!track.artists.includes(artist.id))
+    throw new AppError('Only the track artists can remove their track', 403);
+
+  await Track.findByIdAndUpdate(trackID, { active: false });
 };
 
 /**
@@ -140,11 +139,13 @@ const updateTrack = async (trackID, object, userID) => {
     const index = oldAlbum.tracks.indexOf(trackID);
     oldAlbum.tracks.splice(index, 1);
     newAlbum.tracks.push(trackID);
-  
+
     await oldAlbum.save();
     await newAlbum.save();
   }
-  const updatedTrack = await Track.findByIdAndUpdate(trackID,filteredObj,{new:true})
+  const updatedTrack = await Track.findByIdAndUpdate(trackID, filteredObj, {
+    new: true
+  });
   return updatedTrack;
 };
 /**
@@ -152,19 +153,63 @@ const updateTrack = async (trackID, object, userID) => {
  * @param {String} trackID -The id of the track you want to share
  */
 /* istanbul ignore next */
-const shareTrack = async (req) => {
-  console.log(req.params.id)
+const shareTrack = async req => {
   const track = await Track.findById(req.params.id);
   if (!track)
     throw new AppError("The track you're looking for isn't found", 404);
   return `${process.env.DOMAIN_PRODUCTION}/track/${req.params.id}`;
 };
 /* istanbul ignore next */
+//This endpoint doesn't require unit testing as it depends on validated existing data
+const recommendTracks = async userID => {
+  const playHistoryObjects = await PlayHistory.find({ user: userID })
+    .sort({ created_at: -1 })
+    .select('track')
+    .populate('track')
+    .limit(10);
+  const playHistoryTracks = [];
+  const playHistoryAlbums = [];
+  playHistoryObjects.forEach(val => {
+    playHistoryTracks.push(val.track.id);
+    playHistoryAlbums.push(String(val.track.album));
+  });
+  const genres = new Set();
+  const albums = await Album.find({ _id: { $in: playHistoryAlbums } }).select(
+    'genres'
+  );
+  albums.forEach(album => {
+    album.genres.forEach(genre => {
+      genres.add(genre);
+    });
+  });
+  const similarAlbums = await Album.find({
+    genres: { $in: Array.from(genres) }
+  });
+  const similarTracks = [];
+  similarAlbums.forEach(cAlbum => {
+    cAlbum.tracks.forEach(cTrack => {
+      if (!playHistoryTracks.includes(String(cTrack)))
+        similarTracks.push(cTrack);
+    });
+  });
+  //Recommending based on same genre from last 10 played songs but random samples to enable refreshing recommendations
+  const recommendedTracks = await Track.aggregate([
+    { $match: { _id: { $in: similarTracks } } },
+    { $sample: { size: 10 } }
+  ]);
+  return recommendedTracks;
+};
+
+/* istanbul ignore next */
 exports.getTrack = catchAsync(async (req, res, next) => {
   const track = await getTrack(req.params.id);
   res.status(200).json(track);
 });
 
+exports.recommendTracks = catchAsync(async (req, res) => {
+  const recommendedTracks = await recommendTracks(req.user._id);
+  res.status(200).json(recommendedTracks);
+});
 /* istanbul ignore next */
 exports.createTrack = catchAsync(async (req, res, next) => {
   const newTrack = await createTrack(req.body, req.user._id);
@@ -184,7 +229,7 @@ exports.getSeveralTracks = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.removeTrack = catchAsync(async (req, res) => {
-  await removeTrack(req.params.id,req.user._id);
+  await removeTrack(req.params.id, req.user._id);
   res.status(200).send();
 });
 /*istanbul ignore next*/
@@ -196,7 +241,7 @@ exports.updateTrack = catchAsync(async (req, res) => {
 exports.shareTrack = catchAsync(async (req, res) => {
   const link = await shareTrack(req);
   res.status(200).json({
-    "status":"success",
+    status: 'success',
     link
   });
 });
