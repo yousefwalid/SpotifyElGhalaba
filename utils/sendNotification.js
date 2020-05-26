@@ -3,15 +3,10 @@ const User = require('../models/userModel');
 
 const sendNotification = async (userIds, title, message, data = {}) => {
   title = String(title);
+
   if (typeof userId === 'string') {
     userIds = [userIds];
   }
-
-  const users = await User.find({
-    _id: {
-      $in: userIds
-    }
-  });
 
   const users = await User.find({
     _id: {
@@ -28,25 +23,6 @@ const sendNotification = async (userIds, title, message, data = {}) => {
   tokens = tokens.filter(Boolean);
 
   if (tokens.length === 0) return;
-
-  const notification = {
-    data,
-    notification: {
-      title,
-      body: message
-    },
-    tokens,
-    webpush: {
-      notification: {
-        body: message,
-        requireInteraction: 'true',
-        icon: 'https://i.ibb.co/56ZQYbv/logo.png'
-      }
-    }
-  };
-
-  // filter all the falsy values
-  tokens = tokens.filter(Boolean);
 
   const notification = {
     data,
