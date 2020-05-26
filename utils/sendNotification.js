@@ -13,10 +13,37 @@ const sendNotification = async (userIds, title, message, data = {}) => {
     }
   });
 
+  const users = await User.find({
+    _id: {
+      $in: userIds
+    }
+  });
+
   let tokens = [];
   users.forEach(user => {
     tokens = tokens.concat(user.notificationTokens);
   });
+
+  // filter all the falsy values
+  tokens = tokens.filter(Boolean);
+
+  if (tokens.length === 0) return;
+
+  const notification = {
+    data,
+    notification: {
+      title,
+      body: message
+    },
+    tokens,
+    webpush: {
+      notification: {
+        body: message,
+        requireInteraction: 'true',
+        icon: 'https://i.ibb.co/56ZQYbv/logo.png'
+      }
+    }
+  };
 
   // filter all the falsy values
   tokens = tokens.filter(Boolean);
