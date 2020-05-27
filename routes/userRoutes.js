@@ -8,7 +8,6 @@ const notificationController = require('./../controllers/notificationController'
 
 const router = express.Router();
 
-
 router
   .route('/')
   .get(authenticationController.protect, userController.getMe)
@@ -16,10 +15,16 @@ router
 
 router.get('/me', authenticationController.protect, userController.getMe);
 
-router.patch('/premium', authenticationController.protect, userController.sendPremiumToken);
-router.post('/premium/:token', authenticationController.protect, userController.upgradeToPremium);
-
-
+router.patch(
+  '/premium',
+  authenticationController.protect,
+  userController.sendPremiumToken
+);
+router.post(
+  '/premium/:token',
+  authenticationController.protect,
+  userController.upgradeToPremium
+);
 
 // router.patch(
 //   '/premium',
@@ -36,11 +41,23 @@ router.route('/:user_id/playlists').get(playlistController.getUserPlaylists);
 router.route('/playlists').post(playlistController.createPlaylist);
 
 // Notifications routes
-router.route('/test-notification').post(notificationController.testNotification);
+router
+  .route('/test-notification')
+  .post(notificationController.testNotification);
 router.route('/notifications').get(notificationController.getNotifications);
-router.route('/notification-token').post(notificationController.addNotificationToken);
-router.route('/notification-token/:token').delete(notificationController.removeNotificationToken);
+router
+  .route('/notification-token')
+  .post(notificationController.addNotificationToken);
+router
+  .route('/notification-token/:token')
+  .delete(notificationController.removeNotificationToken);
+router
+  .route('/notification-toggle')
+  .post(notificationController.toggleNotification);
 
+router
+  .route('/notification-status')
+  .get(notificationController.getNotificationsStatus);
 
 router.get('/:id', authenticationController.protect, userController.getUser);
 
