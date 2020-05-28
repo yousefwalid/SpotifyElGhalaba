@@ -29,6 +29,7 @@ const crypto = require('crypto');
 const CurrentlyPlayingObject = require('./objects/currentlyPlayingObject');
 const DeviceObject = require('./objects/deviceObject');
 const ImageObject = require('./objects/imageObject');
+
 /*
  
   ######   ######  ##     ## ######## ##     ##    ###    
@@ -51,7 +52,6 @@ const followedPlaylist = new mongoose.Schema({
   __v: false
 });
 
-
 const notification = new mongoose.Schema({
   title: String,
   body: String,
@@ -62,7 +62,6 @@ const notification = new mongoose.Schema({
   id: false,
   __v: false
 });
-
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -210,6 +209,20 @@ const userSchema = new mongoose.Schema({
   confirmed: {
     type: Boolean,
     default: false
+  },
+  enabledNotifications: {
+    type: {
+      userFollowed: Boolean,
+      playlistFollowed: Boolean,
+      newArtistTrack: Boolean,
+      newArtistAlbum: Boolean
+    },
+    default: {
+      userFollowed: 1,
+      playlistFollowed: 1,
+      newArtistTrack: 1,
+      newArtistAlbum: 1
+    }
   }
 }, {
   toJSON: {
