@@ -1,4 +1,5 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 
 const authenticationController = require('./../controllers/authenticationController');
 const playlistController = require('./../controllers/playlistController');
@@ -13,6 +14,9 @@ router
   .route('/')
   .get(authenticationController.protect, userController.getMe)
   .patch(authenticationController.protect, userController.updateMe);
+
+
+
 
 router.get('/me', authenticationController.protect, userController.getMe);
 
@@ -30,6 +34,8 @@ router.post('/premium/:token', authenticationController.protect, userController.
 
 //This middleware will be applied on all routes that come after it
 router.use(authenticationController.protect);
+
+router.route('/update-avatar').post(fileUpload(), userController.updateAvatar);
 
 // Playlists routes
 router.route('/:user_id/playlists').get(playlistController.getUserPlaylists);

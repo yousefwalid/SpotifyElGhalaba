@@ -158,7 +158,7 @@ const userSchema = new mongoose.Schema({
     }
   },
   image: {
-    type: ImageObject,
+    type: [ImageObject],
     default: null
   },
   passwordChangedAt: Date,

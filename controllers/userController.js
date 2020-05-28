@@ -7,6 +7,8 @@ const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const sendEmail = require('./../utils/email');
+const uploadAWSImage = require('../utils/uploadAWSImage');
+require('./../utils/awsS3Api');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -156,4 +158,41 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const updatedUser = await updateUser(req.user._id, req.body);
 
   res.status(200).json(updatedUser);
+});
+
+const updateAvatar = async (fileData, userId) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+
+  const user = await User.findById(userId);
+
+  /*istanbul ignore next*/
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+  /*istanbul ignore next*/
+  const qualityNames = ['High', 'Medium', 'Low'];
+  /*istanbul ignore next*/
+  const imgObjects = await uploadAWSImage(
+    fileData,
+    'user',
+    userId,
+    dimensions,
+    qualityNames
+  );
+
+  /*istanbul ignore next*/
+  user.image = imgObjects;
+  /*istanbul ignore next*/
+  await user.save();
+};
+
+/* istanbul ignore next */
+exports.updateAvatar = catchAsync(async (req, res, next) => {
+  await updateAvatar(req.files.image.data, req.user.id);
+  res.status(202).json({
+    status: 'success',
+    message: 'Avatar image updated successfully'
+  });
 });
