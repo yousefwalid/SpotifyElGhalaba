@@ -37,6 +37,7 @@ run unit tests:
 deploy to the instance:
  only:
   - master
+  - 3-ci-cd-pipeline
  stage: deploy
  before_script:
    - mkdir -p ~/.ssh
