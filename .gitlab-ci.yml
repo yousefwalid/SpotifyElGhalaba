@@ -47,5 +47,5 @@ deploy to the instance:
    - chmod 600  ~/.ssh/id_rsa
    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
  script:
-   - echo $EC2_INSTANCE
+   - echo "$EC2_INSTANCE"
    - ssh $EC2_INSTANCE "cd ~/back && git pull origin master && ./start-docker.sh"
