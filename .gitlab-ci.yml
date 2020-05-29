@@ -48,4 +48,4 @@ deploy to the instance:
    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
  script:
    - echo "$EC2_INSTANCE"
-   - ssh ubuntu@ec2-54-235-226-14.compute-1.amazonaws.com "cd ~/back && git pull origin master && ./start-docker.sh"
+   - ssh  $EC2_INSTANCE "cd ~/back && git pull origin master && ./start-docker.sh"
