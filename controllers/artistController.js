@@ -21,6 +21,12 @@ const getArtist = async artistId => {
 };
 
 const getMultipleArtists = async artistsIds => {
+  if (!artistsIds || artistsIds === '')
+    throw new AppError('Artists ids not specified', 400);
+
+  artistsIds = artistsIds.split(',');
+
+  console.log(artistsIds);
   if (!artistsIds || artistsIds.length === 0)
     throw new AppError('Artists ids not specified', 400);
 
@@ -225,7 +231,7 @@ exports.getArtist = catchAsync(async (req, res, next) => {
 });
 
 exports.getMultipleArtists = catchAsync(async (req, res, next) => {
-  const artists = await getMultipleArtists(req.body.ids);
+  const artists = await getMultipleArtists(req.query.ids);
   res.status(200).json(artists);
 });
 

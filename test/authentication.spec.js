@@ -100,27 +100,27 @@ describe('Testing Authentication Services', function() {
     });
   });
 
-  describe('Testing Create New User/Artist', function() {
-    it('Should create a new user without error', async function() {
-      const newUserBody = objectBody('user');
-      const newUser = await authenticationController.createNewUser(newUserBody);
+  // describe('Testing Create New User/Artist', function() {
+  //   it('Should create a new user without error', async function() {
+  //     const newUserBody = objectBody('user');
+  //     const newUser = await authenticationController.createNewUser(newUserBody);
 
-      createUserAssertions(newUser, newUserBody);
-    });
+  //     createUserAssertions(newUser, newUserBody);
+  //   });
 
-    it('Should create a new artist without error', async function() {
-      const newArtistBody = objectBody('artist');
-      const newArtist = await authenticationController.createNewUser(
-        newArtistBody
-      );
-      createUserAssertions(newArtist, newArtistBody);
-      const artist = await Artist.findOne({
-        userInfo: newArtist._id
-      });
+  //   it('Should create a new artist without error', async function() {
+  //     const newArtistBody = objectBody('artist');
+  //     const newArtist = await authenticationController.createNewUser(
+  //       newArtistBody
+  //     );
+  //     createUserAssertions(newArtist, newArtistBody);
+  //     const artist = await Artist.findOne({
+  //       userInfo: newArtist._id
+  //     });
 
-      assert.ok(artist, 'The Artist Document Was Not Created In DB');
-    });
-  });
+  //     assert.ok(artist, 'The Artist Document Was Not Created In DB');
+  //   });
+  // });
 
   describe('Testing public user', function() {
     it('Should return the public user info without error', async function() {

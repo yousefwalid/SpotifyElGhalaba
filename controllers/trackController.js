@@ -209,7 +209,7 @@ exports.getTrack = catchAsync(async (req, res, next) => {
   const track = await getTrack(req.params.id);
   res.status(200).json(track);
 });
-
+/* istanbul ignore next */
 exports.recommendTracks = catchAsync(async (req, res) => {
   const recommendedTracks = await recommendTracks(req.user._id);
   res.status(200).json(recommendedTracks);
