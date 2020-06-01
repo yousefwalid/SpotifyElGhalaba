@@ -36,7 +36,11 @@ describe('Testing album controller', function() {
     let album = await albumController.getAlbumLogic(createdAlbum.id);
     album = album.toObject();
     createdAlbum = createdAlbum.toObject();
-    assert.deepStrictEqual(album, createdAlbum);
+    const keys = Object.keys(createdAlbum);
+    keys.forEach(key => {
+      if (key !== 'tracks' && key !== 'artists')
+        assert.deepStrictEqual(album[key], createdAlbum[key]);
+    });
   });
   it('Testing get album with invalid ID', async function() {
     try {
@@ -139,53 +143,70 @@ describe('Testing album controller', function() {
     assert.strictEqual(page.previousPage, null);
   });
 
-  it('testing updating Album with invalid ID',async function(){
-    try{
-      await albumController.updateAlbumLogic("5e8281b93f83d84d5ab32e51",{name:"numb"},"5e8281b93f83d84d5ab32e51");
-    }catch(err){
-      assert.strictEqual(err.statusCode,404);
+  it('testing updating Album with invalid ID', async function() {
+    try {
+      await albumController.updateAlbumLogic(
+        '5e8281b93f83d84d5ab32e51',
+        { name: 'numb' },
+        '5e8281b93f83d84d5ab32e51'
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
     }
   });
-  it('testing updating Album with other artist ID',async function(){
-    const dummyAlbum=generateAlbum(user._id);
-    const dbAlbum=await Album.create(dummyAlbum);
-    const createdArtist=await generateArtist();
+  it('testing updating Album with other artist ID', async function() {
+    const dummyAlbum = generateAlbum(user._id);
+    const dbAlbum = await Album.create(dummyAlbum);
+    const createdArtist = await generateArtist();
 
-    try{
-      await albumController.updateAlbumLogic(dbAlbum._id,{name:"numb"},createdArtist.userInfo._id);
-    }catch(err){
-      assert.strictEqual(err.statusCode,403);
+    try {
+      await albumController.updateAlbumLogic(
+        dbAlbum._id,
+        { name: 'numb' },
+        createdArtist.userInfo._id
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 403);
     }
   });
-  it('testing updating Album',async function(){
-    const dummyAlbum=generateAlbum(user._id);
-    const dbAlbum=await Album.create(dummyAlbum);
-    const updated=await albumController.updateAlbumLogic(dbAlbum._id,{name:"numb"},user.userInfo._id);
-    assert.strictEqual(updated.name,"numb");
-    
+  it('testing updating Album', async function() {
+    const dummyAlbum = generateAlbum(user._id);
+    const dbAlbum = await Album.create(dummyAlbum);
+    const updated = await albumController.updateAlbumLogic(
+      dbAlbum._id,
+      { name: 'numb' },
+      user.userInfo._id
+    );
+    assert.strictEqual(updated.name, 'numb');
   });
-  it('testing removing an album',async function(){
-    let randomAlbum=generateAlbum(user._id)
-    const dummyAlbum=await Album.create(randomAlbum);
-    await albumController.removeAlbumLogic(dummyAlbum._id,user.userInfo._id);
-    const returnedAlbum=await Album.findById(dummyAlbum._id);
-    assert.strictEqual(returnedAlbum,null)
+  it('testing removing an album', async function() {
+    let randomAlbum = generateAlbum(user._id);
+    const dummyAlbum = await Album.create(randomAlbum);
+    await albumController.removeAlbumLogic(dummyAlbum._id, user.userInfo._id);
+    const returnedAlbum = await Album.findById(dummyAlbum._id);
+    assert.strictEqual(returnedAlbum, null);
   });
-  it('testing removing a Album with wrong ID',async function(){
-    try{
-    await albumController.removeAlbumLogic("5e8281b93f83d84d5ab32e51",user.userInfo._id);
-    }catch(err){
-      assert.strictEqual(err.statusCode,404);
+  it('testing removing a Album with wrong ID', async function() {
+    try {
+      await albumController.removeAlbumLogic(
+        '5e8281b93f83d84d5ab32e51',
+        user.userInfo._id
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 404);
     }
   });
-  it('testing removing a Album with invalid artist',async function(){
-    let randomAlbum=generateAlbum(user._id)
-    const dummyAlbum=await Album.create(randomAlbum);
-    const createdArtist=await generateArtist();
-    try{
-    await albumController.removeAlbumLogic(dummyAlbum._id,createdArtist.userInfo._id);
-    }catch(err){
-      assert.strictEqual(err.statusCode,403);
+  it('testing removing a Album with invalid artist', async function() {
+    let randomAlbum = generateAlbum(user._id);
+    const dummyAlbum = await Album.create(randomAlbum);
+    const createdArtist = await generateArtist();
+    try {
+      await albumController.removeAlbumLogic(
+        dummyAlbum._id,
+        createdArtist.userInfo._id
+      );
+    } catch (err) {
+      assert.strictEqual(err.statusCode, 403);
     }
   });
 });
