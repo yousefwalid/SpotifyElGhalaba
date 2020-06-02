@@ -46,7 +46,10 @@ Please make sure to install all the prerequisities listed above in the [**Prereq
 
 To seed an empty database before running the project you should run `npm run seed`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.<br/>
 
-<b>Note (VIP!):</b> You have to add '.mp3' tracks to folder ./seeds/tracks before you run seeds. You can download this <a href ="https://drive.google.com/drive/folders/1bcyXMqYylsEWA89Z74ctR3ZZh-GbK_nN?usp=sharing">track collection</a>
+<b>Note (VIP!):</b><br/>
+You have to add some '.mp3' tracks to folder ./seeds/tracks before you run seeds. You can download this <a href ="https://drive.google.com/drive/folders/1bcyXMqYylsEWA89Z74ctR3ZZh-GbK_nN?usp=sharing">track collection</a><br/>
+
+You have to add some images to folder ./seeds/ads before you run seeds. You can download this <a href ="https://drive.google.com/file/d/1TTm-SiST5g9nVha__CA_PUVtRomvkJnf/view?usp=sharing">image collection</a><br/>
 
 **DISCLAIMER** Take care as database seeds will wipe your database clean before seeding.
 
@@ -82,13 +85,10 @@ It is prefered to use the remote webpage to stay updated with the changes in the
 
 # For testers
 
-When you use the spotify-cli to build and run this code, it autofills the DB with 6 users
+When you use the seeds 'npm run seed' the following you can use the following users to test:
 
-| UserName      | Email              | Password | Type   | Product |
-| ------------- | ------------------ | -------- | ------ | ------- |
-| adminfree     | admin@free.com     | password | admin  | free    |
-| userfree      | user@free.com      | password | user   | free    |
-| artistfree    | artist@free.com    | password | artist | free    |
-| adminpremium  | admin@premium.com  | password | admin  | premium |
-| userpremium   | user@premium.com   | password | user   | premium |
-| artistpremium | artist@premium.com | password | artist | premium |
+| Email             | Password | Type   | Product |
+| ----------------- | -------- | ------ | ------- |
+| user1@gmail.com   | password | user   | free    |
+| user11@gmail.com  | password | user   | premium |
+| artist1@gmail.com | password | artist | free    |

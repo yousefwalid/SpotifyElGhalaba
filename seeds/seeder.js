@@ -11,6 +11,7 @@ const albumSeed = require('./data/albums');
 const trackSeed = require('./data/tracks');
 const playlistSeed = require('./data/playlist');
 const categorySeed = require('./data/categories');
+const adSeed = require('./data/ads');
 
 const User = require('./../models/userModel');
 const Artist = require('./../models/artistModel');
@@ -89,6 +90,8 @@ const createPlayHistories = async (userIds, trackIds) => {
 
   const categoryObjects = categorySeed.categoryObjects(playlistsIds);
   const categories = await Category.insertMany(categoryObjects);
+
+  await adSeed.createAds();
 
   await disconnectDB();
 

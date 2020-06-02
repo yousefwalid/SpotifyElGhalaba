@@ -57,7 +57,7 @@ module.exports = () => {
   // for (let i = 0; i < 10; i += 1) {
   //   const adminObject = {
   //     name: faker.name.findName(),
-  //     email: `admin${i}@email.com`,
+  //     email: `admin${i}@gmail.com`,
   //     password: 'password',
   //     passwordConfirm: 'password',
   //     gender: 'm',
