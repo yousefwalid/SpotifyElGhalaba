@@ -25,7 +25,13 @@ const notificationsController = require('./notificationsController');
 const getAlbum = async (albumID, next) => {
   const album = await Album.findById(albumID).populate([
     {
-      path: 'tracks'
+      path: 'tracks',
+      populate: [
+        {
+          path: 'artists',
+          select: 'name'
+        }
+      ]
     },
     {
       path: 'artists',
