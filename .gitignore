@@ -89,3 +89,6 @@ docs/
 coverage/
 
 seeds/tracks/*.mp3
+
+seeds/ads/*
+

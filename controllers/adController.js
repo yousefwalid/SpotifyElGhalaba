@@ -50,7 +50,8 @@ exports.getAd = catchAsync(async (req, res, next) => {
   else {
     const ads = await Ad.find({});
     const size = ads.length;
-    const randomIndex = Math.floor(Math.random(size));
+    const randomIndex = Math.floor(Math.random() * size);
+
     let selectedAd;
     if (size === 0) selectedAd = null;
     else selectedAd = ads[randomIndex];
