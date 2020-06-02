@@ -24,6 +24,7 @@ To be able to run the project successfully you need to have the following packag
 
 You can install MongoDB Server from their official website.\
 You can install npm from the `npmjs` website.
+You should install `nodemon` globally
 
 ### Environment Variables
 
@@ -43,7 +44,9 @@ Please make sure to install all the prerequisities listed above in the [**Prereq
 
 # Database Seeds
 
-To seed an empty database before running the project you should run `npm run seed`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.
+To seed an empty database before running the project you should run `npm run seed`, this will use the prewritten seeds stored in `./seeds/` to seed your local database.<br/>
+
+<b>Note (VIP!):</b> You have to add '.mp3' tracks to folder ./seeds/tracks before you run seeds. You can download this <a href ="https://drive.google.com/drive/folders/1bcyXMqYylsEWA89Z74ctR3ZZh-GbK_nN?usp=sharing">track collection</a>
 
 **DISCLAIMER** Take care as database seeds will wipe your database clean before seeding.
 
@@ -51,7 +54,7 @@ There is no need to handle migrations, they are automatically handled as we use 
 
 # Unit Testing
 
-To run the unit tests simply run `npm run test`. The tests will run in your terminal specifying how long each test took and which ones failed.
+To run the unit tests simply run `npm test`. The tests will run in your terminal specifying how long each test took and which ones failed.
 
 Coverage is reported in the terminal as well as exported to an html page inside `./coverage/`.
 
