@@ -299,7 +299,10 @@ const removeAlbum = async (albumID, userID) => {
   await Album.findByIdAndUpdate(albumID, {
     active: false
   });
-  await Track.updateMany({ _id: { $in: album.tracks } }, { active: false });
+  await Track.updateMany(
+    { _id: { $in: album.tracks } },
+    { $set: { active: false } }
+  );
 };
 /* istanbul ignore next */
 exports.removeAlbum = catchAsync(async (req, res) => {
