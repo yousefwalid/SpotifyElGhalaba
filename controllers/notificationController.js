@@ -67,6 +67,9 @@ const getNotifications = async (userId, page) => {
 };
 
 const toggleNotification = async (userId, notificationsObject) => {
+  if (!notificationsObject)
+    throw new AppError(400, 'Invalid notifications object');
+
   const allowedFields = [
     'userFollowed',
     'playlistFollowed',
@@ -75,8 +78,17 @@ const toggleNotification = async (userId, notificationsObject) => {
   ];
 
   filterObject(notificationsObject, allowedFields);
+
+  const currentNotificationsObject = (
+    await User.findById(userId).select('enabledNotifications')
+  ).enabledNotifications;
+
+  Object.keys(notificationsObject).forEach(el => {
+    currentNotificationsObject[el] = notificationsObject[el];
+  });
+
   await User.findByIdAndUpdate(userId, {
-    enabledNotifications: notificationsObject
+    enabledNotifications: currentNotificationsObject
   });
 };
 

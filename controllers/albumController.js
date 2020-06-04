@@ -25,7 +25,21 @@ const notificationsController = require('./notificationsController');
  * @returns {AlbumObject} The album with the specified ID
  */
 const getAlbum = async (albumID, next) => {
-  const album = await Album.findById(albumID).populate('tracks');
+  const album = await Album.findById(albumID).populate([
+    {
+      path: 'tracks',
+      populate: [
+        {
+          path: 'artists',
+          select: 'name'
+        }
+      ]
+    },
+    {
+      path: 'artists',
+      select: 'name'
+    }
+  ]);
   if (!album) {
     throw new AppError('No album found with that ID', 404);
   }
@@ -123,7 +137,15 @@ const getSeveralAlbums = async AlbumsIds => {
     _id: {
       $in: AlbumsIds
     }
-  });
+  }).populate([
+    {
+      path: 'tracks'
+    },
+    {
+      path: 'artists',
+      select: 'name'
+    }
+  ]);
   //Iterate on the list of IDs and if not found add a null
   const albumList = [];
   AlbumsIds.forEach(el => {
@@ -285,6 +307,10 @@ const removeAlbum = async (albumID, userID) => {
   await Album.findByIdAndUpdate(albumID, {
     active: false
   });
+  await Track.updateMany(
+    { _id: { $in: album.tracks } },
+    { $set: { active: false } }
+  );
 };
 /* istanbul ignore next */
 exports.removeAlbum = catchAsync(async (req, res) => {
@@ -340,7 +366,7 @@ exports.getAlbumTracks = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.getSeveralAlbums = catchAsync(async (req, res, next) => {
-  const albumList = await getSeveralAlbums(req);
+  const albumList = await getSeveralAlbums(req.query.ids.split(','));
   res.status(200).json({
     Albums: albumList
   });

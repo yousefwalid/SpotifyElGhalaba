@@ -101,7 +101,7 @@ class Aws {
    * @returns {Object} returns s3.getObject()
    */
   getS3Obj() {
-    return this.s3Obj;
+    return this.s3;
   }
 
   /**

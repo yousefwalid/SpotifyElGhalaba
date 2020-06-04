@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const mongoose = require('mongoose');
 
 const dropDB = async function(collectionName) {

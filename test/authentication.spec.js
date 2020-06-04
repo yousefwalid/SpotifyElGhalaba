@@ -16,11 +16,15 @@ const objectBody = require('./utils/createUser');
 const userBody = objectBody('user');
 const artistBody = objectBody('artist');
 
-const userDefaultEmptyArrays = ['devices', 'followedPlaylists', 'following'];
+const userDefaultEmptyArrays = [
+  'devices',
+  'followedPlaylists',
+  'following',
+  'image'
+];
 const userDefaultProperties = {
   online: false,
-  followers: 0,
-  image: null
+  followers: 0
 };
 const userDefaultNestedObjects = {
   currentlyPlaying: {

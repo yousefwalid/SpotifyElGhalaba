@@ -463,7 +463,7 @@ exports.signupApply = catchAsync(async (req, res, next) => {
     );
   }
 });
-
+/* istanbul ignore next */
 exports.signupConfirm = catchAsync(async (req, res, next) => {
   //Creates a new user. If the type is artist, creates a referencing artist.
   if (!req.params.token)
