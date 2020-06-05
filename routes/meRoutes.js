@@ -17,6 +17,8 @@ router
 
 router.route('/following/contains').get(followController.checkFollowing);
 
+router.route('/followers').get(followController.getFollowersOfCurrentUser);
+
 //playlists routes
 router.route('/playlists').get(playlistController.getMyUserPlaylists);
 

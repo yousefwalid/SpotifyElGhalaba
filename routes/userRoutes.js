@@ -6,16 +6,17 @@ const playlistController = require('./../controllers/playlistController');
 // const userController = require('./../controllers/userController');
 const userController = require('./../controllers//userController');
 const notificationController = require('./../controllers/notificationController');
+const followController = require('./../controllers/followController');
 
 const router = express.Router();
+
+router.get('/:id/followers', followController.getFollowersOfUser);
+router.get('/:id/following', followController.getFollowingOfUser);
 
 router
   .route('/')
   .get(authenticationController.protect, userController.getMe)
   .patch(authenticationController.protect, userController.updateMe);
-
-
-
 
 router.get('/me', authenticationController.protect, userController.getMe);
 
