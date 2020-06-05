@@ -270,6 +270,9 @@ const getRecentlyPlayedContexts = async (id, limit, before, after) => {
       }
     },
     {
+      $sort: { lastPlayedTime: -1 }
+    },
+    {
       $limit: Number(limit)
     }
   ]);

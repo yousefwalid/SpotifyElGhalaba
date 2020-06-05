@@ -4,7 +4,9 @@
  */
 const mongoose = require('mongoose');
 const sharp = require('sharp');
-const { ObjectId } = require('mongoose').Types;
+const {
+  ObjectId
+} = require('mongoose').Types;
 const Album = require('./../models/albumModel');
 const AppError = require('./../utils/appError');
 const Track = require('./../models/trackModel');
@@ -52,17 +54,17 @@ const getAlbum = async (albumID, next) => {
  */
 const getNextAndPrevious = (offset, limit, totalCount) => {
   const nextPage =
-    offset + limit <= totalCount
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
+    offset + limit <= totalCount ?
+    `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
           process.env.API_VERSION
-        }/albums/?offset=${offset + limit}&limit=${limit}`
-      : null;
+        }/albums/?offset=${offset + limit}&limit=${limit}` :
+    null;
   const previousPage =
-    offset - limit >= 0
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
+    offset - limit >= 0 ?
+    `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
           process.env.API_VERSION
-        }/albums/?offset=${offset - limit}&limit=${limit}`
-      : null;
+        }/albums/?offset=${offset - limit}&limit=${limit}` :
+    null;
   return {
     nextPage,
     previousPage
@@ -79,10 +81,10 @@ exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
   if (offset < 0) throw new AppError('Offset cannot be negative', 400);
 
   const albums = await Album.find({
-    _id: {
-      $in: albumsIds
-    }
-  })
+      _id: {
+        $in: albumsIds
+      }
+    })
     .select(
       'album_type artists external_urls id href images name release_date type uri'
     )
@@ -99,7 +101,10 @@ exports.getSeveralSimplifiedAlbums = async (albumsIds, limit, offset) => {
     }
   }).countDocuments();
 
-  const { nextPage, previousPage } = getNextAndPrevious(
+  const {
+    nextPage,
+    previousPage
+  } = getNextAndPrevious(
     offset,
     limit,
     albumsCount
@@ -176,7 +181,10 @@ const getAlbumTracks = async (albumID, limit, offset, url) => {
   }
   const totalCount = Tracks.tracks.length;
   const limitedTracks = Tracks.tracks.slice(offset, limit + offset);
-  const { nextPage, previousPage } = getNextAndPrevious(
+  const {
+    nextPage,
+    previousPage
+  } = getNextAndPrevious(
     offset,
     limit,
     totalCount
@@ -339,7 +347,10 @@ exports.getAlbum = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.getAlbumTracks = catchAsync(async (req, res, next) => {
-  const { limit, offset } = validateLimitOffset(
+  const {
+    limit,
+    offset
+  } = validateLimitOffset(
     req.query.limit,
     req.query.offset
   );
@@ -386,11 +397,14 @@ exports.newReleases = catchAsync(async (req, res, next) => {
       release_date: {
         $gte: lastMonth
       }
+    }).sort({
+      "release_date": -1
     }),
     req.query
   ).skip();
 
   const newReleases = await features.query;
+
 
   res.status(200).json({
     albums: newReleases

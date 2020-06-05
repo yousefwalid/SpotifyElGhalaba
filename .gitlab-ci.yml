@@ -2,7 +2,7 @@ image: node:13-alpine3.11
 stages:
   - build
   - test
-  - dockerize
+  - deploy
 
 # Cache modules in between jobs
 cache:
@@ -10,11 +10,11 @@ cache:
   paths:
     - .npm/
 
-before_script:
-  - npm ci --cache .npm --prefer-offline
 
 run in prod-like env:
   stage: build
+  before_script:
+    - npm ci --cache .npm --prefer-offline
   script:
     - sh
     - echo "$CI_ENV" > config.env
@@ -25,9 +25,25 @@ run unit tests:
   only:
     - master
     - 2-ci-cd-pipeline
+  before_script:
+    - npm ci --cache .npm --prefer-offline
   stage: test
   script:
     - sh
     - echo "$CI_ENV" > config.env
     - echo "$CI_ENV" > .test.env
     - npm run test
+
+deploy to the instance:
+ only:
+  - master
+ stage: deploy
+ before_script:
+   - apk update
+   - apk add openssh
+   - mkdir -p ~/.ssh
+   - echo -e "$SSH_PVT_K" > ~/.ssh/id_rsa
+   - chmod 600  ~/.ssh/id_rsa
+   - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+ script:
+   - ssh  $EC2_INSTANCE "cd ~/back && git pull origin master && ./start-docker.sh"
