@@ -2,7 +2,7 @@
  * Category Controller
  * @module followController
  */
-
+const mongoose = require('mongoose');
 const User = require('./../models/userModel');
 const Playlist = require('./../models/playlistModel');
 const AppError = require('./../utils/appError');
@@ -122,6 +122,72 @@ const getFollowedUsers = async (userId, queryParams) => {
   return await features.query;
 };
 exports.getFollowedUsersLogic = getFollowedUsers;
+
+const getFollowingUser = async (userId, limit, offset) => {
+  limit = limit * 1 || 20;
+  offset = offset * 1 || 0;
+
+  if (limit > 50 || limit < 0)
+    throw new AppError(400, 'Limit out of range, max: 50, min: 0');
+
+  if (offset > 100000 || offset < 0)
+    throw new AppError(400, 'Offset out of range, max: 100,000, min: 0');
+
+  if (!userId) throw new AppError(400, 'User Id not specified');
+
+  userId = mongoose.Types.ObjectId(userId);
+
+  const followingUsersId = (await User.findById(userId).select('following'))
+    .following;
+
+  const users = await User.find({ _id: { $in: followingUsersId } })
+    .select('type active followers name email gender country image')
+    .limit(limit)
+    .skip(offset);
+
+  return users;
+};
+
+const getFollowersUser = async (userId, limit, offset) => {
+  limit = limit * 1 || 20;
+  offset = offset * 1 || 0;
+
+  if (limit > 50 || limit < 0)
+    throw new AppError(400, 'Limit out of range, max: 50, min: 0');
+
+  if (offset > 100000 || offset < 0)
+    throw new AppError(400, 'Offset out of range, max: 100,000, min: 0');
+
+  if (!userId) throw new AppError(400, 'User Id not specified');
+
+  userId = mongoose.Types.ObjectId(userId);
+
+  const users = await User.aggregate([
+    {
+      $match: { following: { $in: [userId] } }
+    },
+    {
+      $project: {
+        type: '$type',
+        active: '$active',
+        followers: '$followers',
+        name: '$name',
+        email: '$email',
+        gender: '$gender',
+        country: '$country',
+        image: '$image'
+      }
+    },
+    {
+      $skip: offset
+    },
+    {
+      $limit: limit
+    }
+  ]);
+
+  return users;
+};
 
 /**
  * A method that takes an id of the user and an array of ids to be unfollowed by this user
@@ -313,6 +379,36 @@ exports.checkFollowing = catchAsync(async (req, res, next) => {
 exports.getFollowedUsers = catchAsync(async (req, res, next) => {
   const followedUsers = await getFollowedUsers(req.user._id, req.query);
   res.status(200).json(followedUsers);
+});
+
+/* istanbul ignore next */
+exports.getFollowingOfUser = catchAsync(async (req, res, next) => {
+  const following = await getFollowingUser(
+    req.params.id,
+    req.query.limit,
+    req.query.offset
+  );
+  res.status(200).json(following);
+});
+
+/* istanbul ignore next */
+exports.getFollowersOfCurrentUser = catchAsync(async (req, res, next) => {
+  const followers = await getFollowersUser(
+    req.user._id,
+    req.query.limit,
+    req.query.offset
+  );
+  res.status(200).json(followers);
+});
+
+/* istanbul ignore next */
+exports.getFollowersOfUser = catchAsync(async (req, res, next) => {
+  const followers = await getFollowersUser(
+    req.params.id,
+    req.query.limit,
+    req.query.offset
+  );
+  res.status(200).json(followers);
 });
 
 /* istanbul ignore next */
