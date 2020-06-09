@@ -6,13 +6,18 @@ const authController = require('./../controllers/authenticationController');
 const router = express.Router();
 
 router
+  .route('/:id/add-playlists')
+  .post(authController.protect, categoryController.addPlaylistsToCategory);
+
+router
   .route('/')
   .get(categoryController.getAllCategories)
   .post(authController.protect, categoryController.addCategory);
 
 router.route('/:id').get(categoryController.getCategory);
-
-//router.route('/:id/icons').post(authController.protect, fileUpload(), categoryController.addIcons);
+router
+  .route('/:id/update-icon')
+  .post(authController.protect, fileUpload(), categoryController.updateIcon);
 
 router
   .route('/:category_id/playlists')
