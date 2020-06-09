@@ -90,5 +90,5 @@ coverage/
 
 seeds/tracks/*.mp3
 
-seeds/ads/*
+#seeds/ads/*
 

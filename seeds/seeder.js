@@ -57,39 +57,39 @@ const createPlayHistories = async (userIds, trackIds) => {
 (async function() {
   process.env.NODE_ENV = 'seed';
   await connectDB();
-  await dropDB();
+  // await dropDB();
 
-  console.log('Running seeds, please wait...');
+  // console.log('Running seeds, please wait...');
 
-  const { userObjects, artistInfoObjects, adminObjects } = userSeed();
+  // const { userObjects, artistInfoObjects, adminObjects } = userSeed();
 
-  const users = await User.create(userObjects);
-  const artistsInfo = await User.create(artistInfoObjects);
-  // const admins = await User.create(adminObjects);
+  // const users = await User.create(userObjects);
+  // const artistsInfo = await User.create(artistInfoObjects);
+  // // const admins = await User.create(adminObjects);
 
-  const usersIds = artistsInfo.map(el => el._id);
+  // const usersIds = artistsInfo.map(el => el._id);
 
-  const artistObjects = artistSeed(usersIds);
-  const artists = await Artist.create(artistObjects);
-  const artistsIds = artists.map(el => el._id);
+  // const artistObjects = artistSeed(usersIds);
+  // const artists = await Artist.create(artistObjects);
+  // const artistsIds = artists.map(el => el._id);
 
-  const albumObjects = albumSeed.albumObjects(artistsIds);
+  // const albumObjects = albumSeed.albumObjects(artistsIds);
 
-  let albums = await Album.create(albumObjects);
+  // let albums = await Album.create(albumObjects);
 
-  const tracks = await trackSeed.createTracks(albums);
-  const tracksIds = tracks.map(el => el._id);
+  // const tracks = await trackSeed.createTracks(albums);
+  // const tracksIds = tracks.map(el => el._id);
 
-  albums = await Album.find({});
+  // albums = await Album.find({});
 
-  const playHistories = await createPlayHistories(usersIds, tracksIds);
+  // const playHistories = await createPlayHistories(usersIds, tracksIds);
 
-  const playlistObjects = playlistSeed(usersIds, tracksIds);
-  const playlists = await Playlist.create(playlistObjects);
-  const playlistsIds = playlists.map(el => el._id);
+  // const playlistObjects = playlistSeed(usersIds, tracksIds);
+  // const playlists = await Playlist.create(playlistObjects);
+  // const playlistsIds = playlists.map(el => el._id);
 
-  const categoryObjects = categorySeed.categoryObjects(playlistsIds);
-  const categories = await Category.insertMany(categoryObjects);
+  // const categoryObjects = categorySeed.categoryObjects(playlistsIds);
+  // const categories = await Category.insertMany(categoryObjects);
 
   await adSeed.createAds();
 
