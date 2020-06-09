@@ -1,4 +1,6 @@
 const sharp = require('sharp');
+const getColors = require('get-image-colors');
+const FileType = require('file-type');
 const AwsS3Api = require('./awsS3Api');
 const AppError = require('./appError');
 
@@ -31,6 +33,9 @@ module.exports = async (
   const awsObj = new AwsS3Api();
 
   const imgObjects = [];
+  const fileMime = (await FileType.fromBuffer(buf)).mime;
+
+  const colors = (await getColors(buf, fileMime)).map(color => color.hex());
 
   for (let i = 0; i < dimensions.length; i += 1) {
     const dimension = dimensions[i];
@@ -44,7 +49,8 @@ module.exports = async (
     const url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/`;
 
     // eslint-disable-next-line no-await-in-loop
-    awsObj.s3.putObject({
+    awsObj.s3.putObject(
+      {
         Body: img,
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: key
@@ -57,7 +63,8 @@ module.exports = async (
     imgObjects.push({
       width: dimension[0],
       height: dimension[1],
-      url: `${url}${key}`
+      url: `${url}${key}`,
+      colors: colors
     });
   }
 

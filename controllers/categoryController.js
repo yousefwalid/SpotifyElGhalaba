@@ -2,13 +2,13 @@
  * Category Controller
  * @module CategoryController
  */
-
+const mongoose = require('mongoose');
 const Category = require('./../models/categoryModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const ApiFeatures = require('./../utils/apiFeatures');
 const uploadAWSImage = require('../utils/uploadAWSImage');
-
+const Playlist = require('./../models/playlistModel');
 /**
  * A method that thakes the id of the category and returns a category object
  * @param {String} categoryId - The id of the category
@@ -68,11 +68,33 @@ const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
   )
     throw new AppError('Invalid request sent', 400);
 
+  categoryId = mongoose.Types.ObjectId(categoryId);
+
   const category = await Category.find({ _id: categoryId }, { _id: 1 }).limit(
     1
   );
 
-  if (!category) throw new AppError('No category found with that id', 404);
+  if (!category || category.length === 0)
+    throw new AppError('No category found with that id', 404);
+
+  const playlists = (
+    await Playlist.find({ _id: { $in: playlistsIds } }, { _id: 1 })
+  ).map(el => String(el._id));
+
+  playlistsIds.forEach(playlistId => {
+    if (!playlists.includes(playlistId))
+      throw new AppError("One or more invalid playlist's ids");
+  });
+
+  const newCategory = await Category.findByIdAndUpdate(
+    categoryId,
+    {
+      $push: { playlists: { $each: playlistsIds } }
+    },
+    { new: true }
+  );
+
+  return newCategory;
 };
 
 const updateIcon = async (fileData, categoryId) => {
@@ -131,6 +153,16 @@ exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
   res.status(200).json(playlists);
 });
 
+/* istanbul ignore next */
+exports.addPlaylistsToCategory = catchAsync(async (req, res, next) => {
+  const category = await addPlaylistsToCategory(
+    req.params.id,
+    req.body.playlists
+  );
+  res.status(200).json(category);
+});
+
+/* istanbul ignore next */
 exports.updateIcon = catchAsync(async (req, res, next) => {
   await updateIcon(req.files.image.data, req.params.id);
   res.status(202).json({
