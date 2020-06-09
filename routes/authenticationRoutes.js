@@ -1,6 +1,6 @@
 const express = require('express');
-const passport = require('../config/passportSetup');
 const geoip = require('geoip-lite');
+const passport = require('../config/passportSetup');
 const AppError = require('./../utils/appError');
 
 const authenticationController = require('./../controllers/authenticationController');

@@ -11,8 +11,7 @@ router
   .post(authController.protect, categoryController.addCategory);
 
 router.route('/:id').get(categoryController.getCategory);
-
-//router.route('/:id/icons').post(authController.protect, fileUpload(), categoryController.addIcons);
+router.route('/:id/update-icon').post(authController.protect, fileUpload(), categoryController.updateIcon);
 
 router
   .route('/:category_id/playlists')

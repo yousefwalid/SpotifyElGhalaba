@@ -83,11 +83,15 @@ const saveForCurrentUser = async (IDs, Model, User) => {
 const getNextAndPrevious = (offset, limit, modelName, totalCount) => {
   const nextPage =
     offset + limit <= totalCount
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/me/${modelName}s/?offset=${offset + limit}&limit=${limit}`
+      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
+          process.env.API_VERSION
+        }/me/${modelName}s/?offset=${offset + limit}&limit=${limit}`
       : null;
   const previousPage =
     offset - limit >= 0
-      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${process.env.API_VERSION}/me/${modelName}s/?offset=${offset - limit}&limit=${limit}`
+      ? `${process.env.DOMAIN_PRODUCTION}${process.env.API_BASE_URL}/v${
+          process.env.API_VERSION
+        }/me/${modelName}s/?offset=${offset - limit}&limit=${limit}`
       : null;
   return {
     nextPage,
@@ -141,6 +145,11 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
           ]
         }
       ]);
+    savedDocs.forEach((doc, index) => {
+      if (doc.track === null) {
+        savedDocs.splice(index, 1);
+      }
+    });
   } else {
     savedDocs = await savedModel
       .find({
@@ -165,6 +174,11 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
           ]
         }
       ]);
+    savedDocs.forEach((doc, index) => {
+      if (doc.album === null) {
+        savedDocs.splice(index, 1);
+      }
+    });
   }
   const totalCount = await savedModel.countDocuments({
     user: user._id
