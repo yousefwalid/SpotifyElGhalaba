@@ -132,7 +132,9 @@ exports.sendPremiumToken = catchAsync(async (req, res) => {
 });
 /* istanbul ignore next */
 exports.upgradeToPremium = catchAsync(async (req, res) => {
-  const { token } = req.params;
+  const {
+    token
+  } = req.params;
   const user = await upgradeToPremium(token);
   res.status(200).json({
     status: 'success',
