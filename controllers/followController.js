@@ -31,9 +31,11 @@ const follow = async (userId, idsToFollow, type) => {
 
   if (!validIdsToFollow.length) throw new AppError("Please enter valid ids to follow");
 
-  validIdsToFollow.forEach(validId => {
-    if (!idsToFollow.includes(validId)) throw new AppError("Please enter valid ids to follow");
-  })
+  idsToFollow.forEach(idToFollow => {
+    if (!validIdsToFollow.includes(idToFollow)) throw new AppError("Please enter valid ids to follow");
+  });
+
+
 
   // the already followed ids
   const following = me.following.map(id => id.toString());
