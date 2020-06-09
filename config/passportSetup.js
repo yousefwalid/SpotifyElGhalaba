@@ -111,7 +111,8 @@ passport.use(
         email: profileInfo.email,
         gender: profileInfo.gender === 'male' ? 'm' : 'f',
         birthdate: profileInfo.birthday,
-        facebookId: profile.id
+        facebookId: profile.id,
+        confirmed: true
       };
 
       let user = await User.findOne({
