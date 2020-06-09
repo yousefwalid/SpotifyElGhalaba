@@ -54,7 +54,9 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
     Category.findById(categoryId).select('playlists'),
     queryParams
   ).skip();
-  const { playlists } = await features.query.populate('playlists');
+  const {
+    playlists
+  } = await features.query.populate('playlists');
   return playlists;
 };
 exports.getCategoryPlaylistsLogic = getCategoryPlaylists;
@@ -70,7 +72,11 @@ const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
 
   categoryId = mongoose.Types.ObjectId(categoryId);
 
-  const category = await Category.find({ _id: categoryId }, { _id: 1 }).limit(
+  const category = await Category.find({
+    _id: categoryId
+  }, {
+    _id: 1
+  }).limit(
     1
   );
 
@@ -78,7 +84,13 @@ const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
     throw new AppError('No category found with that id', 404);
 
   const playlists = (
-    await Playlist.find({ _id: { $in: playlistsIds } }, { _id: 1 })
+    await Playlist.find({
+      _id: {
+        $in: playlistsIds
+      }
+    }, {
+      _id: 1
+    })
   ).map(el => String(el._id));
 
   playlistsIds.forEach(playlistId => {
@@ -87,14 +99,27 @@ const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
   });
 
   const newCategory = await Category.findByIdAndUpdate(
-    categoryId,
-    {
-      $push: { playlists: { $each: playlistsIds } }
-    },
-    { new: true }
+    categoryId, {
+      $push: {
+        playlists: {
+          $each: playlistsIds
+        }
+      }
+    }, {
+      new: true
+    }
   );
 
   return newCategory;
+};
+
+const removePlaylistsFromCategory = async (categoryId, playlistIdsToRemove) => {
+  const category = await Category.findById(categoryId);
+  if (!category) throw new AppError("No category found with this id", 404);
+  category.playlists = category.playlists.filter(playlistId => !playlistIdsToRemove.includes(playlistId.toString()));
+
+  await category.save();
+  return category;
 };
 
 const updateIcon = async (fileData, categoryId) => {
@@ -168,5 +193,32 @@ exports.updateIcon = catchAsync(async (req, res, next) => {
   res.status(202).json({
     status: 'success',
     message: 'Category icon updated successfully'
+  });
+});
+
+
+/* istanbul ignore next */
+exports.updateCategory = catchAsync(async (req, res, next) => {
+
+
+  const updatedCategory = await Category.findByIdAndUpdate(req.params.id, {
+    name: req.body.name
+  }, {
+    new: true
+  });
+
+  if (!updatedCategory) throw new AppError('No category with this id', 404);
+
+  res.status(200).json({
+    updatedCategory
+  });
+});
+
+/* istanbul ignore next */
+exports.deletePlaylists = catchAsync(async (req, res, next) => {
+  const updatedCategory = await removePlaylistsFromCategory(req.params.id, req.body.playlists);
+
+  res.status(200).json({
+    category: updatedCategory
   });
 });
