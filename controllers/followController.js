@@ -19,6 +19,21 @@ const notificationsController = require('./notificationsController');
  */
 const follow = async (userId, idsToFollow, type) => {
   const me = await User.findById(userId);
+  if (idsToFollow.includes(me.id)) throw new AppError("You can't follow yourself!");
+
+  // check if the ids are valid ids
+  let validIdsToFollow = await User.find({
+    "_id": {
+      $in: idsToFollow
+    }
+  });
+  validIdsToFollow = validIdsToFollow.map(user => user._id.toString());
+
+  if (!validIdsToFollow.length) throw new AppError("Please enter valid ids to follow");
+
+  validIdsToFollow.forEach(validId => {
+    if (!idsToFollow.includes(validId)) throw new AppError("Please enter valid ids to follow");
+  })
 
   // the already followed ids
   const following = me.following.map(id => id.toString());
@@ -36,6 +51,7 @@ const follow = async (userId, idsToFollow, type) => {
       })
     ).map(user => user._id.toString());
 
+
   // adding new ids to be followed to the user
   idsToFollow.forEach(id => {
     me.following.push(id);
@@ -45,18 +61,15 @@ const follow = async (userId, idsToFollow, type) => {
   await me.save();
 
   // updating followers counter of the followed users
-  await User.updateMany(
-    {
-      _id: {
-        $in: idsToFollow
-      }
-    },
-    {
-      $inc: {
-        followers: 1
-      }
+  await User.updateMany({
+    _id: {
+      $in: idsToFollow
     }
-  );
+  }, {
+    $inc: {
+      followers: 1
+    }
+  });
 
   if (idsToFollow)
     await notificationsController.sendFollowUserNotification(me, idsToFollow);
@@ -105,7 +118,9 @@ const getFollowedUsers = async (userId, queryParams) => {
   if (!queryParams) queryParams = {};
 
   //get an array of the followed ids
-  const { following: followedIds } = await User.findById(userId);
+  const {
+    following: followedIds
+  } = await User.findById(userId);
 
   // construct the query to get the users with those ids
   const query = {
@@ -140,7 +155,11 @@ const getFollowingUser = async (userId, limit, offset) => {
   const followingUsersId = (await User.findById(userId).select('following'))
     .following;
 
-  const users = await User.find({ _id: { $in: followingUsersId } })
+  const users = await User.find({
+      _id: {
+        $in: followingUsersId
+      }
+    })
     .select('type active followers name email gender country image')
     .limit(limit)
     .skip(offset);
@@ -162,9 +181,12 @@ const getFollowersUser = async (userId, limit, offset) => {
 
   userId = mongoose.Types.ObjectId(userId);
 
-  const users = await User.aggregate([
-    {
-      $match: { following: { $in: [userId] } }
+  const users = await User.aggregate([{
+      $match: {
+        following: {
+          $in: [userId]
+        }
+      }
     },
     {
       $project: {
@@ -217,18 +239,15 @@ const unfollowUsers = async (userId, idsToUnfollow, type) => {
   me.following = following.filter(id => !idsToUnfollow.includes(id));
   await me.save();
 
-  await User.updateMany(
-    {
-      _id: {
-        $in: idsToUnfollow
-      }
-    },
-    {
-      $inc: {
-        followers: -1
-      }
+  await User.updateMany({
+    _id: {
+      $in: idsToUnfollow
     }
-  );
+  }, {
+    $inc: {
+      followers: -1
+    }
+  });
 };
 
 exports.unfollowUsersLogic = unfollowUsers;
@@ -255,13 +274,11 @@ const followPlaylist = async (userId, playlistId, isPublic) => {
 
   //update the followers counter in the playlist
   const playlist = await Playlist.findByIdAndUpdate(
-    playlistToFollow,
-    {
+    playlistToFollow, {
       $inc: {
         followers: 1
       }
-    },
-    {
+    }, {
       new: true
     }
   );
