@@ -10,11 +10,19 @@ router
   .post(authController.protect, categoryController.addPlaylistsToCategory);
 
 router
+  .route('/:id/playlists')
+  .post(authController.protect, categoryController.addPlaylistsToCategory)
+  .delete(authController.protect, categoryController.deletePlaylists);
+
+router
   .route('/')
   .get(categoryController.getAllCategories)
   .post(authController.protect, categoryController.addCategory);
 
-router.route('/:id').get(categoryController.getCategory);
+router.route('/:id')
+  .get(categoryController.getCategory)
+  .patch(authController.protect, categoryController.updateCategory);
+
 router
   .route('/:id/update-icon')
   .post(authController.protect, fileUpload(), categoryController.updateIcon);
