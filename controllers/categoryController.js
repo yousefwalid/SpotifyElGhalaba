@@ -54,12 +54,26 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
     Category.findById(categoryId).select('playlists'),
     queryParams
   ).skip();
-  const {
-    playlists
-  } = await features.query.populate('playlists');
+  const { playlists } = await features.query.populate('playlists');
   return playlists;
 };
 exports.getCategoryPlaylistsLogic = getCategoryPlaylists;
+
+const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
+  if (
+    !categoryId ||
+    !playlistsIds ||
+    !Array.isArray(playlistsIds) ||
+    playlistsIds.length === 0
+  )
+    throw new AppError('Invalid request sent', 400);
+
+  const category = await Category.find({ _id: categoryId }, { _id: 1 }).limit(
+    1
+  );
+
+  if (!category) throw new AppError('No category found with that id', 404);
+};
 
 /* istanbul ignore next */
 exports.getCategory = catchAsync(async (req, res, next) => {
