@@ -2,13 +2,13 @@
  * Category Controller
  * @module CategoryController
  */
-
+const mongoose = require('mongoose');
 const Category = require('./../models/categoryModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const ApiFeatures = require('./../utils/apiFeatures');
 const uploadAWSImage = require('../utils/uploadAWSImage');
-
+const Playlist = require('./../models/playlistModel');
 /**
  * A method that thakes the id of the category and returns a category object
  * @param {String} categoryId - The id of the category
@@ -54,12 +54,76 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
     Category.findById(categoryId).select('playlists'),
     queryParams
   ).skip();
-  const {
-    playlists
-  } = await features.query.populate('playlists');
+  const { playlists } = await features.query.populate('playlists');
   return playlists;
 };
 exports.getCategoryPlaylistsLogic = getCategoryPlaylists;
+
+const addPlaylistsToCategory = async (categoryId, playlistsIds) => {
+  if (
+    !categoryId ||
+    !playlistsIds ||
+    !Array.isArray(playlistsIds) ||
+    playlistsIds.length === 0
+  )
+    throw new AppError('Invalid request sent', 400);
+
+  categoryId = mongoose.Types.ObjectId(categoryId);
+
+  const category = await Category.find({ _id: categoryId }, { _id: 1 }).limit(
+    1
+  );
+
+  if (!category || category.length === 0)
+    throw new AppError('No category found with that id', 404);
+
+  const playlists = (
+    await Playlist.find({ _id: { $in: playlistsIds } }, { _id: 1 })
+  ).map(el => String(el._id));
+
+  playlistsIds.forEach(playlistId => {
+    if (!playlists.includes(playlistId))
+      throw new AppError("One or more invalid playlist's ids");
+  });
+
+  const newCategory = await Category.findByIdAndUpdate(
+    categoryId,
+    {
+      $push: { playlists: { $each: playlistsIds } }
+    },
+    { new: true }
+  );
+
+  return newCategory;
+};
+
+const updateIcon = async (fileData, categoryId) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+
+  const category = await Category.findById(categoryId);
+
+  /*istanbul ignore next*/
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+  /*istanbul ignore next*/
+  const qualityNames = ['High', 'Medium', 'Low'];
+  /*istanbul ignore next*/
+  const imgObjects = await uploadAWSImage(
+    fileData,
+    'category',
+    categoryId,
+    dimensions,
+    qualityNames
+  );
+
+  /*istanbul ignore next*/
+  category.icons = imgObjects;
+  /*istanbul ignore next*/
+  await category.save();
+};
 
 /* istanbul ignore next */
 exports.getCategory = catchAsync(async (req, res, next) => {
@@ -89,37 +153,20 @@ exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
   res.status(200).json(playlists);
 });
 
-// exports.addIcons = catchAsync(async (req, res, next) => {
-//   if (!req.params.id)
-//     throw new AppError('Please provide category ID', 400);
+/* istanbul ignore next */
+exports.addPlaylistsToCategory = catchAsync(async (req, res, next) => {
+  const category = await addPlaylistsToCategory(
+    req.params.id,
+    req.body.playlists
+  );
+  res.status(200).json(category);
+});
 
-//   const category = await Category.findById(req.params.id);
-
-//   if (!category)
-//     throw new AppError('Album not found', 404);
-
-//   const dimensions = [
-//     [640, 640],
-//     [300, 300],
-//     [60, 60]
-//   ];
-
-//   const qualityNames = ['High', 'Medium', 'Low'];
-
-//   const imgObjects = await uploadAWSImage(
-//     req.files.icons.data,
-//     'category',
-//     req.params.id,
-//     dimensions,
-//     qualityNames
-//   );
-
-//   category.icons = imgObjects;
-
-//   await category.save();
-
-//   res.status(201).json({
-//     status: 'success',
-//     message: 'Icons Uploaded successfully'
-//   });
-// });
+/* istanbul ignore next */
+exports.updateIcon = catchAsync(async (req, res, next) => {
+  await updateIcon(req.files.image.data, req.params.id);
+  res.status(202).json({
+    status: 'success',
+    message: 'Category icon updated successfully'
+  });
+});

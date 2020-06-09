@@ -15,6 +15,10 @@ const ImageObject = new mongoose.Schema(
       type: String,
       trim: true,
       required: [true, 'The url is required.']
+    },
+    colors: {
+      type: [String],
+      required: false
     }
   },
   {
