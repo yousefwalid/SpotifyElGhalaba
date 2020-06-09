@@ -61,6 +61,34 @@ const getCategoryPlaylists = async (categoryId, queryParams) => {
 };
 exports.getCategoryPlaylistsLogic = getCategoryPlaylists;
 
+const updateIcon = async (fileData, categoryId) => {
+  if (!fileData) throw new AppError('Invalid file uploaded', 400);
+
+  const category = await Category.findById(categoryId);
+
+  /*istanbul ignore next*/
+  const dimensions = [
+    [640, 640],
+    [300, 300],
+    [60, 60]
+  ];
+  /*istanbul ignore next*/
+  const qualityNames = ['High', 'Medium', 'Low'];
+  /*istanbul ignore next*/
+  const imgObjects = await uploadAWSImage(
+    fileData,
+    'category',
+    categoryId,
+    dimensions,
+    qualityNames
+  );
+
+  /*istanbul ignore next*/
+  category.icons = imgObjects;
+  /*istanbul ignore next*/
+  await category.save();
+};
+
 /* istanbul ignore next */
 exports.getCategory = catchAsync(async (req, res, next) => {
   const category = await getCategory(req.params.id);
@@ -82,6 +110,8 @@ exports.addCategory = catchAsync(async (req, res, next) => {
 
 /* istanbul ignore next */
 exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
+
+
   const playlists = await getCategoryPlaylists(
     req.params.category_id,
     req.query
@@ -89,37 +119,10 @@ exports.getCategoryPlaylists = catchAsync(async (req, res, next) => {
   res.status(200).json(playlists);
 });
 
-// exports.addIcons = catchAsync(async (req, res, next) => {
-//   if (!req.params.id)
-//     throw new AppError('Please provide category ID', 400);
-
-//   const category = await Category.findById(req.params.id);
-
-//   if (!category)
-//     throw new AppError('Album not found', 404);
-
-//   const dimensions = [
-//     [640, 640],
-//     [300, 300],
-//     [60, 60]
-//   ];
-
-//   const qualityNames = ['High', 'Medium', 'Low'];
-
-//   const imgObjects = await uploadAWSImage(
-//     req.files.icons.data,
-//     'category',
-//     req.params.id,
-//     dimensions,
-//     qualityNames
-//   );
-
-//   category.icons = imgObjects;
-
-//   await category.save();
-
-//   res.status(201).json({
-//     status: 'success',
-//     message: 'Icons Uploaded successfully'
-//   });
-// });
+exports.updateIcon = catchAsync(async (req, res, next) => {
+  await updateIcon(req.files.image.data, req.params.id);
+  res.status(202).json({
+    status: 'success',
+    message: 'Category icon updated successfully'
+  });
+});
