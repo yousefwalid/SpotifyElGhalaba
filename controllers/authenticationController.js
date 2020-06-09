@@ -302,8 +302,7 @@ const createAndSendToken = (user, statusCode, res) => {
     sameSite: false //Has to be 'None' [It's a bug in express (waiting for it to be solved)]
   };
 
-  // if (process.env.NODE_ENV === 'production')
-  // cookieOptions.secure = true;
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
   cookieOptions.httpOnly = false;
