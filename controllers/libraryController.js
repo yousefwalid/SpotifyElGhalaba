@@ -170,6 +170,10 @@ const getSavedModel = async (user, limit, offset, Model, url) => {
                   select: 'name'
                 }
               ]
+            },
+            {
+              path: 'artists',
+              select: 'name'
             }
           ]
         }
