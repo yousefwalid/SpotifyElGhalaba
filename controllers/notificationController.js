@@ -52,7 +52,9 @@ const getNotifications = async (userId, page) => {
   const startIndex = (page - 1) * 10;
   const endIndex = startIndex + 10;
 
-  const { notifications } = await User.findById(userId).select('notifications');
+  const {
+    notifications
+  } = await User.findById(userId).select('notifications');
 
   const lastNotifications = [...notifications].splice(startIndex, endIndex);
 

@@ -1,7 +1,6 @@
 const admin = require('../config/firebase');
 const User = require('../models/userModel');
 
-
 const sendNotification = async (userIds, title, message, data = {}) => {
     title = String(title);
 

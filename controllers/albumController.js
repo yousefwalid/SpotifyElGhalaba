@@ -25,15 +25,12 @@ const notificationsController = require('./notificationsController');
  * @returns {AlbumObject} The album with the specified ID
  */
 const getAlbum = async (albumID, next) => {
-  const album = await Album.findById(albumID).populate([
-    {
+  const album = await Album.findById(albumID).populate([{
       path: 'tracks',
-      populate: [
-        {
-          path: 'artists',
-          select: 'name'
-        }
-      ]
+      populate: [{
+        path: 'artists',
+        select: 'name'
+      }]
     },
     {
       path: 'artists',
@@ -137,8 +134,7 @@ const getSeveralAlbums = async AlbumsIds => {
     _id: {
       $in: AlbumsIds
     }
-  }).populate([
-    {
+  }).populate([{
       path: 'tracks'
     },
     {
@@ -307,11 +303,40 @@ const removeAlbum = async (albumID, userID) => {
   await Album.findByIdAndUpdate(albumID, {
     active: false
   });
-  await Track.updateMany(
-    { _id: { $in: album.tracks } },
-    { $set: { active: false } }
-  );
+  await Track.updateMany({
+    _id: {
+      $in: album.tracks
+    }
+  }, {
+    $set: {
+      active: false
+    }
+  });
 };
+
+/**
+ * get the latest albums ( released in the last month )
+ * @param {Object} [queryString] -to filter the returned data
+ */
+const getNewReleases = async (queryString) => {
+  const currentDate = new Date();
+  const lastMonth = currentDate.setMonth(currentDate.getMonth() - 1);
+
+  const features = new ApiFeatures(
+    Album.find({
+      release_date: {
+        $gte: lastMonth
+      }
+    }).sort({
+      "release_date": -1
+    }),
+    queryString
+  ).skip();
+
+  const newReleases = await features.query;
+  return newReleases;
+}
+
 /* istanbul ignore next */
 exports.removeAlbum = catchAsync(async (req, res) => {
   await removeAlbum(req.params.id, req.user._id);
@@ -389,22 +414,7 @@ exports.removeAlbumLogic = removeAlbum;
 
 /* istanbul ignore next */
 exports.newReleases = catchAsync(async (req, res, next) => {
-  const currentDate = new Date();
-  const lastMonth = currentDate.setMonth(currentDate.getMonth() - 1);
-
-  const features = new ApiFeatures(
-    Album.find({
-      release_date: {
-        $gte: lastMonth
-      }
-    }).sort({
-      "release_date": -1
-    }),
-    req.query
-  ).skip();
-
-  const newReleases = await features.query;
-
+  const newReleases = await getNewReleases(req.query);
 
   res.status(200).json({
     albums: newReleases

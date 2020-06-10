@@ -89,8 +89,8 @@ class APIFeatures {
 
     if (this.query)
       this.query = this.query
-        .skip(this.queryString.offset)
-        .limit(this.queryString.limit);
+      .skip(this.queryString.offset)
+      .limit(this.queryString.limit);
 
     return this;
   }
